@@ -1,4 +1,4 @@
-import type { Room } from "../model/room";
+import { Room } from "../model/room";
 import type { TaxiRoute } from "../model/room";
 import type { RoomEvent } from "./room-event";
 
