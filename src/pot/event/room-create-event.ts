@@ -30,6 +30,23 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
     return (room: Room, data: RoomCreateEventV1Dto) => {
       const now = new Date();
 
+      // 출발 가능 시간의 범위는 현재 시간 이후여야 한다.
+      if (data.departureStartTime < now || data.departureEndTime < now) {
+        throw new Error(
+          "Departure start time or end time must be in the future",
+        );
+      }
+
+      // 출발 가능 시작 시간은 출발 가능 종료 시간 이전이어야 한다.
+      if (data.departureStartTime > data.departureEndTime) {
+        throw new Error("Departure start time must be before end time");
+      }
+
+      // 최대 인원 수는 1명 이상 4명 이하여야 한다.
+      if (data.maxCapacity <= 0 || data.maxCapacity > 4) {
+        throw new Error("Max capacity must be between 1 and 5");
+      }
+
       room.roomId = Room.generateRoomId();
       const randomNumber = room.roomId.slice(-4);
 
@@ -44,6 +61,7 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
 
       room.createAt = now;
       room.updateAt = now;
+
       return room;
     };
   }

@@ -1,12 +1,10 @@
-import { randomUUID } from "node:crypto";
+import { generateRoomId } from "@src/utils/id-generate";
 
 export class Room {
+  constructor() {}
+
   static generateRoomId = (): string => {
-    const unixTime = Math.floor(Date.now() / 1000);
-    const uuid = randomUUID();
-    const last4Chars = uuid.slice(-4);
-    const randomNumber = Math.floor(Math.random() * 10000);
-    return `ROOM_${unixTime}_${last4Chars}_${randomNumber}`;
+    return generateRoomId("ROOM");
   };
 
   static generateRoomName = (
