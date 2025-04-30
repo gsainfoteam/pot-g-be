@@ -24,8 +24,8 @@ export class RoomJoinEventV1 implements RoomEvent<RoomJoinEventV1Dto> {
   ) => Room {
     return (room: Room, data: RoomJoinEventV1Dto) => {
       // 방 존재 여부 확인
-      if (room.roomId !== data.roomId) {
-        throw new Error("Room ID does not match");
+      if (room.roomId !== data.roomId || room.isArchived) {
+        throw new Error("Room ID does not match or room is archived");
       }
 
       // 이미 참여한 유저인 경우 참여 불가

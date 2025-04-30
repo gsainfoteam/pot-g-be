@@ -84,6 +84,9 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
       room.createAt = now;
       room.updateAt = now;
 
+      room.departureTime = null;
+      room.isArchived = false;
+
       return room;
     };
   }

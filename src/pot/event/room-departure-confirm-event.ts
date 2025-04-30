@@ -29,8 +29,8 @@ export class RoomDepartureConfirmEventV1
   ) => Room {
     return (room: Room, data: RoomDepartureConfirmEventV1Dto) => {
       // 방 존재 여부 확인
-      if (room.roomId !== data.roomId) {
-        throw new Error("Room ID does not match");
+      if (room.roomId !== data.roomId || room.isArchived) {
+        throw new Error("Room ID does not match or room is archived");
       }
 
       // 방장만 출발 확정을 정할 수 있음

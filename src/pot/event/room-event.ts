@@ -7,6 +7,10 @@ import {
   RoomDepartureConfirmEventV1,
   RoomDepartureConfirmEventV1Dto,
 } from "./room-departure-confirm-event";
+import {
+  RoomUserKickEventV1,
+  RoomUserKickEventV1Dto,
+} from "./room-user-kick-event";
 
 export interface RoomEvent<T> {
   //Metadata of event
@@ -51,6 +55,10 @@ export class RoomEventFactory {
         return RoomDepartureConfirmEventV1.generateRoomDepartureConfirmEvent(
           data,
         );
+      }
+      case "RoomUserKickEventV1": {
+        const data = entity.data as RoomUserKickEventV1Dto;
+        return RoomUserKickEventV1.generateRoomUserKickEvent(data);
       }
       default:
         throw new Error(`Unknown event type: ${entity.eventType}`);

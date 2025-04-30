@@ -25,8 +25,8 @@ export class RoomUserKickEventV1 implements RoomEvent<RoomUserKickEventV1Dto> {
   ) => Room {
     return (room: Room, data: RoomUserKickEventV1Dto) => {
       // 방 존재 여부 확인
-      if (room.roomId !== data.roomId) {
-        throw new Error("Room ID does not match");
+      if (room.roomId !== data.roomId || room.isArchived) {
+        throw new Error("Room ID does not match or room is archived");
       }
 
       // 출발 시간이 정해지면 강퇴 불가

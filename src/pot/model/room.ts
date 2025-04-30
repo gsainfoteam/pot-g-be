@@ -36,6 +36,8 @@ export class Room {
 
   createAt: Date;
   updateAt: Date;
+
+  isArchived: boolean;
 }
 
 export const TaxiRoute = {
