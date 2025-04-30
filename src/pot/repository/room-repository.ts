@@ -2,7 +2,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { Room } from "../model/room";
 import { RoomEvent, RoomEventFactory } from "../event/room-event";
 import { roomEvent } from "drizzle/schema/room-event";
-import { and, eq, asc, or, gt, lt, SQL, inArray } from "drizzle-orm";
+import { and, eq, asc, SQL, inArray, sql } from "drizzle-orm";
 import { RoomReducer } from "../event/room-reducer";
 
 export class RoomRepository {
@@ -25,6 +25,7 @@ export class RoomRepository {
   private async findEventsByCondition(
     roomId?: string,
     eventTypes?: string[],
+    dataConditions?: Record<string, string>,
   ): Promise<RoomEvent<any>[]> {
     const conditions: SQL[] = [];
 
@@ -34,6 +35,14 @@ export class RoomRepository {
 
     if (eventTypes) {
       conditions.push(inArray(roomEvent.eventType, eventTypes));
+    }
+
+    if (dataConditions && Object.keys(dataConditions).length > 0) {
+      Object.entries(dataConditions).forEach(([key, value]) => {
+        if (typeof value === "string") {
+          conditions.push(sql`${roomEvent.data}->>'${key}' = ${value}`);
+        }
+      });
     }
 
     const result = await this.db.db

@@ -7,8 +7,8 @@ export type RoomCreateEventV1Dto = {
   createUserId: string;
   route: TaxiRoute;
   maxCapacity: number;
-  departureStartTime: Date;
-  departureEndTime: Date;
+  departureAvailableStartTime: Date;
+  departureAvailableEndTime: Date;
 };
 
 export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
@@ -31,20 +31,42 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
       const now = new Date();
 
       // 출발 가능 시간의 범위는 현재 시간 이후여야 한다.
-      if (data.departureStartTime < now || data.departureEndTime < now) {
+      if (
+        data.departureAvailableStartTime < now ||
+        data.departureAvailableEndTime < now
+      ) {
         throw new Error(
           "Departure start time or end time must be in the future",
         );
       }
 
       // 출발 가능 시작 시간은 출발 가능 종료 시간 이전이어야 한다.
-      if (data.departureStartTime > data.departureEndTime) {
+      if (data.departureAvailableStartTime > data.departureAvailableEndTime) {
         throw new Error("Departure start time must be before end time");
+      }
+
+      // 출발 가능 시작 시간과 출발 종료시간은 24시간 이상 차이날 수 없다
+      if (
+        data.departureAvailableEndTime.getTime() -
+          data.departureAvailableStartTime.getTime() >
+        24 * 60 * 60 * 1000
+      ) {
+        throw new Error(
+          "Departure start time and end time must be within 24 hours",
+        );
       }
 
       // 최대 인원 수는 1명 이상 4명 이하여야 한다.
       if (data.maxCapacity <= 0 || data.maxCapacity > 4) {
         throw new Error("Max capacity must be between 1 and 5");
+      }
+
+      // 출발 가능 종료 시간은 현재 시간 이후 30일 이내여야 한다.
+      if (
+        data.departureAvailableEndTime >
+        new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+      ) {
+        throw new Error("Departure end time must be within one month");
       }
 
       room.roomId = Room.generateRoomId();
@@ -56,8 +78,8 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
       room.route = data.route;
 
       room.maxCapacity = data.maxCapacity;
-      room.departureStartTime = data.departureStartTime;
-      room.departureEndTime = data.departureEndTime;
+      room.departureAvailableStartTime = data.departureAvailableStartTime;
+      room.departureAvailableEndTime = data.departureAvailableEndTime;
 
       room.createAt = now;
       room.updateAt = now;

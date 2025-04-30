@@ -29,8 +29,10 @@ export class Room {
   route: TaxiRoute; // 택시 경로
   maxCapacity: number; // 최대 인원
 
-  departureStartTime: Date; // 출발 가능 시작 시간
-  departureEndTime: Date; // 출발 가능 종료 시간
+  departureAvailableStartTime: Date; // 출발 가능 시작 시간
+  departureAvailableEndTime: Date; // 출발 가능 종료 시간
+
+  departureTime: Date | null; // 출발 시간
 
   createAt: Date;
   updateAt: Date;
