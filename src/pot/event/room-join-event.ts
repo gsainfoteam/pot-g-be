@@ -38,6 +38,11 @@ export class RoomJoinEventV1 implements RoomEvent<RoomJoinEventV1Dto> {
         throw new Error("Room is full");
       }
 
+      // 출발 시간이 정해지면 참여 불가
+      if (room.departureTime !== null) {
+        throw new Error("Departure time is already set");
+      }
+
       room.joinedUserIds.push(data.userId);
       return room;
     };
