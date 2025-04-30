@@ -40,7 +40,13 @@ export class RoomRepository {
     if (dataConditions && Object.keys(dataConditions).length > 0) {
       Object.entries(dataConditions).forEach(([key, value]) => {
         if (typeof value === "string") {
-          conditions.push(sql`${roomEvent.data}->>'${key}' = ${value}`);
+          if (value.startsWith("[") && value.endsWith("]")) {
+            // 배열 데이터 처리 - JSONB 연산자 사용
+            conditions.push(sql`${roomEvent.data}::jsonb @> ${value}::jsonb`);
+          } else {
+            // 일반 문자열 데이터 처리
+            conditions.push(sql`${roomEvent.data}->>'${key}' = ${value}`);
+          }
         }
       });
     }
