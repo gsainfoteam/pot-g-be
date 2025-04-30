@@ -18,7 +18,7 @@ export class RoomJoinEventV1 implements RoomEvent<RoomJoinEventV1Dto> {
     return new RoomJoinEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomJoinEventV1Dto,
   ) => Room {

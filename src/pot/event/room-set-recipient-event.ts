@@ -22,7 +22,7 @@ export class RoomSetRecipientEventV1
     return new RoomSetRecipientEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomSetRecipientEventV1Dto,
   ) => Room {

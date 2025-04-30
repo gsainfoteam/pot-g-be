@@ -2,7 +2,9 @@ import { Room } from "../model/room";
 import type { TaxiRoute } from "../model/room";
 import type { RoomEvent } from "./room-event";
 
+//Fixme : Id들이 그대로 복원이 안됨 아예 인풋으로 받아야함
 export type RoomCreateEventV1Dto = {
+  roomId: string;
   name: string;
   createUserId: string;
   route: TaxiRoute;
@@ -23,7 +25,7 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
     return new RoomCreateEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomCreateEventV1Dto,
   ) => Room {
@@ -69,7 +71,7 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
         throw new Error("Departure end time must be within one month");
       }
 
-      room.roomId = Room.generateRoomId();
+      room.roomId = data.roomId;
       const randomNumber = room.roomId.slice(-4);
 
       room.hostUserId = data.createUserId;

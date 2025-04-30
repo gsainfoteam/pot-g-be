@@ -19,7 +19,7 @@ export class RoomUserKickEventV1 implements RoomEvent<RoomUserKickEventV1Dto> {
     return new RoomUserKickEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomUserKickEventV1Dto,
   ) => Room {

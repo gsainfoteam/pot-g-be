@@ -17,7 +17,7 @@ export class RoomArchiveEventV1 implements RoomEvent<RoomArchiveEventV1Dto> {
     return new RoomArchiveEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomArchiveEventV1Dto,
   ) => Room {

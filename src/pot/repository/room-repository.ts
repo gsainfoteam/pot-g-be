@@ -2,7 +2,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { Room } from "../model/room";
 import { RoomEvent, RoomEventFactory } from "../event/room-event";
 import { roomEvent } from "drizzle/schema/room-event";
-import { and, eq, asc, SQL, inArray, sql } from "drizzle-orm";
+import { and, asc, SQL, sql } from "drizzle-orm";
 import { RoomReducer } from "../event/room-reducer";
 
 export class RoomRepository {
@@ -18,37 +18,36 @@ export class RoomRepository {
   }
 
   async findById(roomId: string): Promise<Room> {
-    const result = await this.findEventsByCondition(roomId);
+    const result = await this.findEventsByCondition({
+      roomIds: [roomId],
+      dataConditions: [],
+    });
     return new RoomReducer().reduceAll(new Room(), result);
   }
 
-  private async findEventsByCondition(
-    roomId?: string,
-    eventTypes?: string[],
-    dataConditions?: Record<string, string>,
-  ): Promise<RoomEvent<any>[]> {
+  private async findEventsByCondition(params: {
+    roomIds?: string[];
+    dataConditions: { eventType: string; data: Record<string, any> }[];
+  }): Promise<RoomEvent<any>[]> {
     const conditions: SQL[] = [];
 
-    if (roomId) {
-      conditions.push(eq(roomEvent.roomId, roomId));
+    if (params.roomIds && params.roomIds.length > 0) {
+      conditions.push(sql`${roomEvent.roomId} = ANY(${params.roomIds})`);
     }
 
-    if (eventTypes) {
-      conditions.push(inArray(roomEvent.eventType, eventTypes));
-    }
-
-    if (dataConditions && Object.keys(dataConditions).length > 0) {
-      Object.entries(dataConditions).forEach(([key, value]) => {
-        if (typeof value === "string") {
-          if (value.startsWith("[") && value.endsWith("]")) {
-            // 배열 데이터 처리 - JSONB 연산자 사용
-            conditions.push(sql`${roomEvent.data}::jsonb @> ${value}::jsonb`);
-          } else {
-            // 일반 문자열 데이터 처리
-            conditions.push(sql`${roomEvent.data}->>'${key}' = ${value}`);
-          }
-        }
-      });
+    if (params.dataConditions.length > 0) {
+      const eventConditions = params.dataConditions.map(
+        ({ eventType, data }) => {
+          const dataConditions = Object.entries(data).map(([k, v]) => {
+            if (typeof v === "string" && v.startsWith("[") && v.endsWith("]")) {
+              return sql`${roomEvent.data}::jsonb @> ${v}::jsonb`;
+            }
+            return sql`${roomEvent.data}->>'${k}' = ${v}`;
+          });
+          return sql`(${roomEvent.eventType} = ${eventType} AND ${and(...dataConditions)})`;
+        },
+      );
+      conditions.push(sql`(${sql.join(eventConditions, " OR ")})`);
     }
 
     const result = await this.db.db

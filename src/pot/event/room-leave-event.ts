@@ -20,7 +20,7 @@ export class RoomLeaveEventV1 implements RoomEvent<RoomLeaveEventV1Dto> {
     return new RoomLeaveEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomLeaveEventV1Dto,
   ) => Room {

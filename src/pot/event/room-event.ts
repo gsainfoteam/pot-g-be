@@ -11,6 +11,19 @@ import {
   RoomUserKickEventV1,
   RoomUserKickEventV1Dto,
 } from "./room-user-kick-event";
+import {
+  RoomArchiveEventV1,
+  RoomArchiveEventV1Dto,
+} from "./room-archive-event";
+import { RoomLeaveEventV1, RoomLeaveEventV1Dto } from "./room-leave-event";
+import {
+  RoomSendPaymentConfirmEventV1,
+  RoomSendPaymentConfirmEventV1Dto,
+} from "./room-send-payemnt-confirm-event";
+import {
+  RoomSetRecipientEventV1,
+  RoomSetRecipientEventV1Dto,
+} from "./room-set-recipient-event";
 
 export interface RoomEvent<T> {
   //Metadata of event
@@ -59,6 +72,24 @@ export class RoomEventFactory {
       case "RoomUserKickEventV1": {
         const data = entity.data as RoomUserKickEventV1Dto;
         return RoomUserKickEventV1.generateRoomUserKickEvent(data);
+      }
+      case "RoomArchiveEventV1": {
+        const data = entity.data as RoomArchiveEventV1Dto;
+        return RoomArchiveEventV1.generateRoomArchiveEvent(data);
+      }
+      case "RoomLeaveEventV1": {
+        const data = entity.data as RoomLeaveEventV1Dto;
+        return RoomLeaveEventV1.generateRoomLeaveEvent(data);
+      }
+      case "RoomSendPaymentConfirmEventV1": {
+        const data = entity.data as RoomSendPaymentConfirmEventV1Dto;
+        return RoomSendPaymentConfirmEventV1.generateRoomSendPaymentConfirmEvent(
+          data,
+        );
+      }
+      case "RoomSetRecipientEventV1": {
+        const data = entity.data as RoomSetRecipientEventV1Dto;
+        return RoomSetRecipientEventV1.generateRoomSetRecipientEvent(data);
       }
       default:
         throw new Error(`Unknown event type: ${entity.eventType}`);

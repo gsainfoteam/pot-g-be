@@ -23,7 +23,7 @@ export class RoomDepartureConfirmEventV1
     return new RoomDepartureConfirmEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomDepartureConfirmEventV1Dto,
   ) => Room {

@@ -24,7 +24,7 @@ export class RoomSendPaymentConfirmEventV1
     return new RoomSendPaymentConfirmEventV1(data);
   }
 
-  static getDispatcherFunction(): (
+  private static getDispatcherFunction(): (
     room: Room,
     data: RoomSendPaymentConfirmEventV1Dto,
   ) => Room {
