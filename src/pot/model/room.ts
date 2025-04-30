@@ -42,6 +42,7 @@ export class Room {
   recipientUserId: string | null; // 송금 받을 유저의 ID
   recipientAmount: number | null; // 송금 받을 금액 (원)
   senderUserIds: string[]; // 송금 보낼 유저의 ID 리스트
+  sendedUserIds: string[]; // 송금 보낸 유저의 ID 리스트
 }
 
 export const TaxiRoute = {
