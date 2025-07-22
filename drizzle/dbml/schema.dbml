@@ -1,0 +1,11 @@
+table room_event {
+  id varchar(255) [pk, not null]
+  room_id varchar(255) [not null]
+  event_type varchar(255) [not null]
+  data jsonb [not null]
+  created_at timestamp [not null, default: `now()`]
+}
+
+table users {
+  id varchar(255) [pk, not null]
+}
