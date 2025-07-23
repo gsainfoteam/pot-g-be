@@ -1,4 +1,4 @@
-import { pgTable, primaryKey, uuid } from "drizzle-orm/pg-core";
+import { boolean, pgTable, primaryKey, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 import { potRoom } from "./pot-room";
@@ -6,7 +6,8 @@ import { potRoom } from "./pot-room";
 /*
 CREATE TABLE "user_pot_room" (
     "user_fk"       uuid NOT NULL,
-    "pot_room_fk"   uuid NOT NULL
+    "pot_room_fk"   uuid NOT NULL,
+    "is_host"       boolean NOT NULL DEFAULT FALSE
 );
 */
 export const userPotRoom = pgTable(
@@ -14,6 +15,7 @@ export const userPotRoom = pgTable(
   {
     userFk: uuid("user_fk").notNull(),
     potRoomFk: uuid("pot_room_fk").notNull(),
+    isHost: boolean("is_host").notNull().default(false),
   },
   (table) => [primaryKey({ columns: [table.userFk, table.potRoomFk] })],
 );

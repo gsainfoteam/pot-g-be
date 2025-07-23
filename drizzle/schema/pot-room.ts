@@ -13,22 +13,30 @@ import { potEvent } from "./pot-event";
 
 /*
 CREATE TABLE "pot_room" (
-    "pk"            uuid                     NOT NULL,
-    "route_fk"      uuid                     NOT NULL,
-    "is_closed"     boolean                  NOT NULL DEFAULT FALSE,
-    "is_deleted"    boolean                  NOT NULL DEFAULT FALSE,
-    "max_num"       smallint                 NOT NULL,
-    "created_at"    timestamp with time zone NOT NULL DEFAULT NOW(),
-    "updated_at"    timestamp with time zone NOT NULL DEFAULT NOW(),
-    "name"          varchar(64)              NOT NULL
+    "pk"                     uuid                     NOT NULL,
+    "route_fk"               uuid                     NOT NULL,
+    "is_archived"            boolean                  NOT NULL DEFAULT FALSE,
+    "is_deleted"             boolean                  NOT NULL DEFAULT FALSE,
+    "is_departure_confirmed" boolean                  NOT NULL DEFAULT FALSE,
+    "max_capacity"           smallint                 NOT NULL,
+    "starts_at"              timestamp with time zone NOT NULL,
+    "ends_at"                timestamp with time zone NOT NULL,
+    "created_at"             timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"             timestamp with time zone NOT NULL DEFAULT NOW(),
+    "name"                   varchar(64)              NOT NULL
 );
 */
 export const potRoom = pgTable("pot_room", {
   pk: uuid("pk").primaryKey().notNull(),
   routeFk: uuid("route_fk").notNull(),
-  isClosed: boolean("is_closed").notNull().default(false),
+  isArchived: boolean("is_archived").notNull().default(false),
   isDeleted: boolean("is_deleted").notNull().default(false),
-  maxNum: smallint("max_num").notNull(),
+  isDepartureConfirmed: boolean("is_departure_confirmed")
+    .notNull()
+    .default(false),
+  maxCapacity: smallint("max_capacity").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

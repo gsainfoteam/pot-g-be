@@ -12,23 +12,27 @@ CREATE TABLE "users"
 
 CREATE TABLE "user_pot_room"
 (
-    "user_fk"     uuid NOT NULL,
-    "pot_room_fk" uuid NOT NULL
+    "user_fk"     uuid    NOT NULL,
+    "pot_room_fk" uuid    NOT NULL,
+    "is_host"     boolean NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE "pot_room"
 (
-    "pk"         uuid                     NOT NULL,
-    "route_fk"   uuid                     NOT NULL,
-    "is_closed"  boolean                  NOT NULL DEFAULT FALSE,
-    "is_deleted" boolean                  NOT NULL DEFAULT FALSE,
-    "max_num"    smallint                 NOT NULL,
-    "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
-    "updated_at" timestamp with time zone NOT NULL DEFAULT NOW(),
-    "name"       varchar(64)              NOT NULL
+    "pk"                     uuid                     NOT NULL,
+    "route_fk"               uuid                     NOT NULL,
+    "is_archived"            boolean                  NOT NULL DEFAULT FALSE,
+    "is_deleted"             boolean                  NOT NULL DEFAULT FALSE,
+    "is_departure_confirmed" boolean                  NOT NULL DEFAULT FALSE,
+    "max_capacity"           smallint                 NOT NULL,
+    "starts_at"              timestamp with time zone NOT NULL,
+    "ends_at"                timestamp with time zone NOT NULL,
+    "created_at"             timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"             timestamp with time zone NOT NULL DEFAULT NOW(),
+    "name"                   varchar(64)              NOT NULL
 );
 
-CREATE TYPE pot_event_type AS ENUM (
+CREATE TYPE "pot_event_type" AS ENUM (
     'create_v1',
     'chat_v1',
     'user_in_v1',
