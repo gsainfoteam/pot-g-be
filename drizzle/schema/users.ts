@@ -15,16 +15,20 @@ CREATE TABLE "users" (
     "pk"            uuid                     NOT NULL,
     "is_deleted"    boolean                  NOT NULL,
     "name"          varchar(32)              NOT NULL,
-    "created_at"    timestamp with time zone NOT NULL,
-    "updated_at"    timestamp with time zone NOT NULL
+    "created_at"    timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"    timestamp with time zone NOT NULL DEFAULT NOW()
 );
 */
 export const users = pgTable("users", {
   pk: uuid("pk").primaryKey().notNull(),
   isDeleted: boolean("is_deleted").notNull(),
   name: varchar("name", { length: 32 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

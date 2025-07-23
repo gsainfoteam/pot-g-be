@@ -10,8 +10,8 @@ CREATE TABLE "device" (
     "fcm_token"  varchar(64)              NOT NULL,
     "os"         varchar(4)               NOT NULL,
     "version"    varchar(8)               NOT NULL,
-    "created_at" timestamp with time zone NOT NULL,
-    "updated_at" timestamp with time zone NOT NULL
+    "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
 */
 export const device = pgTable("device", {
@@ -20,8 +20,12 @@ export const device = pgTable("device", {
   fcmToken: varchar("fcm_token", { length: 64 }).notNull(),
   os: varchar("os", { length: 4 }).notNull(),
   version: varchar("version", { length: 8 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const deviceRelations = relations(device, ({ one, many }) => ({
