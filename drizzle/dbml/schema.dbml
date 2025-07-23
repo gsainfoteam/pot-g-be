@@ -1,11 +1,109 @@
-table room_event {
-  id varchar(255) [pk, not null]
-  room_id varchar(255) [not null]
-  event_type varchar(255) [not null]
-  data jsonb [not null]
-  created_at timestamp [not null, default: `now()`]
+enum pot_event_type {
+  pot_create
+  chat
+  user_in
+  user_out
+  user_kick
+  departure_confirm
+  accounting_request
+  accounting_confirm
 }
 
 table users {
-  id varchar(255) [pk, not null]
+  pk uuid [pk, not null]
+  is_deleted boolean [not null]
+  name varchar(32) [not null]
+  created_at "timestamp with time zone" [not null]
+  updated_at "timestamp with time zone" [not null]
 }
+
+table user_pot_room {
+  user_fk uuid [not null]
+  pot_room_fk uuid [not null]
+
+  indexes {
+    (user_fk, pot_room_fk) [pk]
+  }
+}
+
+table pot_room {
+  pk uuid [pk, not null]
+  route_fk uuid [not null]
+  is_closed boolean [not null]
+  is_deleted boolean [not null]
+  max_num smallint [not null]
+  created_at "timestamp with time zone" [not null]
+  updated_at "timestamp with time zone" [not null]
+  name varchar(64) [not null]
+}
+
+table pot_event {
+  timestamp "timestamp with time zone" [not null]
+  pot_fk uuid [not null]
+  type pot_event_type [not null]
+  content jsonb [not null]
+
+  indexes {
+    (timestamp, pot_fk) [pk]
+  }
+}
+
+table user_alarm_setting {
+  pk uuid [pk, not null]
+  device_fk uuid [not null]
+  any_push boolean [not null]
+  chat_push boolean [not null]
+  marketing_push boolean [not null]
+  pot_in_out_push boolean [not null]
+}
+
+table route {
+  pk uuid [pk, not null]
+  from_stop smallint [not null]
+  to_stop smallint [not null]
+  created_at "timestamp with time zone" [not null]
+  updated_at "timestamp with time zone" [not null]
+}
+
+table device {
+  pk uuid [pk, not null]
+  user_fk uuid [not null]
+  fcm_token varchar(64) [not null]
+  os varchar(4) [not null]
+  version varchar(8) [not null]
+  created_at "timestamp with time zone" [not null]
+  updated_at "timestamp with time zone" [not null]
+}
+
+table bank {
+  pk uuid [pk, not null]
+  bank_short_name varchar(64) [not null]
+  bank_full_name varchar(64) [not null]
+  logo text [not null]
+}
+
+table user_bank {
+  user_fk uuid [not null]
+  bank_fk uuid [not null]
+  account varchar(64) [not null]
+
+  indexes {
+    (user_fk, bank_fk) [pk]
+  }
+}
+
+ref: user_pot_room.user_fk > users.pk
+
+ref: user_pot_room.pot_room_fk > pot_room.pk
+
+ref: pot_room.route_fk > route.pk
+
+ref: pot_event.pot_fk > pot_room.pk
+
+ref: user_alarm_setting.device_fk > device.pk
+
+ref: device.user_fk > users.pk
+
+ref: user_bank.user_fk > users.pk
+
+ref: user_bank.bank_fk > bank.pk
