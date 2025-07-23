@@ -29,10 +29,10 @@ CREATE TABLE "pot_room"
 );
 
 CREATE TYPE pot_event_type AS ENUM (
-    'pot_create_v1',
+    'create_v1',
     'chat_v1',
     'user_in_v1',
-    'user_out_v1',
+    'user_leave_v1',
     'user_kick_v1',
     'departure_confirm_v1',
     'accounting_request_v1',
@@ -45,7 +45,7 @@ CREATE TABLE "pot_event"
     "pot_fk"    uuid                     NOT NULL,
     "timestamp" timestamp with time zone NOT NULL,
     "type"      pot_event_type           NOT NULL,
-    "content"   jsonb                    NOT NULL
+    "data"      jsonb                    NOT NULL
 );
 
 CREATE INDEX "idx_pot_event_pot_fk_type" ON "pot_event" ("pot_fk", "type");

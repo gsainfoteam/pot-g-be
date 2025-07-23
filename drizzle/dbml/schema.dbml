@@ -1,20 +1,21 @@
 enum pot_event_type {
-  pot_create
-  chat
-  user_in
-  user_out
-  user_kick
-  departure_confirm
-  accounting_request
-  accounting_confirm
+  create_v1
+  chat_v1
+  user_in_v1
+  user_leave_v1
+  user_kick_v1
+  departure_confirm_v1
+  accounting_request_v1
+  accounting_confirm_v1
+  archive_v1
 }
 
 table users {
   pk uuid [pk, not null]
   is_deleted boolean [not null]
   name varchar(32) [not null]
-  created_at "timestamp with time zone" [not null]
-  updated_at "timestamp with time zone" [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
 table user_pot_room {
@@ -29,40 +30,41 @@ table user_pot_room {
 table pot_room {
   pk uuid [pk, not null]
   route_fk uuid [not null]
-  is_closed boolean [not null]
-  is_deleted boolean [not null]
+  is_closed boolean [not null, default: false]
+  is_deleted boolean [not null, default: false]
   max_num smallint [not null]
-  created_at "timestamp with time zone" [not null]
-  updated_at "timestamp with time zone" [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
   name varchar(64) [not null]
 }
 
 table pot_event {
-  timestamp "timestamp with time zone" [not null]
   pot_fk uuid [not null]
+  timestamp "timestamp with time zone" [not null]
   type pot_event_type [not null]
-  content jsonb [not null]
+  data jsonb [not null]
 
   indexes {
-    (timestamp, pot_fk) [pk]
+    (pot_fk, timestamp) [pk]
+    (pot_fk, type) [name: 'idx_pot_event_pot_fk_type']
   }
 }
 
 table user_alarm_setting {
   pk uuid [pk, not null]
   device_fk uuid [not null]
-  any_push boolean [not null]
-  chat_push boolean [not null]
-  marketing_push boolean [not null]
-  pot_in_out_push boolean [not null]
+  any_push boolean [not null, default: true]
+  chat_push boolean [not null, default: true]
+  marketing_push boolean [not null, default: true]
+  pot_in_out_push boolean [not null, default: true]
 }
 
 table route {
   pk uuid [pk, not null]
   from_stop smallint [not null]
   to_stop smallint [not null]
-  created_at "timestamp with time zone" [not null]
-  updated_at "timestamp with time zone" [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
 table device {
@@ -71,8 +73,8 @@ table device {
   fcm_token varchar(64) [not null]
   os varchar(4) [not null]
   version varchar(8) [not null]
-  created_at "timestamp with time zone" [not null]
-  updated_at "timestamp with time zone" [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
 table bank {

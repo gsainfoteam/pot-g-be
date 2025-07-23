@@ -1,0 +1,56 @@
+import { Pot } from "../model/pot";
+import type { PotEvent } from "./pot-event";
+import { PotEventStringType } from "../../../drizzle/schema/pot-event";
+import {
+  AssertIfUserInPot,
+  AssertIfValidPot,
+} from "@src/pot/validator/common-pot-validator";
+
+export type PotChatEventV1Dto = {
+  potRoomPk: string;
+  userPk: string; // 채팅을 보낸 유저의 ID
+};
+
+// TODO
+export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
+  private constructor(potPk: string, timestamp: Date, data: PotChatEventV1Dto) {
+    this.potPk = potPk;
+    this.eventType = "chat_v1";
+    this.timestamp = timestamp;
+    this.data = data;
+    this.dispatcher = PotChatEventV1.getDispatcherFunction();
+  }
+
+  static generatePotChatEvent(
+    potPk: string,
+    timestamp: Date,
+    data: PotChatEventV1Dto,
+  ) {
+    return new PotChatEventV1(potPk, timestamp, data);
+  }
+
+  private static getDispatcherFunction(): (
+    pot: Pot,
+    data: PotChatEventV1Dto,
+  ) => Pot {
+    return (pot: Pot, data: PotChatEventV1Dto) => {
+      // 방 존재 여부 확인 및 이미 삭제된 방인 경우 예외 발생
+      AssertIfValidPot(pot, data.potRoomPk);
+
+      // 채팅을 보낸 유저가 방에 존재하는지 확인
+      AssertIfUserInPot(pot, data.userPk);
+
+      // TODO
+      // 채팅 이외의 모든 데이터는 건드리지 않아야 합니다.
+      // 즉 채팅 이벤트를 제외하고 Pot Event 를 조회하여 Dispatch 하여도 무관하여야 합니다.
+
+      return pot;
+    };
+  }
+
+  readonly potPk: string;
+  readonly eventType: PotEventStringType;
+  readonly timestamp: Date;
+  readonly data: PotChatEventV1Dto;
+  readonly dispatcher: (room: Pot, data: PotChatEventV1Dto) => Pot;
+}

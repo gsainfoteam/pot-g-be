@@ -12,22 +12,25 @@ import { potRoom } from "./pot-room";
 
 // potEventType 의 추가는 반드시 맨 아래에 추가 되어야 합니다.
 export const potEventType = pgEnum("pot_event_type", [
-  "pot_create",
-  "chat",
-  "user_in",
-  "user_out",
-  "user_kick",
-  "departure_confirm",
-  "accounting_request",
-  "accounting_confirm",
+  "create_v1",
+  "chat_v1",
+  "user_in_v1",
+  "user_leave_v1",
+  "user_kick_v1",
+  "departure_confirm_v1",
+  "accounting_request_v1",
+  "accounting_confirm_v1",
+  "archive_v1",
 ]);
+
+export type PotEventStringType = (typeof potEventType.enumValues)[number];
 
 /*
 CREATE TABLE "pot_event" (
     "pot_fk"        uuid                     NOT NULL,
     "timestamp"     timestamp with time zone NOT NULL,
     "type"          pot_event_type           NOT NULL,
-    "content"       jsonb                    NOT NULL,
+    "data"          jsonb                    NOT NULL,
     PRIMARY KEY ("pot_fk", "timestamp")
 );
 CREATE INDEX "idx_pot_event_pot_fk_type" ON "pot_event" ("pot_fk", "type");
@@ -41,7 +44,7 @@ export const potEvent = pgTable(
     potFk: uuid("pot_fk").notNull(),
     timestamp: timestamp("timestamp", { withTimezone: true }).notNull(),
     type: potEventType("type").notNull(),
-    content: jsonb("content").notNull(),
+    data: jsonb("data").notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.potFk, table.timestamp] }),
