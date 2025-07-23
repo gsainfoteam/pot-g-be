@@ -15,7 +15,7 @@ export const userBank = pgTable(
   {
     userFk: uuid("user_fk").notNull(),
     bankFk: uuid("bank_fk").notNull(),
-    account: varchar("account", { length: 64 }).notNull(),
+    account: varchar("account", { length: 64 }).notNull(), // '-' 없이 저장
   },
   (table) => [primaryKey({ columns: [table.userFk, table.bankFk] })],
 );

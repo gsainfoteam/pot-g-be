@@ -12,8 +12,8 @@ CREATE TABLE "users"
 
 CREATE TABLE "user_pot_room"
 (
-    "user_fk"     uuid    NOT NULL,
     "pot_room_fk" uuid    NOT NULL,
+    "user_fk"     uuid    NOT NULL,
     "is_host"     boolean NOT NULL DEFAULT FALSE
 );
 
@@ -106,8 +106,8 @@ ALTER TABLE "users"
 
 ALTER TABLE "user_pot_room"
     ADD CONSTRAINT "PK_USER_POT_ROOM" PRIMARY KEY (
-                                                   "user_fk",
-                                                   "pot_room_fk"
+                                                   "pot_room_fk",
+                                                   "user_fk"
         );
 
 ALTER TABLE "pot_room"

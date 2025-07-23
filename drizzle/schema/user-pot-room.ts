@@ -5,19 +5,19 @@ import { potRoom } from "./pot-room";
 
 /*
 CREATE TABLE "user_pot_room" (
-    "user_fk"       uuid NOT NULL,
     "pot_room_fk"   uuid NOT NULL,
+    "user_fk"       uuid NOT NULL,
     "is_host"       boolean NOT NULL DEFAULT FALSE
 );
 */
 export const userPotRoom = pgTable(
   "user_pot_room",
   {
-    userFk: uuid("user_fk").notNull(),
     potRoomFk: uuid("pot_room_fk").notNull(),
+    userFk: uuid("user_fk").notNull(),
     isHost: boolean("is_host").notNull().default(false),
   },
-  (table) => [primaryKey({ columns: [table.userFk, table.potRoomFk] })],
+  (table) => [primaryKey({ columns: [table.potRoomFk, table.userFk] })],
 );
 
 export const userPotRoomRelations = relations(userPotRoom, ({ one }) => ({
