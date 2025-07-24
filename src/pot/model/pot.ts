@@ -1,11 +1,5 @@
-import { generateRoomId } from "@src/utils/id-generate";
-
-export class Room {
+export class Pot {
   constructor() {}
-
-  static generateRoomId = (): string => {
-    return generateRoomId("ROOM");
-  };
 
   static generateRoomName = (
     route: TaxiRoute,
@@ -21,11 +15,11 @@ export class Room {
     return `${koreanRoute[route]}${randomNumber}`;
   };
 
-  roomId: string;
+  pk: string;
   name: string;
 
-  hostUserId: string; // 방장
-  joinedUserIds: string[]; // 참여자
+  hostUserPk: string; // 방장
+  joinedUserPks: string[]; // 참여자
   route: TaxiRoute; // 택시 경로
   maxCapacity: number; // 최대 인원
 
@@ -39,10 +33,10 @@ export class Room {
 
   isArchived: boolean; // 방 삭제 여부
 
-  recipientUserId: string | null; // 송금 받을 유저의 ID
+  accountingRequestUserId: string | null; // 송금 받을 유저의 ID
   recipientAmount: number | null; // 송금 받을 금액 (원)
-  senderUserIds: string[]; // 송금 보낼 유저의 ID 리스트
-  sendedUserIds: string[]; // 송금 보낸 유저의 ID 리스트
+  accountingRequestedUserPks: string[]; // 송금 보낼 유저의 ID 리스트
+  accountingConfirmedUserPks: string[]; // 송금 보낸 유저의 ID 리스트
 }
 
 export const TaxiRoute = {

@@ -1,10 +1,11 @@
-import { Room } from "../model/room";
-import type { TaxiRoute } from "../model/room";
-import type { RoomEvent } from "./room-event";
+import type { TaxiRoute } from "../model/pot";
+import { Pot } from "../model/pot";
+import type { PotEvent } from "./pot-event";
+import { PotEventStringType } from "../../../drizzle/schema/pot-event";
 
 //Fixme : Id들이 그대로 복원이 안됨 아예 인풋으로 받아야함
-export type RoomCreateEventV1Dto = {
-  roomId: string;
+export type PotCreateEventV1Dto = {
+  potRoomPk: string;
   name: string;
   createUserId: string;
   route: TaxiRoute;
@@ -13,23 +14,32 @@ export type RoomCreateEventV1Dto = {
   departureAvailableEndTime: Date;
 };
 
-export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
-  private constructor(data: RoomCreateEventV1Dto) {
-    this.eventType = "RoomCreateEventV1";
+export class PotCreateEventV1 implements PotEvent<PotCreateEventV1Dto> {
+  private constructor(
+    potPk: string,
+    timestamp: Date,
+    data: PotCreateEventV1Dto,
+  ) {
+    this.potPk = potPk;
+    this.eventType = "create_v1";
+    this.timestamp = timestamp;
     this.data = data;
-    this.timestamp = new Date();
-    this.dispatcher = RoomCreateEventV1.getDispatcherFunction();
+    this.dispatcher = PotCreateEventV1.getDispatcherFunction();
   }
 
-  static generateRoomCreateEvent(data: RoomCreateEventV1Dto) {
-    return new RoomCreateEventV1(data);
+  static generatePotCreateEvent(
+    potPk: string,
+    timestamp: Date,
+    data: PotCreateEventV1Dto,
+  ) {
+    return new PotCreateEventV1(potPk, timestamp, data);
   }
 
   private static getDispatcherFunction(): (
-    room: Room,
-    data: RoomCreateEventV1Dto,
-  ) => Room {
-    return (room: Room, data: RoomCreateEventV1Dto) => {
+    pot: Pot,
+    data: PotCreateEventV1Dto,
+  ) => Pot {
+    return (pot: Pot, data: PotCreateEventV1Dto) => {
       const now = new Date();
 
       // 출발 가능 시간의 범위는 현재 시간 이후여야 한다.
@@ -71,30 +81,31 @@ export class RoomCreateEventV1 implements RoomEvent<RoomCreateEventV1Dto> {
         throw new Error("Departure end time must be within one month");
       }
 
-      room.roomId = data.roomId;
-      const randomNumber = room.roomId.slice(-4);
+      pot.pk = data.potRoomPk;
+      const randomNumber = pot.pk.slice(-4);
 
-      room.hostUserId = data.createUserId;
-      room.joinedUserIds.push(data.createUserId);
-      room.name = Room.generateRoomName(data.route, randomNumber);
-      room.route = data.route;
+      pot.hostUserPk = data.createUserId;
+      pot.joinedUserPks.push(data.createUserId);
+      pot.name = Pot.generateRoomName(data.route, randomNumber);
+      pot.route = data.route;
 
-      room.maxCapacity = data.maxCapacity;
-      room.departureAvailableStartTime = data.departureAvailableStartTime;
-      room.departureAvailableEndTime = data.departureAvailableEndTime;
+      pot.maxCapacity = data.maxCapacity;
+      pot.departureAvailableStartTime = data.departureAvailableStartTime;
+      pot.departureAvailableEndTime = data.departureAvailableEndTime;
 
-      room.createAt = now;
-      room.updateAt = now;
+      pot.createAt = now;
+      pot.updateAt = now;
 
-      room.departureTime = null;
-      room.isArchived = false;
+      pot.departureTime = null;
+      pot.isArchived = false;
 
-      return room;
+      return pot;
     };
   }
 
-  readonly eventType: string;
-  readonly data: RoomCreateEventV1Dto;
+  readonly potPk: string;
+  readonly eventType: PotEventStringType;
   readonly timestamp: Date;
-  readonly dispatcher: (room: Room, data: RoomCreateEventV1Dto) => Room;
+  readonly data: PotCreateEventV1Dto;
+  readonly dispatcher: (room: Pot, data: PotCreateEventV1Dto) => Pot;
 }
