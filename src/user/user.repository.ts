@@ -3,6 +3,9 @@ import { DatabaseService } from "@src/database/database.service";
 import { users } from "../../drizzle/schema/users";
 import { eq } from "drizzle-orm";
 import { UserEntity } from "@src/user/model/user.entity";
+import { userAlarmSetting } from "../../drizzle/schema/user-alarm-setting";
+import { bank } from "../../drizzle/schema/bank";
+import { userBank } from "../../drizzle/schema/user-bank";
 
 @Injectable()
 export class UserRepository {
@@ -59,6 +62,61 @@ export class UserRepository {
       studentId: user.studentId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+    };
+  }
+
+  /*
+  SELECT u.name, u.email,
+         uas.any_push,
+         uas.chat_push,
+         uas.marketing_push,
+         uas.pot_in_out_push,
+         b.bank_short_name,
+         ub.account
+  FROM user as u
+    INNER JOIN user_alarm_setting as uas ON uas.device_fk = ?2
+    LEFT OUTER JOIN user_bank as ub ON ub.user_fk = u.pk
+    INNER JOIN bank as b ON b.pk = ub.bank_fk
+  WHERE pk = ?1;
+   */
+  async getUserInfoByPk(userId: string, deviceId: string) {
+    const result = await this.dbService.db
+      .select({
+        name: users.name,
+        email: users.email,
+        anyPush: userAlarmSetting.anyPush,
+        chatPush: userAlarmSetting.chatPush,
+        marketingPush: userAlarmSetting.marketingPush,
+        potInOutPush: userAlarmSetting.potInOutPush,
+        bankShortName: bank.bankShortName,
+        account: userBank.account,
+      })
+      .from(users)
+      .innerJoin(userAlarmSetting, eq(userAlarmSetting.deviceFk, deviceId))
+      .leftJoin(userBank, eq(userBank.userFk, users.pk))
+      .innerJoin(bank, eq(bank.pk, userBank.bankFk))
+      .where(eq(users.pk, userId));
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const userInfo = result[0];
+
+    return {
+      name: userInfo.name,
+      email: userInfo.email,
+      pushSetting: {
+        any_push: userInfo.anyPush,
+        chat_push: userInfo.chatPush,
+        marketing_push: userInfo.marketingPush,
+        pot_in_out_push: userInfo.potInOutPush,
+      },
+      accounting: {
+        is_set: !!userInfo.bankShortName && !!userInfo.account,
+        bank_short_name: userInfo.bankShortName || undefined,
+        account: userInfo.account || undefined,
+      },
     };
   }
 

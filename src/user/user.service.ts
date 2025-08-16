@@ -70,10 +70,26 @@ export class UserService {
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
     // 사용자 디바이스의 FCM 토큰을 세팅합니다.
+
+    return BaseResultDto.OK;
   }
 
   async getUserInfo(userCtx: UserContext): Promise<UserInfoDto> {
     // 사용자 정보를 조회합니다.
+    const userInfo = await this.userRepository.getUserInfoByPk(
+      userCtx.userId,
+      userCtx.deviceId,
+    );
+    if (!userInfo) {
+      throw new Error("User not found"); // TODO
+    }
+
+    return {
+      name: userInfo.name,
+      email: userInfo.email,
+      push_setting: userInfo.pushSetting,
+      accounting: userInfo.accounting,
+    };
   }
 
   async setPushSettings(
