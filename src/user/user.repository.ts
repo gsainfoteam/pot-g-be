@@ -9,6 +9,33 @@ export class UserRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
+  SELECT * FROM user WHERE pk = ?1;
+   */
+  async findUserByPk(pk: string): Promise<UserEntity | null> {
+    const result = await this.dbService.db
+      .select()
+      .from(users)
+      .where(eq(users.pk, pk));
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const user = result[0];
+
+    return {
+      pk: user.pk,
+      isDeleted: user.isDeleted,
+      idpSub: user.idpSub,
+      name: user.name,
+      email: user.email,
+      studentId: user.studentId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  /*
   SELECT * FROM user WHERE idp_sub = ?1;
    */
   async findUserByIdpSub(idpSub: string): Promise<UserEntity | null> {

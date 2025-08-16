@@ -7,6 +7,7 @@ import * as routeSchema from "../schema/route";
 import * as deviceSchema from "../schema/device";
 import * as bankSchema from "../schema/bank";
 import * as userBankSchema from "../schema/user-bank";
+import * as jwtKeyPairSchema from "../schema/jwt-key-pair";
 
 import { pgGenerate } from "drizzle-dbml-generator";
 
@@ -24,6 +25,7 @@ pgGenerate({
     ...deviceSchema,
     ...bankSchema,
     ...userBankSchema,
+    ...jwtKeyPairSchema,
   },
   out,
   relational,

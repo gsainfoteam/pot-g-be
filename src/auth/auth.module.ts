@@ -5,7 +5,6 @@ import { InfoteamIdpModule } from "@lib/infoteam-idp";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { JwtStrategy } from "@src/auth/strategy/jwt-strategy.service";
 import { JwtModule } from "@nestjs/jwt";
-import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -15,11 +14,10 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
     }),
     InfoteamIdpModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        privateKey: configService.get<string>("PRIVATE_KEY"),
+      useFactory: async (authService: AuthService) => ({
+        privateKey: (await authService.getKeyPair()).privateKey,
       }),
-      inject: [ConfigModule],
+      inject: [AuthService],
     }),
   ],
   providers: [AuthService, UserGuard, JwtStrategy],

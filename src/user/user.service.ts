@@ -20,9 +20,6 @@ export class UserService {
   async login(
     req: LoginRequestDto,
   ): Promise<LoginResponseDto & { refresh_token: string }> {
-    // IDP Authorization Code 를 받아 팟쥐 자체 JWT 토큰을 발급합니다.
-    // 팟쥐 JWT 토큰의 유효 기간은 IDP 토큰의 유효기간과 동일합니다.
-
     const idpToken = req.token;
     const {
       uuid: sub,
@@ -52,10 +49,20 @@ export class UserService {
     };
   }
 
-  async refresh(): Promise<LoginResponseDto> {
-    // Access Token 을 갱신해 줍니다.
-    // 팟쥐 JWT 토큰 기간의 유효기간은 IDP 토큰의 유효기간과 동일하기 때문에
-    // IDP 토큰의 갱신도 동시에 진행합니다.
+  async refresh(refreshToken: string): Promise<LoginResponseDto> {
+    const { userId } =
+      await this.authService.validateRefreshToken(refreshToken);
+    if (!userId) {
+      throw new Error("Invalid refresh token"); // TODO
+    }
+
+    const user = await this.userRepository.findUserByPk(userId);
+    if (!user) {
+      throw new Error("User not found"); // TODO
+    }
+
+    const { accessToken } = await this.authService.refreshAccessToken(user);
+    return { access_token: accessToken };
   }
 
   async setFcmToken(

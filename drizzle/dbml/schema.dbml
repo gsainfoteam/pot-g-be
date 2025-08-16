@@ -11,20 +11,23 @@ enum pot_event_type {
 }
 
 table users {
-  pk uuid [pk, not null]
+  pk uuid [pk, not null, default: `gen_random_uuid()`]
   is_deleted boolean [not null]
+  idp_sub varchar(64) [not null]
   name varchar(32) [not null]
+  email varchar(64) [not null]
+  student_id varchar(16) [not null]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
 table user_pot_room {
-  user_fk uuid [not null]
   pot_room_fk uuid [not null]
+  user_fk uuid [not null]
   is_host boolean [not null, default: false]
 
   indexes {
-    (user_fk, pot_room_fk) [pk]
+    (pot_room_fk, user_fk) [pk]
   }
 }
 
@@ -96,6 +99,14 @@ table user_bank {
   indexes {
     (user_fk, bank_fk) [pk]
   }
+}
+
+table jwt_key_pair {
+  pk uuid [pk, not null]
+  public_key text [not null]
+  private_key text [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
 ref: user_pot_room.user_fk > users.pk

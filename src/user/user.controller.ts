@@ -9,7 +9,7 @@ import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
 import { UserContext } from "@src/auth/user-context.entity";
-import { Response } from "express";
+import { Request, Response } from "express";
 
 @Controller("/api/v1/user")
 export class UserController {
@@ -33,8 +33,9 @@ export class UserController {
   }
 
   @Post("/refresh")
-  async refresh(): Promise<RefreshResponseDto> {
-    return this.userService.refresh();
+  async refresh(@Req() req: Request): Promise<RefreshResponseDto> {
+    const refreshToken = req.cookies.refresh_token;
+    return this.userService.refresh(refreshToken);
   }
 
   @Post("/fcm")
