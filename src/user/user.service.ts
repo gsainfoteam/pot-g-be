@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { LoginRequestDto, LoginResponseDto } from "@src/user/dto/login.dto";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
-import { SetFcmRequestDto } from "@src/user/dto/set-fcm.dto";
+import { SetDeviceInfoRequestDto } from "@src/user/dto/set-fcm.dto";
 import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserContext } from "@src/auth/user-context.entity";
@@ -66,11 +66,43 @@ export class UserService {
     return { access_token: accessToken };
   }
 
-  async setFcmToken(
-    req: SetFcmRequestDto,
+  async setDeviceInfo(
+    req: SetDeviceInfoRequestDto,
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
-    // 사용자 디바이스의 FCM 토큰을 세팅합니다.
+    // 사용자 디바이스 정보를 업데이트합니다.
+    const { fcm_token: fcmToken, os, version } = req;
+
+    const device = await this.deviceRepository.findByPkAndUserFk(
+      userCtx.deviceId,
+      userCtx.userId,
+    );
+    if (!device) {
+      throw new Error("Device not found"); // TODO
+    }
+
+    let updated = false;
+
+    if (!!fcmToken) {
+      device.fcmToken = fcmToken;
+      updated = true;
+    }
+    if (!!os) {
+      device.os = os;
+      updated = true;
+    }
+    if (!!version) {
+      device.version = version;
+      updated = true;
+    }
+
+    if (!updated) {
+      return BaseResultDto.OK; // 변경된 정보가 없으면 바로 반환
+    }
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.deviceRepository.update(device, tx);
+    });
 
     return BaseResultDto.OK;
   }

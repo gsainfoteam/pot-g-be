@@ -3,7 +3,7 @@ import { UserService } from "@src/user/user.service";
 import { LoginRequestDto, LoginResponseDto } from "@src/user/dto/login.dto";
 import { RefreshResponseDto } from "@src/user/dto/refresh.dto";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
-import { SetFcmRequestDto } from "@src/user/dto/set-fcm.dto";
+import { SetDeviceInfoRequestDto } from "@src/user/dto/set-fcm.dto";
 import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserGuard } from "@src/auth/guard/user.guard";
@@ -38,13 +38,13 @@ export class UserController {
     return this.userService.refresh(refreshToken);
   }
 
-  @Post("/fcm")
+  @Post("/device")
   @UseGuards(UserGuard)
-  async setFcmToken(
-    @Req() req: SetFcmRequestDto,
+  async setDeviceInfo(
+    @Req() req: SetDeviceInfoRequestDto,
     @GetUser() userCtx: UserContext,
   ): Promise<BaseResultDto> {
-    return this.userService.setFcmToken(req, userCtx);
+    return this.userService.setDeviceInfo(req, userCtx);
   }
 
   @Get("/info")
