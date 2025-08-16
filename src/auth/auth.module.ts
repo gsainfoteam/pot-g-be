@@ -3,8 +3,11 @@ import { HttpModule } from "@nestjs/axios";
 import { AuthService } from "@src/auth/auth.service";
 import { InfoteamIdpModule } from "@lib/infoteam-idp";
 import { UserGuard } from "@src/auth/guard/user.guard";
-import { JwtStrategy } from "@src/auth/strategy/jwt-strategy.service";
+import { JwtStrategy } from "@src/auth/strategy/jwt.strategy";
 import { JwtModule } from "@nestjs/jwt";
+import { DatabaseModule } from "@src/database/database.module";
+import { KeyPairService } from "@src/keypair/key-pair.service";
+import { KeyPairModule } from "@src/keypair/key-pair.module";
 
 @Module({
   imports: [
@@ -14,13 +17,26 @@ import { JwtModule } from "@nestjs/jwt";
     }),
     InfoteamIdpModule,
     JwtModule.registerAsync({
-      useFactory: async (authService: AuthService) => ({
-        privateKey: (await authService.getKeyPair()).privateKey,
+      imports: [KeyPairModule],
+      useFactory: async (keyPairService: KeyPairService) => ({
+        privateKey: (await keyPairService.getKeyPair()).privateKey,
       }),
-      inject: [AuthService],
+      inject: [KeyPairService],
     }),
+    DatabaseModule,
+    KeyPairModule,
   ],
-  providers: [AuthService, UserGuard, JwtStrategy],
+  providers: [
+    AuthService,
+    UserGuard,
+    {
+      provide: JwtStrategy,
+      useFactory: async (keyPairService: KeyPairService) => {
+        return new JwtStrategy((await keyPairService.getKeyPair()).privateKey);
+      },
+      inject: [KeyPairService],
+    },
+  ],
   exports: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
