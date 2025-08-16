@@ -129,7 +129,47 @@ export class UserService {
     req: PushSettingDto,
     userCtx: UserContext,
   ): Promise<PushSettingDto> {
-    // 알림 설정 정보를 업데이트합니다.
+    const userAlarmSetting =
+      await this.userAlarmSettingRepository.findByDeviceFk(userCtx.deviceId);
+    if (!userAlarmSetting) {
+      throw new Error("User alarm setting not found"); // TODO
+    }
+
+    let updated = false;
+    if (!!req.any_push && userAlarmSetting.anyPush !== req.any_push) {
+      userAlarmSetting.anyPush = req.any_push;
+      updated = true;
+    }
+    if (!!req.chat_push && userAlarmSetting.chatPush !== req.chat_push) {
+      userAlarmSetting.chatPush = req.chat_push;
+      updated = true;
+    }
+    if (
+      !!req.marketing_push &&
+      userAlarmSetting.marketingPush !== req.marketing_push
+    ) {
+      userAlarmSetting.marketingPush = req.marketing_push;
+      updated = true;
+    }
+    if (
+      !!req.pot_in_out_push &&
+      userAlarmSetting.potInOutPush !== req.pot_in_out_push
+    ) {
+      userAlarmSetting.potInOutPush = req.pot_in_out_push;
+      updated = true;
+    }
+    if (updated) {
+      await this.dbService.db.transaction(async (tx: TxType) => {
+        await this.userAlarmSettingRepository.update(userAlarmSetting, tx);
+      });
+    }
+
+    return {
+      any_push: userAlarmSetting.anyPush,
+      chat_push: userAlarmSetting.chatPush,
+      marketing_push: userAlarmSetting.marketingPush,
+      pot_in_out_push: userAlarmSetting.potInOutPush,
+    }; // 업데이트된 설정을 반환
   }
 
   async withdraw(userCtx: UserContext): Promise<BaseResultDto> {

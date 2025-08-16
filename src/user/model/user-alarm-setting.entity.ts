@@ -8,4 +8,6 @@ export class UserAlarmSettingEntity {
   chatPush?: boolean;
   marketingPush?: boolean;
   potInOutPush?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

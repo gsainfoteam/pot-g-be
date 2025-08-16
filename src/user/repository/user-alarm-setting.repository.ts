@@ -3,10 +3,30 @@ import { DatabaseService } from "@src/database/database.service";
 import { UserAlarmSettingEntity } from "@src/user/model/user-alarm-setting.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
+import { eq } from "drizzle-orm";
 
 @Injectable()
 export class UserAlarmSettingRepository {
   constructor(private readonly dbService: DatabaseService) {}
+
+  /*
+  SELECT * FROM user_alarm_setting WHERE device_fk = ?1;
+   */
+  async findByDeviceFk(
+    deviceFk: string,
+  ): Promise<UserAlarmSettingEntity | null> {
+    const result = await this.dbService.db
+      .select()
+      .from(userAlarmSetting)
+      .where(eq(userAlarmSetting.deviceFk, deviceFk));
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const foundSetting = result[0];
+    return this.resultToUserAlarmSettingEntity(foundSetting);
+  }
 
   async insert(
     userAlarmSettingEntity: UserAlarmSettingEntity,
@@ -28,14 +48,32 @@ export class UserAlarmSettingRepository {
     }
 
     const inserted = result[0];
+    return this.resultToUserAlarmSettingEntity(inserted);
+  }
 
+  async update(userAlarmSettingEntity: UserAlarmSettingEntity, tx: TxType) {
+    await tx
+      .update(userAlarmSetting)
+      .set({
+        anyPush: userAlarmSettingEntity.anyPush,
+        chatPush: userAlarmSettingEntity.chatPush,
+        marketingPush: userAlarmSettingEntity.marketingPush,
+        potInOutPush: userAlarmSettingEntity.potInOutPush,
+        updatedAt: new Date(),
+      })
+      .where(eq(userAlarmSetting.pk, userAlarmSettingEntity.pk));
+  }
+
+  private resultToUserAlarmSettingEntity(result: any): UserAlarmSettingEntity {
     return {
-      pk: inserted.pk,
-      deviceFk: inserted.deviceFk,
-      anyPush: inserted.anyPush,
-      chatPush: inserted.chatPush,
-      marketingPush: inserted.marketingPush,
-      potInOutPush: inserted.potInOutPush,
+      pk: result.pk,
+      deviceFk: result.deviceFk,
+      anyPush: result.anyPush,
+      chatPush: result.chatPush,
+      marketingPush: result.marketingPush,
+      potInOutPush: result.potInOutPush,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
     };
   }
 }
