@@ -13,7 +13,7 @@ CREATE TABLE "user_alarm_setting" (
 );
 */
 export const userAlarmSetting = pgTable("user_alarm_setting", {
-  pk: uuid("pk").primaryKey().notNull(),
+  pk: uuid("pk").primaryKey().notNull().defaultRandom(),
   deviceFk: uuid("device_fk").notNull(),
   anyPush: boolean("any_push").notNull().default(true),
   chatPush: boolean("chat_push").notNull().default(true),

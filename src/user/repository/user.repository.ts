@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { users } from "../../drizzle/schema/users";
+import { users } from "../../../drizzle/schema/users";
 import { eq } from "drizzle-orm";
 import { UserEntity } from "@src/user/model/user.entity";
-import { userAlarmSetting } from "../../drizzle/schema/user-alarm-setting";
-import { bank } from "../../drizzle/schema/bank";
-import { userBank } from "../../drizzle/schema/user-bank";
+import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
+import { bank } from "../../../drizzle/schema/bank";
+import { userBank } from "../../../drizzle/schema/user-bank";
+import { TxType } from "@src/global/types/tx.types";
 
 @Injectable()
 export class UserRepository {
@@ -120,8 +121,8 @@ export class UserRepository {
     };
   }
 
-  async insert(user: UserEntity): Promise<UserEntity | null> {
-    const result = await this.dbService.db
+  async insert(user: UserEntity, tx: TxType): Promise<UserEntity | null> {
+    const result = await tx
       .insert(users)
       .values({
         isDeleted: user.isDeleted,
@@ -133,20 +134,20 @@ export class UserRepository {
       .returning();
 
     if (result.length === 0) {
-      return null;
+      throw new Error("Failed to insert user"); // TODO
     }
 
-    const insertedUser = result[0];
+    const inserted = result[0];
 
     return {
-      pk: insertedUser.pk,
-      isDeleted: insertedUser.isDeleted,
-      idpSub: insertedUser.idpSub,
-      name: insertedUser.name,
-      email: insertedUser.email,
-      studentId: insertedUser.studentId,
-      createdAt: insertedUser.createdAt,
-      updatedAt: insertedUser.updatedAt,
+      pk: inserted.pk,
+      isDeleted: inserted.isDeleted,
+      idpSub: inserted.idpSub,
+      name: inserted.name,
+      email: inserted.email,
+      studentId: inserted.studentId,
+      createdAt: inserted.createdAt,
+      updatedAt: inserted.updatedAt,
     };
   }
 }

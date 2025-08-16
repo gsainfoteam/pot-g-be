@@ -6,15 +6,22 @@ import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { InfoteamIdpService } from "@lib/infoteam-idp";
-import { UserRepository } from "@src/user/user.repository";
+import { UserRepository } from "@src/user/repository/user.repository";
 import { AuthService } from "@src/auth/auth.service";
+import { DatabaseService } from "@src/database/database.service";
+import { TxType } from "@src/global/types/tx.types";
+import { DeviceRepository } from "@src/user/repository/device.repository";
+import { UserAlarmSettingRepository } from "@src/user/repository/user-alarm-setting.repository";
 
 @Injectable()
 export class UserService {
   constructor(
+    private readonly dbService: DatabaseService,
     private readonly idpService: InfoteamIdpService,
-    private readonly userRepository: UserRepository,
     private readonly authService: AuthService,
+    private readonly userRepository: UserRepository,
+    private readonly deviceRepository: DeviceRepository,
+    private readonly userAlarmSettingRepository: UserAlarmSettingRepository,
   ) {}
 
   async login(
@@ -31,13 +38,7 @@ export class UserService {
     let user = await this.userRepository.findUserByIdpSub(sub);
     if (!user) {
       // 사용자가 존재하지 않는 경우, 새로 생성합니다.
-      user = await this.userRepository.insert({
-        isDeleted: false,
-        idpSub: sub,
-        name,
-        email,
-        studentId,
-      });
+      user = await this.createNewUser(sub, name, email, studentId);
     }
 
     const { accessToken, refreshToken } =
@@ -101,5 +102,54 @@ export class UserService {
 
   async withdraw(userCtx: UserContext): Promise<BaseResultDto> {
     // 회원 탍퇴를 진행합니다.
+  }
+
+  private async createNewUser(
+    sub: string,
+    name: string,
+    email: string,
+    studentId: string,
+  ) {
+    return await this.dbService.db.transaction(async (tx: TxType) => {
+      const user = await this.userRepository.insert(
+        {
+          isDeleted: false,
+          idpSub: sub,
+          name,
+          email,
+          studentId,
+        },
+        tx,
+      );
+
+      if (!user) {
+        throw new Error("Failed to create new user"); // TODO
+      }
+
+      // insert device
+      const device = await this.deviceRepository.insert(
+        {
+          userFk: user.pk,
+          fcmToken: "", // 초기값은 빈 문자열로 설정
+          os: "unknown", // OS 정보는 추후에 업데이트 필요
+          version: "0.0.1", // 초기 버전 정보
+        },
+        tx,
+      );
+
+      // insert user_alarm_setting
+      await this.userAlarmSettingRepository.insert(
+        {
+          deviceFk: device.pk,
+          anyPush: true, // 기본값은 true로 설정
+          chatPush: true,
+          marketingPush: true,
+          potInOutPush: true,
+        },
+        tx,
+      );
+
+      return user;
+    });
   }
 }

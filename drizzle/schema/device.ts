@@ -15,7 +15,7 @@ CREATE TABLE "device" (
 );
 */
 export const device = pgTable("device", {
-  pk: uuid("pk").primaryKey().notNull(),
+  pk: uuid("pk").primaryKey().notNull().defaultRandom(),
   userFk: uuid("user_fk").notNull(),
   fcmToken: varchar("fcm_token", { length: 64 }).notNull(),
   os: varchar("os", { length: 4 }).notNull(),
