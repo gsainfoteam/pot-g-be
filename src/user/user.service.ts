@@ -173,7 +173,16 @@ export class UserService {
   }
 
   async withdraw(userCtx: UserContext): Promise<BaseResultDto> {
-    // 회원 탍퇴를 진행합니다.
+    // TODO
+    // 모든 사용자의 팟으로부터 사용자를 제거
+
+    // 사용자의 계좌 정보 삭제
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.userRepository.withdraw(userCtx.userId, tx);
+    });
+
+    return BaseResultDto.OK;
   }
 
   private async createNewUser(

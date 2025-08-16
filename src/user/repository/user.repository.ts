@@ -150,4 +150,11 @@ export class UserRepository {
       updatedAt: inserted.updatedAt,
     };
   }
+
+  async withdraw(userId: string, tx: TxType): Promise<void> {
+    await tx
+      .update(users)
+      .set({ isDeleted: true, updatedAt: new Date() })
+      .where(eq(users.pk, userId));
+  }
 }
