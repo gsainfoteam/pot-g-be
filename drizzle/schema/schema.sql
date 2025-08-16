@@ -89,7 +89,7 @@ CREATE TABLE "bank"
     "pk"              uuid        NOT NULL,
     "bank_short_name" varchar(64) NOT NULL,
     "bank_full_name"  varchar(64) NOT NULL,
-    "logo"            text        NOT NULL DEFAULT "https://png.pngtree.com/template/20190308/ourmid/pngtree-banking-logo-image_63077.jpg"
+    "logo"            text        NOT NULL DEFAULT 'https://png.pngtree.com/template/20190308/ourmid/pngtree-banking-logo-image_63077.jpg'
 );
 
 CREATE TABLE "user_bank"
