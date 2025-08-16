@@ -11,7 +11,9 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      "@lib/infoteam-idp": ["libs/infoteam-idp/src"],
+      "@lib/infoteam-idp/*": ["libs/infoteam-idp/src/*"]
     },
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
