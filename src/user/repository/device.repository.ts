@@ -36,6 +36,7 @@ export class DeviceRepository {
     const result = await tx
       .insert(device)
       .values({
+        pk: deviceEntity.pk || crypto.randomUUID(),
         userFk: deviceEntity.userFk,
         fcmToken: deviceEntity.fcmToken,
         os: deviceEntity.os,

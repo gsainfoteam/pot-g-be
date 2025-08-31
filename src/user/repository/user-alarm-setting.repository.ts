@@ -35,6 +35,7 @@ export class UserAlarmSettingRepository {
     const result = await tx
       .insert(userAlarmSetting)
       .values({
+        pk: userAlarmSettingEntity.pk || crypto.randomUUID(),
         deviceFk: userAlarmSettingEntity.deviceFk,
         anyPush: userAlarmSettingEntity.anyPush,
         chatPush: userAlarmSettingEntity.chatPush,

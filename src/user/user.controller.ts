@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Res, UseGuards } from "@nestjs/common";
 import { UserService } from "@src/user/user.service";
 import { LoginRequestDto, LoginResponseDto } from "@src/user/dto/login.dto";
 import { RefreshResponseDto } from "@src/user/dto/refresh.dto";
@@ -17,7 +17,7 @@ export class UserController {
 
   @Post("/login")
   async login(
-    @Req() req: LoginRequestDto,
+    @Body() req: LoginRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginResponseDto> {
     const { access_token, refresh_token } = await this.userService.login(req);
@@ -33,7 +33,7 @@ export class UserController {
   }
 
   @Post("/refresh")
-  async refresh(@Req() req: Request): Promise<RefreshResponseDto> {
+  async refresh(@Body() req: Request): Promise<RefreshResponseDto> {
     const refreshToken = req.cookies.refresh_token;
     return this.userService.refresh(refreshToken);
   }
@@ -41,7 +41,7 @@ export class UserController {
   @Post("/device")
   @UseGuards(UserGuard)
   async setDeviceInfo(
-    @Req() req: SetDeviceInfoRequestDto,
+    @Body() req: SetDeviceInfoRequestDto,
     @GetUser() userCtx: UserContext,
   ): Promise<BaseResultDto> {
     return this.userService.setDeviceInfo(req, userCtx);
@@ -55,7 +55,7 @@ export class UserController {
 
   @Post("/push")
   async setPushSettings(
-    req: PushSettingDto,
+    @Body() req: PushSettingDto,
     @GetUser() userCtx: UserContext,
   ): Promise<PushSettingDto> {
     return this.userService.setPushSettings(req, userCtx);

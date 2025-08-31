@@ -5,7 +5,6 @@ CREATE TABLE "users"
     "idp_sub"    varchar(64)              NOT NULL,
     "name"       varchar(32)              NOT NULL,
     "email"      varchar(64)              NOT NULL,
-    "student_id" varchar(16)              NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );

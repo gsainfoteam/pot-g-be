@@ -6,9 +6,9 @@ import { UserContext } from "@src/auth/user-context.entity";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(publicKey: string) {
+  constructor(publicKey: string | Buffer) {
     super({
-      jwtFromRequest: ExtractJwt.fromHeader("access-token"),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       algorithms: ["RS256"],
       secretOrKey: publicKey,
     });

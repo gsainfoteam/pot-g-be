@@ -33,7 +33,6 @@ export class UserRepository {
       idpSub: user.idpSub,
       name: user.name,
       email: user.email,
-      studentId: user.studentId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -60,7 +59,6 @@ export class UserRepository {
       idpSub: user.idpSub,
       name: user.name,
       email: user.email,
-      studentId: user.studentId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -77,7 +75,7 @@ export class UserRepository {
   FROM user as u
     INNER JOIN user_alarm_setting as uas ON uas.device_fk = ?2
     LEFT OUTER JOIN user_bank as ub ON ub.user_fk = u.pk
-    INNER JOIN bank as b ON b.pk = ub.bank_fk
+    LEFT JOIN bank as b ON b.pk = ub.bank_fk
   WHERE pk = ?1;
    */
   async getUserInfoByPk(userId: string, deviceId: string) {
@@ -95,7 +93,7 @@ export class UserRepository {
       .from(users)
       .innerJoin(userAlarmSetting, eq(userAlarmSetting.deviceFk, deviceId))
       .leftJoin(userBank, eq(userBank.userFk, users.pk))
-      .innerJoin(bank, eq(bank.pk, userBank.bankFk))
+      .leftJoin(bank, eq(bank.pk, userBank.bankFk))
       .where(eq(users.pk, userId));
 
     if (result.length === 0) {
@@ -125,11 +123,11 @@ export class UserRepository {
     const result = await tx
       .insert(users)
       .values({
+        pk: user.pk || crypto.randomUUID(),
         isDeleted: user.isDeleted,
         idpSub: user.idpSub,
         name: user.name,
         email: user.email,
-        studentId: user.studentId,
       })
       .returning();
 
@@ -145,7 +143,6 @@ export class UserRepository {
       idpSub: inserted.idpSub,
       name: inserted.name,
       email: inserted.email,
-      studentId: inserted.studentId,
       createdAt: inserted.createdAt,
       updatedAt: inserted.updatedAt,
     };

@@ -32,13 +32,12 @@ export class UserService {
       uuid: sub,
       name,
       email,
-      studentId,
     } = await this.idpService.validateAccessToken(idpToken);
 
     let user = await this.userRepository.findUserByIdpSub(sub);
     if (!user) {
       // 사용자가 존재하지 않는 경우, 새로 생성합니다.
-      user = await this.createNewUser(sub, name, email, studentId);
+      user = await this.createNewUser(sub, name, email);
     }
 
     const { accessToken, refreshToken } =
@@ -185,12 +184,7 @@ export class UserService {
     return BaseResultDto.OK;
   }
 
-  private async createNewUser(
-    sub: string,
-    name: string,
-    email: string,
-    studentId: string,
-  ) {
+  private async createNewUser(sub: string, name: string, email: string) {
     return await this.dbService.db.transaction(async (tx: TxType) => {
       const user = await this.userRepository.insert(
         {
@@ -198,7 +192,6 @@ export class UserService {
           idpSub: sub,
           name,
           email,
-          studentId,
         },
         tx,
       );
@@ -212,7 +205,7 @@ export class UserService {
         {
           userFk: user.pk,
           fcmToken: "", // 초기값은 빈 문자열로 설정
-          os: "unknown", // OS 정보는 추후에 업데이트 필요
+          os: "iOS", // OS 정보는 추후에 업데이트 필요
           version: "0.0.1", // 초기 버전 정보
         },
         tx,

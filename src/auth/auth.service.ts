@@ -17,17 +17,21 @@ export class AuthService {
   async createNewJwtToken(user: UserEntity) {
     const payload: AccessTokenJwtPayload = {
       userId: user.pk,
-      deviceId: "default",
+      deviceId: "89b9cff2-52a4-478a-b8ae-a90729f45dcd",
     };
 
     const { privateKey } = await this.keyPairService.getKeyPair();
 
     const accessToken = this.jwtService.sign(payload, {
+      issuer: "PotG",
+      algorithm: "RS256",
       privateKey: privateKey,
       expiresIn: this.accessTokenExpiresIn,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
+      issuer: "PotG",
+      algorithm: "RS256",
       privateKey: privateKey,
       expiresIn: this.refreshTokenExpiresIn,
     });

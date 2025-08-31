@@ -16,13 +16,7 @@ import { KeyPairModule } from "@src/keypair/key-pair.module";
       maxRedirects: 5,
     }),
     InfoteamIdpModule,
-    JwtModule.registerAsync({
-      imports: [KeyPairModule],
-      useFactory: async (keyPairService: KeyPairService) => ({
-        privateKey: (await keyPairService.getKeyPair()).privateKey,
-      }),
-      inject: [KeyPairService],
-    }),
+    JwtModule,
     DatabaseModule,
     KeyPairModule,
   ],
@@ -32,7 +26,7 @@ import { KeyPairModule } from "@src/keypair/key-pair.module";
     {
       provide: JwtStrategy,
       useFactory: async (keyPairService: KeyPairService) => {
-        return new JwtStrategy((await keyPairService.getKeyPair()).privateKey);
+        return new JwtStrategy((await keyPairService.getKeyPair()).publicKey);
       },
       inject: [KeyPairService],
     },

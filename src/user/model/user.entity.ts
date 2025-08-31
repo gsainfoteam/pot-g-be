@@ -4,7 +4,6 @@ export class UserEntity {
   idpSub: string;
   name: string;
   email: string;
-  studentId: string;
   createdAt?: Date = new Date();
   updatedAt?: Date = new Date();
 }
