@@ -80,7 +80,7 @@ jobs:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
         key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
-        source: deploy/${{ env.COMPOSE_FILE }}
+        source: "deploy/${{ env.COMPOSE_FILE }}"
         target: ${{ env.DEPLOY_PATH }}
 
     - name: Rename docker-compose file on server
