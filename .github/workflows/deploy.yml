@@ -63,15 +63,15 @@ jobs:
         if [[ ${{ github.ref_name }} == dev-* ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-dev.yml" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ env.DEV_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ env.DEV_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ env.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-prod.yml" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ env.PROD_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ env.PROD_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ env.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
         fi
 
     - name: Setup SSH key
@@ -102,14 +102,14 @@ jobs:
       run: |
         if [[ ${{ github.ref_name }} == dev-* ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ env.DEV_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ env.DEV_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ env.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ env.PROD_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ env.PROD_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ env.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
         fi
         echo "IMAGE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
         echo "IMAGE_URI=${{ needs.build-and-push.outputs.image-uri }}" >> $GITHUB_ENV

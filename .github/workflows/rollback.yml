@@ -27,15 +27,13 @@ jobs:
     - name: Set environment variables
       run: |
         if [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
-          echo "SERVER_HOST=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ secrets.DEV_SERVER_USER }}" >> $GITHUB_ENV
-          echo "SERVER_SSH_KEY=${{ secrets.DEV_SERVER_SSH_KEY }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ secrets.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
-          echo "SERVER_HOST=${{ secrets.PROD_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ secrets.PROD_SERVER_USER }}" >> $GITHUB_ENV
-          echo "SERVER_SSH_KEY=${{ secrets.PROD_SERVER_SSH_KEY }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
         fi
         echo "ROLLBACK_TAG=${{ github.event.inputs.rollback_tag }}" >> $GITHUB_ENV
 
