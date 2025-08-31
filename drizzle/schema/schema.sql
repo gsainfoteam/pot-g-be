@@ -60,7 +60,9 @@ CREATE TABLE "user_alarm_setting"
     "any_push"        boolean NOT NULL DEFAULT TRUE,
     "chat_push"       boolean NOT NULL DEFAULT TRUE,
     "marketing_push"  boolean NOT NULL DEFAULT TRUE,
-    "pot_in_out_push" boolean NOT NULL DEFAULT TRUE
+    "pot_in_out_push" boolean NOT NULL DEFAULT TRUE,
+    "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "route"
