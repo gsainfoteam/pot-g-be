@@ -74,19 +74,14 @@ jobs:
           echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
         fi
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        if [[ ${{ github.ref_name }} == dev-* ]]; then
-          echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        else
-          echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        fi
-        chmod 600 ~/.ssh/id_rsa
-
     - name: Copy docker-compose file to server
-      run: |
-        scp -i ~/.ssh/id_rsa deploy/$COMPOSE_FILE $SERVER_USER@$SERVER_HOST:$DEPLOY_PATH/docker-compose.yml
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        source: deploy/${{ env.COMPOSE_FILE }}
+        target: ${{ env.DEPLOY_PATH }}/docker-compose.yml
 
     - name: Output server status
       id: server-info
@@ -125,19 +120,13 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        if [[ ${{ github.ref_name }} == dev-* ]]; then
-          echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        else
-          echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        fi
-        chmod 600 ~/.ssh/id_rsa
-
     - name: Deploy to server
-      run: |
-        ssh -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST << 'EOF'
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
           cd ${{ env.DEPLOY_PATH }}
           
           # AWS CLI 설정 (서버에 AWS CLI가 설치되어 있다고 가정)
@@ -160,9 +149,3 @@ jobs:
           
           # potg-backend 서비스만 시작 (다운타임 종료)
           docker-compose up -d potg-backend
-        EOF
-
-    - name: Cleanup SSH key
-      if: always()
-      run: |
-        rm -f ~/.ssh/id_rsa

@@ -50,15 +50,6 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        if [[ ${{ github.ref_name }} == dev-* ]]; then
-          echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        else
-          echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        fi
-        chmod 600 ~/.ssh/id_rsa
 
     - name: Validate rollback tag format
       if: github.event.inputs.rollback_tag != ''
@@ -76,8 +67,12 @@ jobs:
 
     - name: Rollback to previous version (no tag specified)
       if: github.event.inputs.rollback_tag == ''
-      run: |
-        ssh -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST << 'EOF'
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ github.event.inputs.environment == 'dev' && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
           cd ${{ env.DEPLOY_PATH }}
           
           echo "Rolling back to previous version..."
@@ -109,12 +104,15 @@ jobs:
           # 롤백 후 이미지 정보 로깅
           echo "After rollback image info:"
           docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
-        EOF
 
     - name: Rollback to specific version (tag specified)
       if: github.event.inputs.rollback_tag != ''
-      run: |
-        ssh -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST << 'EOF'
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ github.event.inputs.environment == 'dev' && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
           cd ${{ env.DEPLOY_PATH }}
           
           echo "Rolling back to specific version: ${{ env.ROLLBACK_TAG }}"
@@ -155,9 +153,4 @@ jobs:
           # 롤백 후 이미지 정보 로깅
           echo "After rollback image info:"
           docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
-        EOF
 
-    - name: Cleanup SSH key
-      if: always()
-      run: |
-        rm -f ~/.ssh/id_rsa
