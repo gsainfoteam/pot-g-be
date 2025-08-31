@@ -79,7 +79,7 @@ jobs:
           
           # 현재 실행 중인 이미지 정보 로깅
           echo "Current image info:"
-          docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
+          sudo docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
           
           # previous 이미지 존재 확인
           if ! docker images potg-backend:previous --format "{{.Repository}}" | grep -q potg-backend; then
@@ -88,22 +88,22 @@ jobs:
           fi
           
           # potg-backend 서비스 중지
-          docker-compose stop potg-backend
+          sudo docker compose stop potg-backend
           
           # 현재 latest 이미지 삭제
-          docker rmi potg-backend:latest || true
+          sudo docker rmi potg-backend:latest || true
           
           # previous 이미지를 latest로 태그
-          docker tag potg-backend:previous potg-backend:latest
+          sudo docker tag potg-backend:previous potg-backend:latest
           
           # 서비스 재시작
-          docker-compose up -d potg-backend
+          sudo docker compose up -d potg-backend
           
           echo "Rollback completed successfully!"
           
           # 롤백 후 이미지 정보 로깅
           echo "After rollback image info:"
-          docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
+          sudo docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
 
     - name: Rollback to specific version (tag specified)
       if: github.event.inputs.rollback_tag != ''
@@ -118,39 +118,39 @@ jobs:
           echo "Rolling back to specific version: ${{ env.ROLLBACK_TAG }}"
           
           # AWS CLI 설정
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
           
           # 현재 실행 중인 이미지 정보 로깅
           echo "Current image info:"
-          docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
+          sudo docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
           
           # potg-backend 서비스 중지
-          docker-compose stop potg-backend
+          sudo docker compose stop potg-backend
           
           # 현재 latest를 previous로 백업
-          docker tag potg-backend:latest potg-backend:previous || true
+          sudo docker tag potg-backend:latest potg-backend:previous || true
           
           # 현재 latest 이미지 삭제
-          docker rmi potg-backend:latest || true
+          sudo docker rmi potg-backend:latest || true
           
           # 지정된 태그 이미지 pull
-          if ! docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ROLLBACK_TAG }}; then
+          if ! sudo docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ROLLBACK_TAG }}; then
             echo "Error: Failed to pull image with tag ${{ env.ROLLBACK_TAG }}"
             # 백업에서 복원
-            docker tag potg-backend:previous potg-backend:latest
-            docker-compose up -d potg-backend
+            sudo docker tag potg-backend:previous potg-backend:latest
+            sudo docker compose up -d potg-backend
             exit 1
           fi
           
           # 새 이미지를 latest로 태그
-          docker tag ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ROLLBACK_TAG }} potg-backend:latest
+          sudo docker tag ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ROLLBACK_TAG }} potg-backend:latest
           
           # 서비스 재시작
-          docker-compose up -d potg-backend
+          sudo docker compose up -d potg-backend
           
           echo "Rollback to ${{ env.ROLLBACK_TAG }} completed successfully!"
           
           # 롤백 후 이미지 정보 로깅
           echo "After rollback image info:"
-          docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
+          sudo docker images potg-backend:latest --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}"
 

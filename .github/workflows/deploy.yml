@@ -141,22 +141,22 @@ jobs:
           cd ${{ env.DEPLOY_PATH }}
           
           # AWS CLI 설정 (서버에 AWS CLI가 설치되어 있다고 가정)
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
           
           # 새 이미지 pull (서비스 실행 중에 미리 받아두기)
-          docker pull ${{ env.IMAGE_URI }}
+          sudo docker pull ${{ env.IMAGE_URI }}
           
           # 현재 latest 이미지를 previous로 백업
-          docker tag potg-backend:latest potg-backend:previous || true
+          sudo docker tag potg-backend:latest potg-backend:previous || true
           
           # potg-backend 서비스만 중지 (다운타임 시작)
-          docker-compose stop potg-backend
+          sudo docker compose stop potg-backend
           
           # 기존 latest 이미지 삭제
-          docker rmi potg-backend:latest || true
+          sudo docker rmi potg-backend:latest || true
           
           # 새 이미지를 latest로 태그 (로컬 이름으로)
-          docker tag ${{ env.IMAGE_URI }} potg-backend:latest
+          sudo docker tag ${{ env.IMAGE_URI }} potg-backend:latest
           
           # potg-backend 서비스만 시작 (다운타임 종료)
-          docker-compose up -d potg-backend
+          sudo docker compose up -d potg-backend
