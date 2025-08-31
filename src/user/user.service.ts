@@ -12,6 +12,10 @@ import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { DeviceRepository } from "@src/user/repository/device.repository";
 import { UserAlarmSettingRepository } from "@src/user/repository/user-alarm-setting.repository";
+import {
+  RefreshRequestDto,
+  RefreshResponseDto,
+} from "@src/user/dto/refresh.dto";
 
 @Injectable()
 export class UserService {
@@ -49,9 +53,10 @@ export class UserService {
     };
   }
 
-  async refresh(refreshToken: string): Promise<LoginResponseDto> {
-    const { userId } =
-      await this.authService.validateRefreshToken(refreshToken);
+  async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
+    const { userId } = await this.authService.validateRefreshToken(
+      req.refresh_token,
+    );
     if (!userId) {
       throw new Error("Invalid refresh token"); // TODO
     }

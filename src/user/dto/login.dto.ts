@@ -4,4 +4,5 @@ export class LoginRequestDto {
 
 export class LoginResponseDto {
   access_token: string;
+  refresh_token: string;
 }
