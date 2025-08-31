@@ -92,6 +92,7 @@ jobs:
         script: |
           cd ${{ env.DEPLOY_PATH }}
           mv deploy/${{ env.COMPOSE_FILE }} ./docker-compose.yml
+          rm -rf deploy
 
     - name: Output server status
       id: server-info
