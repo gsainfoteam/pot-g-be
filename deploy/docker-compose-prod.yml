@@ -1,0 +1,49 @@
+services:
+  potg-db:
+    image: postgres:17
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - potg-db-data:/var/lib/postgresql/data
+    networks:
+      - potg-network
+    env_file:
+      - .env
+
+  potg-redis:
+    image: redis:7-alpine
+    restart: always
+    networks:
+      - potg-network
+
+  potg-backend:
+    image: potg-backend:latest
+    restart: always
+    container_name: potg-backend
+    networks:
+      - potg-network
+    depends_on:
+      potg-db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=potg-redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@potg-db:5432/${POSTGRES_DB}
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+
+volumes:
+  potg-db-data:
+
+networks:
+  potg-network:
+    driver: bridge
