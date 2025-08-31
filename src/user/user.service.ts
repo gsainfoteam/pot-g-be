@@ -17,6 +17,7 @@ import {
   RefreshResponseDto,
 } from "@src/user/dto/refresh.dto";
 import { DeviceEntity } from "./model/device.entity";
+import { UserEntity } from "@src/user/model/user.entity";
 
 @Injectable()
 export class UserService {
@@ -46,31 +47,15 @@ export class UserService {
       async (tx: TxType) => {
         if (!user) {
           // 사용자가 존재하지 않는 경우, 새로 생성합니다.
-          const { user: newUser, device: newDevice } = await this.createNewUser(
-            sub,
-            name,
-            email,
-            tx,
-          );
-          user = newUser;
-          device = newDevice;
+          user = await this.createNewUser(sub, name, email, tx);
+          device = await this.createNewDevice(user, req.device_id, tx);
         } else {
           device = await this.deviceRepository.findByPkAndUserFk(
             req.device_id,
             user.pk,
           );
           if (!device) {
-            const newDevice = await this.deviceRepository.insert(
-              {
-                userFk: user.pk,
-                fcmToken: "", // 초기값은 빈 문자열로 설정
-                os: "iOS", // OS 정보는 추후에 업데이트 필요
-                version: "0.0.1", // 초기 버전 정보
-              },
-              tx,
-            );
-            await this.deviceRepository.insert(newDevice, tx);
-            device = newDevice;
+            device = await this.createNewDevice(user, req.device_id, tx);
           }
         }
 
@@ -240,9 +225,18 @@ export class UserService {
       throw new Error("Failed to create new user"); // TODO
     }
 
+    return user;
+  }
+
+  private async createNewDevice(
+    user: UserEntity,
+    deviceId: string,
+    tx: TxType,
+  ) {
     // insert device
     const device = await this.deviceRepository.insert(
       {
+        pk: deviceId,
         userFk: user.pk,
         fcmToken: "", // 초기값은 빈 문자열로 설정
         os: "iOS", // OS 정보는 추후에 업데이트 필요
@@ -263,6 +257,6 @@ export class UserService {
       tx,
     );
 
-    return { user, device };
+    return device;
   }
 }
