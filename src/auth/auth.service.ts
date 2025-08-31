@@ -3,6 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { UserEntity } from "@src/user/model/user.entity";
 import { AccessTokenJwtPayload } from "@src/auth/jwt.payload";
 import { KeyPairService } from "@src/keypair/key-pair.service";
+import { DeviceEntity } from "@src/user/model/device.entity";
 
 @Injectable()
 export class AuthService {
@@ -14,10 +15,10 @@ export class AuthService {
     private readonly keyPairService: KeyPairService,
   ) {}
 
-  async createNewJwtToken(user: UserEntity) {
+  async createNewJwtToken(user: UserEntity, device: DeviceEntity) {
     const payload: AccessTokenJwtPayload = {
       userId: user.pk,
-      deviceId: "89b9cff2-52a4-478a-b8ae-a90729f45dcd",
+      deviceId: device.pk,
     };
 
     const { privateKey } = await this.keyPairService.getKeyPair();

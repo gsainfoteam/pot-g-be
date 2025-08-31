@@ -16,6 +16,7 @@ import {
   RefreshRequestDto,
   RefreshResponseDto,
 } from "@src/user/dto/refresh.dto";
+import { DeviceEntity } from "./model/device.entity";
 
 @Injectable()
 export class UserService {
@@ -39,13 +40,43 @@ export class UserService {
     } = await this.idpService.validateAccessToken(idpToken);
 
     let user = await this.userRepository.findUserByIdpSub(sub);
-    if (!user) {
-      // 사용자가 존재하지 않는 경우, 새로 생성합니다.
-      user = await this.createNewUser(sub, name, email);
-    }
+    let device: DeviceEntity;
 
-    const { accessToken, refreshToken } =
-      await this.authService.createNewJwtToken(user);
+    const { accessToken, refreshToken } = await this.dbService.db.transaction(
+      async (tx: TxType) => {
+        if (!user) {
+          // 사용자가 존재하지 않는 경우, 새로 생성합니다.
+          const { user: newUser, device: newDevice } = await this.createNewUser(
+            sub,
+            name,
+            email,
+            tx,
+          );
+          user = newUser;
+          device = newDevice;
+        } else {
+          device = await this.deviceRepository.findByPkAndUserFk(
+            req.device_id,
+            user.pk,
+          );
+          if (!device) {
+            const newDevice = await this.deviceRepository.insert(
+              {
+                userFk: user.pk,
+                fcmToken: "", // 초기값은 빈 문자열로 설정
+                os: "iOS", // OS 정보는 추후에 업데이트 필요
+                version: "0.0.1", // 초기 버전 정보
+              },
+              tx,
+            );
+            await this.deviceRepository.insert(newDevice, tx);
+            device = newDevice;
+          }
+        }
+
+        return await this.authService.createNewJwtToken(user, device);
+      },
+    );
 
     return {
       access_token: accessToken,
@@ -189,46 +220,49 @@ export class UserService {
     return BaseResultDto.OK;
   }
 
-  private async createNewUser(sub: string, name: string, email: string) {
-    return await this.dbService.db.transaction(async (tx: TxType) => {
-      const user = await this.userRepository.insert(
-        {
-          isDeleted: false,
-          idpSub: sub,
-          name,
-          email,
-        },
-        tx,
-      );
+  private async createNewUser(
+    sub: string,
+    name: string,
+    email: string,
+    tx: TxType,
+  ) {
+    const user = await this.userRepository.insert(
+      {
+        isDeleted: false,
+        idpSub: sub,
+        name,
+        email,
+      },
+      tx,
+    );
 
-      if (!user) {
-        throw new Error("Failed to create new user"); // TODO
-      }
+    if (!user) {
+      throw new Error("Failed to create new user"); // TODO
+    }
 
-      // insert device
-      const device = await this.deviceRepository.insert(
-        {
-          userFk: user.pk,
-          fcmToken: "", // 초기값은 빈 문자열로 설정
-          os: "iOS", // OS 정보는 추후에 업데이트 필요
-          version: "0.0.1", // 초기 버전 정보
-        },
-        tx,
-      );
+    // insert device
+    const device = await this.deviceRepository.insert(
+      {
+        userFk: user.pk,
+        fcmToken: "", // 초기값은 빈 문자열로 설정
+        os: "iOS", // OS 정보는 추후에 업데이트 필요
+        version: "0.0.1", // 초기 버전 정보
+      },
+      tx,
+    );
 
-      // insert user_alarm_setting
-      await this.userAlarmSettingRepository.insert(
-        {
-          deviceFk: device.pk,
-          anyPush: true, // 기본값은 true로 설정
-          chatPush: true,
-          marketingPush: true,
-          potInOutPush: true,
-        },
-        tx,
-      );
+    // insert user_alarm_setting
+    await this.userAlarmSettingRepository.insert(
+      {
+        deviceFk: device.pk,
+        anyPush: true, // 기본값은 true로 설정
+        chatPush: true,
+        marketingPush: true,
+        potInOutPush: true,
+      },
+      tx,
+    );
 
-      return user;
-    });
+    return { user, device };
   }
 }

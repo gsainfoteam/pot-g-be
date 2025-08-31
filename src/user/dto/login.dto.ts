@@ -1,5 +1,6 @@
 export class LoginRequestDto {
   token: string;
+  device_id: string;
 }
 
 export class LoginResponseDto {
