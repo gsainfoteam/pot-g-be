@@ -83,7 +83,6 @@ jobs:
           echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
         fi
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
 
     - name: Copy docker-compose file to server
       run: |
@@ -135,7 +134,6 @@ jobs:
           echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
         fi
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
 
     - name: Deploy to server
       run: |

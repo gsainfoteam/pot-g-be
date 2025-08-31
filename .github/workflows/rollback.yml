@@ -55,9 +55,12 @@ jobs:
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
-        echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa
+        if [[ ${{ github.ref_name }} == dev-* ]]; then
+          echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        else
+          echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        fi
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
 
     - name: Validate rollback tag format
       if: github.event.inputs.rollback_tag != ''
