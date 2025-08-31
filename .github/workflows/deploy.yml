@@ -1,0 +1,166 @@
+name: Deploy to AWS ECR and Server
+
+on:
+  push:
+    tags:
+      - 'dev-v*'
+      - 'prod-v*'
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: potg-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image-uri: ${{ steps.build-info.outputs.image-uri }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set image tag
+      run: |
+        echo "IMAGE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build Docker image
+      run: |
+        docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Push to ECR
+      run: |
+        docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Output image info
+      id: build-info
+      run: |
+        echo "image-uri=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  prepare-server:
+    runs-on: ubuntu-latest
+    outputs:
+      server-ready: ${{ steps.server-info.outputs.ready }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set environment variables
+      run: |
+        if [[ ${{ github.ref_name }} == dev-* ]]; then
+          echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+          echo "COMPOSE_FILE=docker-compose-dev.yml" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ secrets.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "SERVER_SSH_KEY=${{ secrets.DEV_SERVER_SSH_KEY }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ secrets.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+        else
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+          echo "COMPOSE_FILE=docker-compose-prod.yml" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ secrets.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ secrets.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "SERVER_SSH_KEY=${{ secrets.PROD_SERVER_SSH_KEY }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+        fi
+
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+    - name: Copy docker-compose file to server
+      run: |
+        scp -i ~/.ssh/id_rsa deploy/$COMPOSE_FILE $SERVER_USER@$SERVER_HOST:$DEPLOY_PATH/docker-compose.yml
+
+    - name: Output server status
+      id: server-info
+      run: |
+        echo "ready=true" >> $GITHUB_OUTPUT
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, prepare-server]
+    
+    steps:
+    - name: Set environment variables
+      run: |
+        if [[ ${{ github.ref_name }} == dev-* ]]; then
+          echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ secrets.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "SERVER_SSH_KEY=${{ secrets.DEV_SERVER_SSH_KEY }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ secrets.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+        else
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ secrets.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ secrets.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "SERVER_SSH_KEY=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+        fi
+        echo "IMAGE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+        echo "IMAGE_URI=${{ needs.build-and-push.outputs.image-uri }}" >> $GITHUB_ENV
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+    - name: Deploy to server
+      run: |
+        ssh -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST << 'EOF'
+          cd ${{ env.DEPLOY_PATH }}
+          
+          # AWS CLI 설정 (서버에 AWS CLI가 설치되어 있다고 가정)
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+          
+          # 새 이미지 pull (서비스 실행 중에 미리 받아두기)
+          docker pull ${{ env.IMAGE_URI }}
+          
+          # 현재 latest 이미지를 previous로 백업
+          docker tag potg-backend:latest potg-backend:previous || true
+          
+          # potg-backend 서비스만 중지 (다운타임 시작)
+          docker-compose stop potg-backend
+          
+          # 기존 latest 이미지 삭제
+          docker rmi potg-backend:latest || true
+          
+          # 새 이미지를 latest로 태그 (로컬 이름으로)
+          docker tag ${{ env.IMAGE_URI }} potg-backend:latest
+          
+          # potg-backend 서비스만 시작 (다운타임 종료)
+          docker-compose up -d potg-backend
+        EOF
+
+    - name: Cleanup SSH key
+      if: always()
+      run: |
+        rm -f ~/.ssh/id_rsa
