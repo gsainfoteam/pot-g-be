@@ -11,7 +11,6 @@ services:
     volumes:
       - potg-db-data:/var/lib/postgresql/data
     networks:
-      - default
       - potg-network
     env_file:
       - .env
@@ -22,7 +21,6 @@ services:
     image: redis:7-alpine
     restart: always
     networks:
-      - default
       - potg-network
     ports:
       - "6379:6379"
@@ -32,13 +30,16 @@ services:
     restart: always
     container_name: potg-backend
     networks:
-      - default
       - potg-network
     depends_on:
       potg-db:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      - REDIS_HOST=potg-redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@potg-db:5432/${POSTGRES_DB}
     build:
       context: .
     ports:
@@ -48,6 +49,5 @@ volumes:
   potg-db-data:
 
 networks:
-  default:
   potg-network:
     driver: bridge
