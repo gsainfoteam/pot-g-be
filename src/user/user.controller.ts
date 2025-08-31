@@ -43,6 +43,7 @@ export class UserController {
   }
 
   @Post("/push")
+  @UseGuards(UserGuard)
   async setPushSettings(
     @Body() req: PushSettingDto,
     @GetUser() userCtx: UserContext,
