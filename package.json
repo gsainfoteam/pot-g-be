@@ -1,8 +1,9 @@
 {
-  "name": "nest-typescript-starter",
+  "name": "potg-server",
   "private": true,
   "version": "1.0.0",
-  "description": "Nest TypeScript starter repository",
+  "description": "Server for PotG project",
+  "author": "infoteam",
   "license": "MIT",
   "scripts": {
     "build": "nest build",
@@ -24,13 +25,19 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "axios": "^1.11.0",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.43.1",
     "ioredis": "^5.7.0",
+    "passport-http-bearer": "^1.0.1",
+    "passport-jwt": "^4.0.1",
     "pg": "^8.15.6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
@@ -46,6 +53,8 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
+    "@types/passport-http-bearer": "^1.0.41",
+    "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.11.14",
     "@types/supertest": "^6.0.2",
     "drizzle-dbml-generator": "^0.10.0",

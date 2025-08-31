@@ -5,7 +5,6 @@ CREATE TABLE "users"
     "idp_sub"    varchar(64)              NOT NULL,
     "name"       varchar(32)              NOT NULL,
     "email"      varchar(64)              NOT NULL,
-    "student_id" varchar(16)              NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
@@ -99,114 +98,65 @@ CREATE TABLE "user_bank"
     "account" varchar(64) NOT NULL
 );
 
+CREATE TABLE "jwt_key_pair"
+(
+    "pk"          uuid                     NOT NULL,
+    "public_key"  text                     NOT NULL,
+    "private_key" text                     NOT NULL,
+    "created_at"  timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"  timestamp with time zone NOT NULL DEFAULT NOW()
+);
+
 ALTER TABLE "users"
-    ADD CONSTRAINT "PK_USERS" PRIMARY KEY (
-                                           "pk"
-        );
+    ADD CONSTRAINT "PK_USERS" PRIMARY KEY ("pk");
 
 ALTER TABLE "user_pot_room"
-    ADD CONSTRAINT "PK_USER_POT_ROOM" PRIMARY KEY (
-                                                   "pot_room_fk",
-                                                   "user_fk"
-        );
+    ADD CONSTRAINT "PK_USER_POT_ROOM" PRIMARY KEY ("pot_room_fk", "user_fk");
 
 ALTER TABLE "pot_room"
-    ADD CONSTRAINT "PK_POT_ROOM" PRIMARY KEY (
-                                              "pk"
-        );
+    ADD CONSTRAINT "PK_POT_ROOM" PRIMARY KEY ("pk");
 
 ALTER TABLE "pot_event"
-    ADD CONSTRAINT "PK_POT_EVENT" PRIMARY KEY (
-                                               "pot_fk",
-                                               "timestamp"
-        );
+    ADD CONSTRAINT "PK_POT_EVENT" PRIMARY KEY ("pot_fk", "timestamp");
 
 ALTER TABLE "user_alarm_setting"
-    ADD CONSTRAINT "PK_USER_ALARM_SETTING" PRIMARY KEY (
-                                                        "pk"
-        );
+    ADD CONSTRAINT "PK_USER_ALARM_SETTING" PRIMARY KEY ("pk");
 
 ALTER TABLE "route"
-    ADD CONSTRAINT "PK_ROUTE" PRIMARY KEY (
-                                           "pk"
-        );
+    ADD CONSTRAINT "PK_ROUTE" PRIMARY KEY ("pk");
 
 ALTER TABLE "device"
-    ADD CONSTRAINT "PK_DEVICE" PRIMARY KEY (
-                                            "pk"
-        );
+    ADD CONSTRAINT "PK_DEVICE" PRIMARY KEY ("pk");
 
 ALTER TABLE "bank"
-    ADD CONSTRAINT "PK_BANK" PRIMARY KEY (
-                                          "pk"
-        );
+    ADD CONSTRAINT "PK_BANK" PRIMARY KEY ("pk");
 
 ALTER TABLE "user_bank"
-    ADD CONSTRAINT "PK_USER_BANK" PRIMARY KEY (
-                                               "user_fk",
-                                               "bank_fk"
-        );
+    ADD CONSTRAINT "PK_USER_BANK" PRIMARY KEY ("user_fk", "bank_fk");
+
+ALTER TABLE "jwt_key_pair"
+    ADD CONSTRAINT "PK_JWT_KEY_PAIR" PRIMARY KEY ("pk");
 
 ALTER TABLE "user_pot_room"
-    ADD CONSTRAINT "FK_users_TO_user_pot_room_1" FOREIGN KEY (
-                                                              "user_fk"
-        )
-        REFERENCES "users" (
-                            "pk"
-            );
+    ADD CONSTRAINT "FK_users_TO_user_pot_room_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
 
 ALTER TABLE "user_pot_room"
-    ADD CONSTRAINT "FK_pot_room_TO_user_pot_room_1" FOREIGN KEY (
-                                                                 "pot_room_fk"
-        )
-        REFERENCES "pot_room" (
-                               "pk"
-            );
+    ADD CONSTRAINT "FK_pot_room_TO_user_pot_room_1" FOREIGN KEY ("pot_room_fk") REFERENCES "pot_room" ("pk");
 
 ALTER TABLE "pot_room"
-    ADD CONSTRAINT "FK_route_TO_pot_room_1" FOREIGN KEY (
-                                                         "route_fk"
-        )
-        REFERENCES "route" (
-                            "pk"
-            );
+    ADD CONSTRAINT "FK_route_TO_pot_room_1" FOREIGN KEY ("route_fk") REFERENCES "route" ("pk");
 
 ALTER TABLE "pot_event"
-    ADD CONSTRAINT "FK_pot_room_TO_pot_event_1" FOREIGN KEY (
-                                                             "pot_fk"
-        )
-        REFERENCES "pot_room" (
-                               "pk"
-            );
+    ADD CONSTRAINT "FK_pot_room_TO_pot_event_1" FOREIGN KEY ("pot_fk") REFERENCES "pot_room" ("pk");
 
 ALTER TABLE "user_alarm_setting"
-    ADD CONSTRAINT "FK_device_TO_user_alarm_setting_1" FOREIGN KEY (
-                                                                    "device_fk"
-        )
-        REFERENCES "device" (
-                             "pk"
-            );
+    ADD CONSTRAINT "FK_device_TO_user_alarm_setting_1" FOREIGN KEY ("device_fk") REFERENCES "device" ("pk");
 
 ALTER TABLE "device"
-    ADD CONSTRAINT "FK_users_TO_device_1" FOREIGN KEY (
-                                                       "user_fk"
-        )
-        REFERENCES "users" (
-                            "pk"
-            );
+    ADD CONSTRAINT "FK_users_TO_device_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
 
 ALTER TABLE "user_bank"
-    ADD CONSTRAINT "FK_users_TO_user_bank_1" FOREIGN KEY (
-                                                          "user_fk"
-        )
-        REFERENCES "users" (
-                            "pk"
-            );
+    ADD CONSTRAINT "FK_users_TO_user_bank_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
 
 ALTER TABLE "user_bank"
-    ADD CONSTRAINT "FK_bank_TO_user_bank_1" FOREIGN KEY (
-                                                         "bank_fk"
-        )
-        REFERENCES "bank" (
-                           "pk"
-            );
+    ADD CONSTRAINT "FK_bank_TO_user_bank_1" FOREIGN KEY ("bank_fk") REFERENCES "bank" ("pk");
