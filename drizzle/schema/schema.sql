@@ -65,13 +65,22 @@ CREATE TABLE "user_alarm_setting"
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "route"
+CREATE TABLE "stops"
 (
     "pk"         uuid                     NOT NULL,
-    "from_stop"  smallint                 NOT NULL,
-    "to_stop"    smallint                 NOT NULL,
+    "name_kor"   varchar(127)             NOT NULL,
+    "name_eng"   varchar(127)             NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE "route"
+(
+    "pk"           uuid                     NOT NULL,
+    "from_stop_fk" uuid                     NOT NULL,
+    "to_stop_fk"   uuid                     NOT NULL,
+    "created_at"   timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"   timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "device"
@@ -124,6 +133,9 @@ ALTER TABLE "pot_event"
 ALTER TABLE "user_alarm_setting"
     ADD CONSTRAINT "PK_USER_ALARM_SETTING" PRIMARY KEY ("pk");
 
+ALTER TABLE "stops"
+    ADD CONSTRAINT "PK_STOPS" PRIMARY KEY ("pk");
+
 ALTER TABLE "route"
     ADD CONSTRAINT "PK_ROUTE" PRIMARY KEY ("pk");
 
@@ -162,3 +174,9 @@ ALTER TABLE "user_bank"
 
 ALTER TABLE "user_bank"
     ADD CONSTRAINT "FK_bank_TO_user_bank_1" FOREIGN KEY ("bank_fk") REFERENCES "bank" ("pk");
+
+ALTER TABLE "route"
+    ADD CONSTRAINT "FK_stops_TO_route_from" FOREIGN KEY ("from_stop_fk") REFERENCES "stops" ("pk");
+
+ALTER TABLE "route"
+    ADD CONSTRAINT "FK_stops_TO_route_to" FOREIGN KEY ("to_stop_fk") REFERENCES "stops" ("pk");
