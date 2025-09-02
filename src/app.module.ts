@@ -5,6 +5,7 @@ import { UserModule } from "@src/user/user.module";
 import { AuthModule } from "@src/auth/auth.module";
 import { RedisModule } from "@src/redis/redis.module";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
+import { DiscoveryModule } from "@src/discovery/discovery.module";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { KeyPairModule } from "@src/keypair/key-pair.module";
     AuthModule,
     RedisModule,
     KeyPairModule,
+    DiscoveryModule,
   ],
   controllers: [],
   providers: [],
