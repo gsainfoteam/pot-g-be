@@ -3,16 +3,16 @@ import { BankDto } from "@src/accounting/dto/bank.dto";
 import { AccountingService } from "@src/accounting/accounting.service";
 import { ChangeAccountingRequestDto } from "@src/accounting/dto/change-accounting.dto";
 import { AccountingDto } from "@src/user/dto/accounting.dto";
-import { AuthGuard } from "@nestjs/passport";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
 import { UserContext } from "@src/auth/user-context.entity";
+import { UserGuard } from "@src/auth/guard/user.guard";
 
 @Controller("/api/v1/accounting")
 export class AccountingController {
   constructor(private readonly accountingService: AccountingService) {}
 
   @Post("/me")
-  @UseGuards(AuthGuard)
+  @UseGuards(UserGuard)
   async changeAccounting(
     @Body() req: ChangeAccountingRequestDto,
     @GetUser() userCtx: UserContext,
@@ -21,7 +21,7 @@ export class AccountingController {
   }
 
   @Get("/bank")
-  @UseGuards(AuthGuard)
+  @UseGuards(UserGuard)
   async getBanks(): Promise<BankDto[]> {
     return this.accountingService.getBanks();
   }

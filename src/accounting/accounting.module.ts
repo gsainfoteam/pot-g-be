@@ -1,21 +1,18 @@
 import { Module } from "@nestjs/common";
 import { DatabaseModule } from "@src/database/database.module";
-import { PotGDiscoveryService } from "@src/discovery/discovery.service";
-import { RouteService } from "@src/discovery/route.service";
-import { RouteRepository } from "@src/discovery/repository/route.repository";
-import { StopsRepository } from "@src/discovery/repository/stops.repository";
-import { DiscoveryController } from "@src/discovery/discovery.controller";
+import { BankRepository } from "@src/accounting/repository/bank.repository";
+import { AccountingService } from "@src/accounting/accounting.service";
+import { UserBankRepository } from "@src/accounting/repository/user-bank.repository";
+import { AccountingController } from "@src/accounting/accounting.controller";
 
 @Module({
   imports: [DatabaseModule],
   providers: [
-    PotGDiscoveryService,
-    RouteService,
-    RouteRepository,
-    StopsRepository,
-    DiscoveryController,
+    AccountingService,
+    AccountingController,
+    BankRepository,
+    UserBankRepository,
   ],
-  exports: [RouteService],
-  controllers: [DiscoveryController],
+  controllers: [AccountingController],
 })
 export class AccountingModule {}
