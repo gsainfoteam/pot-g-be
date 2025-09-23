@@ -7,6 +7,7 @@ export class PotRoomEntity {
   isArchived: boolean;
   isDeleted: boolean;
   isDepartureConfirmed: boolean;
+  currentUserCount?: number; // 현재 참여 인원 (조인 쿼리 필요)
   maxCapacity: number;
   startsAt: Date;
   endsAt: Date;

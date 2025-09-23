@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { bank } from "../../../drizzle/schema/bank";
-import { PotRoomEntity } from "@src/pot/model/pot-room.entity";
+import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { potRoom } from "../../../drizzle/schema/pot-room";
+import { desc } from "drizzle-orm";
 
 @Injectable()
 export class PotRoomRepository {
@@ -35,6 +35,31 @@ export class PotRoomRepository {
     }
 
     return this.resultToPotRoomEntity(result[0]);
+  }
+
+  async searchPotList(
+    offset: number,
+    limit: number,
+    route_id?: string,
+    starts_at?: Date,
+    ends_at?: Date,
+  ): Promise<PotRoomEntity[]> {
+    const results = await this.dbService.db
+      .select()
+      .from(potRoom)
+      .offset(offset)
+      .limit(limit)
+      .orderBy(desc(potRoom.createdAt));
+
+    return results.map((result) => this.resultToPotRoomEntity(result));
+  }
+
+  async countPotList(
+    route_id?: string,
+    starts_at?: Date,
+    ends_at?: Date,
+  ): Promise<number> {
+    return await this.dbService.db.$count(potRoom);
   }
 
   private resultToPotRoomEntity(result: any): PotRoomEntity {

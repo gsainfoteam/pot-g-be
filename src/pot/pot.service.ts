@@ -7,10 +7,10 @@ import { RouteService } from "@src/discovery/route.service";
 import { DatabaseService } from "@src/database/database.service";
 import { RouteEntity } from "@src/discovery/model/route.entity";
 import { randomUUID } from "node:crypto";
-import { PotRoomEntity } from "@src/pot/model/pot-room.entity";
+import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { PotEventRepository } from "@src/pot/repository/pot-event.repository";
-import { PotRoomRepository } from "@src/pot/repository/pot-room.repository";
+import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
 import { UserPotRoomEntity } from "@src/pot/model/user-pot-room.entity";
 import { UserPotRoomRepository } from "@src/pot/repository/user-pot-room.repository";
 

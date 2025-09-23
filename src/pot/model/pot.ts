@@ -1,4 +1,4 @@
-import { PotRoomEntity } from "@src/pot/model/pot-room.entity";
+import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
 
 export class Pot {
   constructor() {
