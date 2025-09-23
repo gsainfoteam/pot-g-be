@@ -8,6 +8,7 @@ import { PotSearchDto } from "@src/discovery/dto/pot-search.dto";
 import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
 import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
 import { RouteEntity } from "@src/discovery/model/route.entity";
+import { StopsEntity } from "@src/discovery/model/stops.entity";
 
 @Injectable()
 export class PotGDiscoveryService {
@@ -18,22 +19,22 @@ export class PotGDiscoveryService {
 
   async searchPotList(req: PotSearchDto): Promise<PaginationDto<PotDto>> {
     const potRooms: PotRoomEntity[] =
-      await this.potRoomRepository.searchPotList(req.offset, req.limit);
-    const total: number = await this.potRoomRepository.countPotList();
+      await this.potRoomRepository.searchPotList(
+        req.offset,
+        req.limit,
+        req.route_id,
+        req.starts_at,
+        req.ends_at,
+      );
 
-    const potList: PotDto[] = potRooms.map((potRoom) => {
-      const route = this.routeService.getRouteById(potRoom.routeFk);
+    // 위 searchPotList 쿼리와 동시에 처리할 수 있지만 우선은 간단히 구현
+    const total: number = await this.potRoomRepository.countPotList(
+      req.route_id,
+      req.starts_at,
+      req.ends_at,
+    );
 
-      return {
-        id: potRoom.pk,
-        name: potRoom.name,
-        route: this.routeEntityToDto(route),
-        starts_at: potRoom.startsAt,
-        ends_at: potRoom.endsAt,
-        current: potRoom.currentUserCount || 1,
-        total: potRoom.maxCapacity,
-      };
-    });
+    const potList: PotDto[] = potRooms.map(this.potRoomEntityToDto.bind(this));
 
     return {
       total: total,
@@ -44,19 +45,30 @@ export class PotGDiscoveryService {
   }
 
   async getRoutes(): Promise<RouteDto[]> {
-    return this.routeService.getRoutesWithStops().map(this.routeEntityToDto);
+    return this.routeService
+      .getRoutesWithStops()
+      .map(this.routeEntityToDto.bind(this));
   }
 
   async getStops(): Promise<StopDto[]> {
-    return this.routeService.getStops().map((stops) => {
-      return {
-        id: stops.pk,
-        name: stops.nameKor,
-      };
-    });
+    return this.routeService.getStops().map(this.stopEntityToDto.bind(this));
   }
 
-  routeEntityToDto(route: RouteEntity): RouteDto {
+  private potRoomEntityToDto(potRoom: PotRoomEntity): PotDto {
+    const route = this.routeService.getRouteById(potRoom.routeFk);
+
+    return {
+      id: potRoom.pk,
+      name: potRoom.name,
+      route: this.routeEntityToDto(route),
+      starts_at: potRoom.startsAt,
+      ends_at: potRoom.endsAt,
+      current: potRoom.currentUserCount || 1,
+      total: potRoom.maxCapacity,
+    };
+  }
+
+  private routeEntityToDto(route: RouteEntity): RouteDto {
     return {
       id: route.pk,
       from: {
@@ -67,6 +79,13 @@ export class PotGDiscoveryService {
         id: route.toStopFk,
         name: route.toStop.nameKor,
       },
+    };
+  }
+
+  private stopEntityToDto(stops: StopsEntity): StopDto {
+    return {
+      id: stops.pk,
+      name: stops.nameKor,
     };
   }
 }

@@ -7,7 +7,7 @@ import {
   Min,
 } from "class-validator";
 import { parseISO } from "date-fns";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 
 export class PotSearchDto {
   @IsOptional()
@@ -24,10 +24,12 @@ export class PotSearchDto {
   @Transform(({ value }) => parseISO(value))
   ends_at?: Date;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   offset: number = 0;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @Max(100)
