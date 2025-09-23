@@ -1,10 +1,17 @@
 import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
 
+export type ChatMessage = {
+  userPk: string; // 채팅을 보낸 유저의 ID
+  message: string; // 채팅 메시지
+  timestamp: Date; // 메시지 전송 시간
+};
+
 export class Pot {
   constructor() {
     this.joinedUserPks = [];
     this.accountingRequestedUserPks = [];
     this.accountingConfirmedUserPks = [];
+    this.chatHistory = [];
   }
 
   pk: string;
@@ -30,6 +37,8 @@ export class Pot {
   recipientAmount: number | null; // 송금 받을 금액 (원)
   accountingRequestedUserPks: string[] = []; // 송금 보낼 유저의 ID 리스트
   accountingConfirmedUserPks: string[] = []; // 송금 보낸 유저의 ID 리스트
+
+  chatHistory: ChatMessage[] = [];
 
   public toPotRoomEntity(): PotRoomEntity {
     return {
