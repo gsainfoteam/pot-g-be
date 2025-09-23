@@ -21,7 +21,7 @@ export class PotUserKickEventV1 implements PotEvent<PotUserKickEventV1Dto> {
     timestamp: Date,
     data: PotUserKickEventV1Dto,
   ) {
-    this.potPk = potPk;
+    this.potRoomPk = potPk;
     this.eventType = "user_kick_v1";
     this.timestamp = timestamp;
     this.data = data;
@@ -64,7 +64,7 @@ export class PotUserKickEventV1 implements PotEvent<PotUserKickEventV1Dto> {
     };
   }
 
-  readonly potPk: string;
+  readonly potRoomPk: string;
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotUserKickEventV1Dto;

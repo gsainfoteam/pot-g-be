@@ -70,7 +70,7 @@ export class UserService {
   }
 
   async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
-    const { userId } = await this.authService.validateRefreshToken(
+    const { userId, deviceId } = await this.authService.validateRefreshToken(
       req.refresh_token,
     );
     if (!userId) {
@@ -82,7 +82,10 @@ export class UserService {
       throw new Error("User not found"); // TODO
     }
 
-    const { accessToken } = await this.authService.refreshAccessToken(user);
+    const { accessToken } = await this.authService.refreshAccessToken(
+      user,
+      deviceId,
+    );
     return { access_token: accessToken };
   }
 

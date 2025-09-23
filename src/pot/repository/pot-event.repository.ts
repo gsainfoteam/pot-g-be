@@ -5,15 +5,16 @@ import { potEvent } from "drizzle/schema/pot-event";
 import { and, asc, eq, not, SQL, sql } from "drizzle-orm";
 import { PotEventReducer } from "../event/pot-event-reducer";
 import { Injectable } from "@nestjs/common";
+import { TxType } from "@src/global/types/tx.types";
 
 type DataCondition = { eventType: string; data: Record<string, any> };
 
 @Injectable()
-export class PotRoomRepository {
+export class PotEventRepository {
   constructor(private readonly db: DatabaseService) {}
 
-  async saveEvent<T>(event: PotEvent<T>): Promise<PotEvent<T>> {
-    const result = await this.db.db
+  async saveEvent<T>(event: PotEvent<T>, tx: TxType): Promise<PotEvent<T>> {
+    const result = await tx
       .insert(potEvent)
       .values(PotEventFactory.toEntity(event))
       .returning();

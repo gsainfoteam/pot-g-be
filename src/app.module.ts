@@ -7,6 +7,7 @@ import { RedisModule } from "@src/redis/redis.module";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { DiscoveryModule } from "@src/discovery/discovery.module";
 import { AccountingModule } from "@src/accounting/accounting.module";
+import { PotModule } from "@src/pot/pot.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AccountingModule } from "@src/accounting/accounting.module";
     KeyPairModule,
     DiscoveryModule,
     AccountingModule,
+    PotModule,
   ],
   controllers: [],
   providers: [],

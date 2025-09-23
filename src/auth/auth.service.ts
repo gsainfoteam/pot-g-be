@@ -58,10 +58,10 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(user: UserEntity) {
+  async refreshAccessToken(user: UserEntity, deviceId: string) {
     const payload: AccessTokenJwtPayload = {
       userId: user.pk,
-      deviceId: "89b9cff2-52a4-478a-b8ae-a90729f45dcd",
+      deviceId: deviceId,
     };
 
     const { privateKey } = await this.keyPairService.getKeyPair();

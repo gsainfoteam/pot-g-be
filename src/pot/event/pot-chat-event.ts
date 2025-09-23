@@ -14,7 +14,7 @@ export type PotChatEventV1Dto = {
 // TODO
 export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
   private constructor(potPk: string, timestamp: Date, data: PotChatEventV1Dto) {
-    this.potPk = potPk;
+    this.potRoomPk = potPk;
     this.eventType = "chat_v1";
     this.timestamp = timestamp;
     this.data = data;
@@ -48,7 +48,7 @@ export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
     };
   }
 
-  readonly potPk: string;
+  readonly potRoomPk: string;
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotChatEventV1Dto;

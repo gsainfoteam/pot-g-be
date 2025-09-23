@@ -30,4 +30,8 @@ export class RouteService implements OnModuleInit {
   getRoutesWithStops() {
     return this.cachedRoutesWithStops;
   }
+
+  getRouteById(routeId: string): RouteEntity | undefined {
+    return this.cachedRoutesWithStops.find((route) => route.pk === routeId);
+  }
 }
