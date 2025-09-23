@@ -5,6 +5,7 @@ import {
   AssertIfDepartureTimeNotSet,
   AssertIfHost,
   AssertIfNotHost,
+  AssertIfUserAccountingRequestedAndNotConfirmed,
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
@@ -51,10 +52,13 @@ export class PotUserKickEventV1 implements PotEvent<PotUserKickEventV1Dto> {
       AssertIfHost(pot, data.userPk);
 
       // 방장을 강퇴할 수 없음
-      AssertIfNotHost(pot, data.kickedUserPk, "Host cannot be kicked");
+      AssertIfNotHost(pot, data.kickedUserPk);
 
       // 강퇴할 유저가 방에 존재하는지 확인
       AssertIfUserInPot(pot, data.kickedUserPk);
+
+      // 강퇴할 유저가 정산 대기중이면 강퇴 불가
+      AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.kickedUserPk);
 
       pot.joinedUserPks = pot.joinedUserPks.filter(
         (userId) => userId !== data.kickedUserPk,
