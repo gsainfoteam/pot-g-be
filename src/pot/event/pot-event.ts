@@ -27,7 +27,7 @@ import {
 
 export interface PotEvent<T> {
   //Metadata of event
-  potPk: string;
+  potRoomPk: string;
   eventType: PotEventStringType;
   timestamp: Date;
 
@@ -42,7 +42,7 @@ export type PotEventEntitySelect = typeof potEvent.$inferSelect;
 export class PotEventFactory {
   static toEntity(event: PotEvent<any>): PotEventEntityInsert {
     return {
-      potFk: event.potPk,
+      potFk: event.potRoomPk,
       timestamp: event.timestamp,
       type: event.eventType,
       data: event.data,

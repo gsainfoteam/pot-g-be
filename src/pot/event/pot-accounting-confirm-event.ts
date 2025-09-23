@@ -24,7 +24,7 @@ export class PotAccountingConfirmEventV1
     timestamp: Date,
     data: PotAccountingConfirmEventV1Dto,
   ) {
-    this.potPk = potPk;
+    this.potRoomPk = potPk;
     this.eventType = "accounting_confirm_v1";
     this.timestamp = timestamp;
     this.data = data;
@@ -69,7 +69,7 @@ export class PotAccountingConfirmEventV1
     };
   }
 
-  readonly potPk: string;
+  readonly potRoomPk: string;
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotAccountingConfirmEventV1Dto;

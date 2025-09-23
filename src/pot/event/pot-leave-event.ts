@@ -20,7 +20,7 @@ export class PotUserLeaveEventV1 implements PotEvent<PotUserLeaveEventV1Dto> {
     timestamp: Date,
     data: PotUserLeaveEventV1Dto,
   ) {
-    this.potPk = potPk;
+    this.potRoomPk = potPk;
     this.eventType = "user_leave_v1";
     this.timestamp = timestamp;
     this.data = data;
@@ -76,7 +76,7 @@ export class PotUserLeaveEventV1 implements PotEvent<PotUserLeaveEventV1Dto> {
     };
   }
 
-  readonly potPk: string;
+  readonly potRoomPk: string;
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotUserLeaveEventV1Dto;
