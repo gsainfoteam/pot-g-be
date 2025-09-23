@@ -104,6 +104,16 @@ export class PotRoomRepository {
     );
   }
 
+  async setDepartureTime(potRoomPk: string, tx: TxType): Promise<void> {
+    await tx
+      .update(potRoom)
+      .set({
+        isDepartureConfirmed: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(potRoom.pk, potRoomPk));
+  }
+
   private getSearchPotListWhereClause(
     route_id?: string,
     starts_at?: Date,

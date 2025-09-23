@@ -1,6 +1,12 @@
 import { Pot } from "../model/pot";
 import type { PotEvent } from "./pot-event";
 import { PotEventStringType } from "../../../drizzle/schema/pot-event";
+import {
+  AssertIfDepartureTimeBeforeNow,
+  AssertIfHost,
+  AssertIfValidDepartureTime,
+  AssertIfValidPot,
+} from "@src/pot/validator/common-pot-validator";
 
 export type PotDepartureConfirmEventV1Dto = {
   potRoomPk: string;
@@ -37,34 +43,18 @@ export class PotDepartureConfirmEventV1
   ) => Pot {
     return (pot: Pot, data: PotDepartureConfirmEventV1Dto) => {
       // 방 존재 여부 확인
-      if (pot.pk !== data.potRoomPk || pot.isArchived) {
-        throw new Error("Pot ID does not match or pot is archived");
-      }
+      AssertIfValidPot(pot, data.potRoomPk);
 
       // 방장만 출발 확정을 정할 수 있음
-      if (pot.hostUserPk !== data.userPk) {
-        throw new Error("User is not the host");
-      }
+      AssertIfHost(pot, data.userPk);
 
-      // 출발 시간이 정해지지 않은 경우에만 출발 확정 가능
-      if (pot.departureTime !== null) {
-        throw new Error("Departure time already set");
-      }
+      // TODO: 이미 출발을 하지 않아야 함
 
       // 출발 시간이 현재 시간 이후여야 함
-      if (data.departureTime < new Date()) {
-        throw new Error("Departure time must be in the future");
-      }
+      AssertIfDepartureTimeBeforeNow(data.departureTime);
 
       // 출발 시간이 출발 가능 시작 시간과 출발 가능 종료 시간 사이여야 함
-      if (
-        data.departureTime < pot.departureAvailableStartTime ||
-        data.departureTime > pot.departureAvailableEndTime
-      ) {
-        throw new Error(
-          "Departure time must be between departure available start time and end time",
-        );
-      }
+      AssertIfValidDepartureTime(pot, data.departureTime);
 
       pot.departureTime = data.departureTime;
       return pot;

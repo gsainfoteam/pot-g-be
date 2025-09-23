@@ -11,7 +11,10 @@ import {
   PotUserKickEventV1Dto,
 } from "./pot-user-kick-event";
 import { PotArchiveEventV1, PotArchiveEventV1Dto } from "./pot-archive-event";
-import { PotUserLeaveEventV1, PotUserLeaveEventV1Dto } from "./pot-leave-event";
+import {
+  PotUserLeaveEventV1,
+  PotUserLeaveEventV1Dto,
+} from "./pot-user-leave-event";
 import {
   PotAccountingConfirmEventV1,
   PotAccountingConfirmEventV1Dto,
@@ -101,7 +104,7 @@ export class PotEventFactory {
       }
       case "user_leave_v1": {
         const data = entity.data as PotUserLeaveEventV1Dto;
-        return PotUserLeaveEventV1.generatePotUserOutEvent(
+        return PotUserLeaveEventV1.generatePotUserLeaveEvent(
           entity.potFk,
           entity.timestamp,
           data,

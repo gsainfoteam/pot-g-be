@@ -5,6 +5,8 @@ import { PotEventReducer } from "./pot-event-reducer";
 import { PotEventStringType } from "../../../drizzle/schema/pot-event";
 import {
   AssertIfDepartureTimeNotSet,
+  AssertIfUserAccountingRequestedAndNotConfirmed,
+  AssertIfUserAccountingRequestingAndNotCompleted,
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
@@ -27,7 +29,7 @@ export class PotUserLeaveEventV1 implements PotEvent<PotUserLeaveEventV1Dto> {
     this.dispatcher = PotUserLeaveEventV1.getDispatcherFunction();
   }
 
-  static generatePotUserOutEvent(
+  static generatePotUserLeaveEvent(
     potPk: string,
     timestamp: Date,
     data: PotUserLeaveEventV1Dto,
@@ -48,6 +50,12 @@ export class PotUserLeaveEventV1 implements PotEvent<PotUserLeaveEventV1Dto> {
 
       // 퇴장할 유저가 방에 존재하는지 확인
       AssertIfUserInPot(pot, data.userPk);
+
+      // 본인이 정산 요청 대상자이고 본인의 정산이 완료되지 않았는지 확인
+      AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.userPk);
+
+      // 본인이 정산자인데 정산이 완료되지 않은 다른 사람이 있는지 확인
+      AssertIfUserAccountingRequestingAndNotCompleted(pot, data.userPk);
 
       // 퇴장할 유저 제거
       pot.joinedUserPks = pot.joinedUserPks.filter(

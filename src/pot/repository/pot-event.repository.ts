@@ -24,7 +24,7 @@ export class PotEventRepository {
 
   /*
   SELECT * FROM pot_event
-    WHERE pot_fk = 'potPk'
+    WHERE pot_fk = ?1
     AND type != 'chat_v1'
     ORDER BY timestamp ASC;
    */
