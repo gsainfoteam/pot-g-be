@@ -42,13 +42,14 @@ export class PotRoomRepository {
   SELECT pr.*, count(upr.user_fk) as current_user_count
   FROM pot_room as pr
     LEFT JOIN user_pot_room as upr ON pr.pk = upr.pot_room_fk
-  WHERE pr.route_fk = ?1      // optional
+  WHERE pr.route_fk = ?1       // optional
     AND pr.is_archived = false
     AND pr.is_deleted = false
-    AND pr.starts_at >= ?2    // optional
-    AND pr.ends_at <= ?3      // optional
+    AND pr.starts_at >= ?2     // optional
+    AND pr.ends_at <= ?3       // optional
+  GROUP BY pr.pk               // for count()
   ORDER BY pr.created_at ASC
-  LIMIT ?5 OFFSET ?4;
+  OFFSET ?4 LIMIT ?5;
    */
   async searchPotList(
     offset: number,
