@@ -9,9 +9,10 @@ import {
 export type PotChatEventV1Dto = {
   potRoomPk: string;
   userPk: string; // 채팅을 보낸 유저의 ID
+  message: string; // 채팅 메시지
+  timestamp: Date; // 메시지 전송 시간
 };
 
-// TODO
 export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
   private constructor(potPk: string, timestamp: Date, data: PotChatEventV1Dto) {
     this.potRoomPk = potPk;
@@ -40,9 +41,14 @@ export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
       // 채팅을 보낸 유저가 방에 존재하는지 확인
       AssertIfUserInPot(pot, data.userPk);
 
-      // TODO
       // 채팅 이외의 모든 데이터는 건드리지 않아야 합니다.
       // 즉 채팅 이벤트를 제외하고 Pot Event 를 조회하여 Dispatch 하여도 무관하여야 합니다.
+      // 채팅 메시지를 방의 채팅 기록에 추가
+      pot.chatHistory.push({
+        userPk: data.userPk,
+        message: data.message,
+        timestamp: data.timestamp,
+      });
 
       return pot;
     };
