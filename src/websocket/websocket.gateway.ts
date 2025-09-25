@@ -9,6 +9,7 @@ import {
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { WsAuthorizationResDto } from "@src/websocket/dto/ws.authorization.dto";
 import { WebsocketService } from "@src/websocket/websocket.service";
+import type WebSocket from "ws";
 
 @WebSocketGateway({ path: "/ws" })
 export class WebsocketGateway

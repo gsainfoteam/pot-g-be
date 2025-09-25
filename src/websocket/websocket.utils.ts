@@ -1,4 +1,5 @@
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
+import type WebSocket from "ws";
 
 export const customMessageParser = (
   data: string | ArrayBuffer | Buffer | Buffer[],

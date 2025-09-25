@@ -6,6 +6,9 @@ import {
   WsAuthorizationResDto,
 } from "@src/websocket/dto/ws.authorization.dto";
 import { AuthService } from "@src/auth/auth.service";
+import type WebSocket from "ws";
+import { randomUUID } from "node:crypto";
+import { WsException } from "@nestjs/websockets";
 
 @Injectable()
 export class WebsocketService implements OnModuleDestroy {
@@ -45,7 +48,11 @@ export class WebsocketService implements OnModuleDestroy {
     }
 
     if (!client.isValidAccessToken()) {
-      client.setNeedAuthorizationUntil(this.getAuthorizationUntil());
+      const until = this.getAuthorizationUntil();
+
+      client.setNeedAuthorizationUntil(until);
+      this.sendAuthorizationRequest(client, until);
+
       return { client, needAuthorization: true };
     }
 
@@ -58,7 +65,7 @@ export class WebsocketService implements OnModuleDestroy {
   ) {
     const client = this.findClient(wsClient);
     if (!client) {
-      throw new Error("Client not found");
+      throw new WsException("Client not found");
     }
 
     const okRes: WsBaseDto<WsResponseDto> = WsResponseDto.OK(
@@ -72,12 +79,21 @@ export class WebsocketService implements OnModuleDestroy {
       return;
     }
 
+    // 요청 상관관계 검증
+    const pendingReq = client.getSentMessageFromQueue(payload.request_id);
+    if (!pendingReq || pendingReq.type !== "request_authorization") {
+      // 알 수 없는/만료된 요청
+      client.removeSentMessageFromQueue(payload.request_id); // 혹시 남아있다면 정리
+      throw new WsException("Unknown or expired authorization request");
+    }
+    client.removeSentMessageFromQueue(payload.request_id);
+
     // 엑세스 토큰 확인
     const accessToken = payload.body.authorization;
     const { userId, deviceId, validUntil } =
       await this.authService.validateAccessToken(accessToken);
     if (!userId) {
-      throw new Error("Invalid refresh token"); // TODO
+      throw new WsException("Invalid refresh token"); // TODO
     }
 
     // 인증 처리
@@ -103,7 +119,7 @@ export class WebsocketService implements OnModuleDestroy {
 
     const requestAuthorization: WsBaseDto<WsAuthorizationReqDto> = {
       type: "request_authorization",
-      request_id: crypto.randomUUID(),
+      request_id: randomUUID(),
       body: {
         authorization_until: authorizationUntil,
       },

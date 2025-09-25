@@ -1,5 +1,6 @@
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { sendWsBaseDtoToClient } from "@src/websocket/websocket.utils";
+import type WebSocket from "ws";
 
 export class PotgWsClient {
   private readonly wsClient: WebSocket;

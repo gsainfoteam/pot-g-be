@@ -4,6 +4,7 @@ import { DeviceEntity } from "@src/user/model/device.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { device } from "../../../drizzle/schema/device";
 import { and, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
 @Injectable()
 export class DeviceRepository {
@@ -36,7 +37,7 @@ export class DeviceRepository {
     const result = await tx
       .insert(device)
       .values({
-        pk: deviceEntity.pk || crypto.randomUUID(),
+        pk: deviceEntity.pk || randomUUID(),
         userFk: deviceEntity.userFk,
         fcmToken: deviceEntity.fcmToken,
         os: deviceEntity.os,

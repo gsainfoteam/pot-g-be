@@ -16,11 +16,9 @@ async function bootstrap() {
     }),
   );
 
-  app.useWebSocketAdapter(
-    new WsAdapter(app, {
-      messageParser: customMessageParser,
-    }),
-  );
+  const wsAdapter = new WsAdapter(app);
+  wsAdapter.setMessageParser(customMessageParser);
+  app.useWebSocketAdapter(wsAdapter);
 
   await app.listen(3000);
 }
