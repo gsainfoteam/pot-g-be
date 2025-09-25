@@ -8,6 +8,7 @@ import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { DiscoveryModule } from "@src/discovery/discovery.module";
 import { AccountingModule } from "@src/accounting/accounting.module";
 import { PotModule } from "@src/pot/pot.module";
+import { WebsocketModule } from "@src/websocket/websocket.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PotModule } from "@src/pot/pot.module";
     DiscoveryModule,
     AccountingModule,
     PotModule,
+    WebsocketModule,
   ],
   controllers: [],
   providers: [],

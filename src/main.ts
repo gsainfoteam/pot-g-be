@@ -1,6 +1,8 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
+import { WsAdapter } from "@nestjs/platform-ws";
+import { customMessageParser } from "@src/websocket/websocket.utils";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +15,10 @@ async function bootstrap() {
       },
     }),
   );
+
+  const wsAdapter = new WsAdapter(app);
+  wsAdapter.setMessageParser(customMessageParser);
+  app.useWebSocketAdapter(wsAdapter);
 
   await app.listen(3000);
 }

@@ -4,6 +4,7 @@ import { UserAlarmSettingEntity } from "@src/user/model/user-alarm-setting.entit
 import { TxType } from "@src/global/types/tx.types";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
 @Injectable()
 export class UserAlarmSettingRepository {
@@ -35,7 +36,7 @@ export class UserAlarmSettingRepository {
     const result = await tx
       .insert(userAlarmSetting)
       .values({
-        pk: userAlarmSettingEntity.pk || crypto.randomUUID(),
+        pk: userAlarmSettingEntity.pk || randomUUID(),
         deviceFk: userAlarmSettingEntity.deviceFk,
         anyPush: userAlarmSettingEntity.anyPush,
         chatPush: userAlarmSettingEntity.chatPush,

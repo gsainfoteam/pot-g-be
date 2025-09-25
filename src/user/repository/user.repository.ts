@@ -7,6 +7,7 @@ import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { bank } from "../../../drizzle/schema/bank";
 import { userBank } from "../../../drizzle/schema/user-bank";
 import { TxType } from "@src/global/types/tx.types";
+import { randomUUID } from "node:crypto";
 
 @Injectable()
 export class UserRepository {
@@ -123,7 +124,7 @@ export class UserRepository {
     const result = await tx
       .insert(users)
       .values({
-        pk: user.pk || crypto.randomUUID(),
+        pk: user.pk || randomUUID(),
         isDeleted: user.isDeleted,
         idpSub: user.idpSub,
         name: user.name,
