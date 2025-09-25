@@ -5,11 +5,13 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
+  WsException,
 } from "@nestjs/websockets";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { WsAuthorizationResDto } from "@src/websocket/dto/ws.authorization.dto";
 import { WebsocketService } from "@src/websocket/websocket.service";
 import type WebSocket from "ws";
+import { WsSendChatReqDto } from "@src/websocket/dto/ws.send-chat.dto";
 
 @WebSocketGateway({ path: "/ws" })
 export class WebsocketGateway
@@ -31,5 +33,23 @@ export class WebsocketGateway
     @MessageBody() payload: WsBaseDto<WsAuthorizationResDto>,
   ) {
     await this.websocketService.authorization(client, payload);
+  }
+
+  @SubscribeMessage("send_chat")
+  async sendChat(
+    @ConnectedSocket() client: WebSocket,
+    @MessageBody() payload: WsBaseDto<WsSendChatReqDto>,
+  ) {
+    const validClient = this.websocketService.checkIfValidClient(client);
+    if (!validClient) {
+      throw new WsException("Client not found");
+    }
+    if (validClient.needAuthorization) {
+      validClient.client.addTaskToQueue(
+        this.websocketService.sendChat(validClient.client, payload),
+      );
+    }
+
+    await this.websocketService.sendChat(validClient.client, payload);
   }
 }

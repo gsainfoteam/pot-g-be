@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
+import { from } from "rxjs";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
@@ -20,12 +21,18 @@ import { PotUserLeaveEventV1 } from "@src/pot/event/pot-user-leave-event";
 import { PotUserKickEventV1 } from "@src/pot/event/pot-user-kick-event";
 import { PotDepartureConfirmEventV1 } from "@src/pot/event/pot-departure-confirm-event";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
+import { SendChatReqDto } from "@src/pot/dto/send-chat.pot.dto";
+import { PotChatEventV1 } from "@src/pot/event/pot-chat-event";
+import { PotEventDto } from "@src/pot/dto/event/pot-event.dto";
+import { PotEventChatV1Dto } from "@src/pot/dto/event/pot-event.chat.v1.dto";
+import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 
 @Injectable()
 export class PotService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly routeService: RouteService,
+    private readonly broadcastingService: BroadcastingService,
     private readonly potRoomRepository: PotRoomRepository,
     private readonly potEventRepository: PotEventRepository,
     private readonly userPotRoomRepository: UserPotRoomRepository,
@@ -80,8 +87,8 @@ export class PotService {
     - PotFull: 팟이 가득 찬 경우
    */
   async enterPot(potPk: string, userCtx: UserContext): Promise<BaseResultDto> {
-    const pot: Pot = await this.potEventRepository.findByIdWithoutChat(potPk);
-    if (!pot.pk) {
+    const pot = await this.getPot(potPk);
+    if (!pot) {
       return BaseResultDto.PotNotExist;
     }
 
@@ -127,8 +134,8 @@ export class PotService {
     - PotAlreadyClosed: 이미 해산된 팟인 경우
   */
   async leavePot(potPk: string, userCtx: UserContext): Promise<BaseResultDto> {
-    const pot: Pot = await this.potEventRepository.findByIdWithoutChat(potPk);
-    if (!pot.pk) {
+    const pot = await this.getPot(potPk);
+    if (!pot) {
       return BaseResultDto.PotNotExist;
     }
 
@@ -176,8 +183,8 @@ export class PotService {
     targetUserId: string,
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
-    const pot: Pot = await this.potEventRepository.findByIdWithoutChat(potPk);
-    if (!pot.pk) {
+    const pot = await this.getPot(potPk);
+    if (!pot) {
       return BaseResultDto.PotNotExist;
     }
 
@@ -225,8 +232,8 @@ export class PotService {
     departureTime: Date,
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
-    const pot: Pot = await this.potEventRepository.findByIdWithoutChat(potPk);
-    if (!pot.pk) {
+    const pot = await this.getPot(potPk);
+    if (!pot) {
       return BaseResultDto.PotNotExist;
     }
 
@@ -256,6 +263,79 @@ export class PotService {
     });
 
     return BaseResultDto.OK;
+  }
+
+  async saveChat(req: SendChatReqDto, userPk: string): Promise<BaseResultDto> {
+    const pot = await this.getPot(req.potRoomPk);
+    if (!pot) {
+      return BaseResultDto.PotNotExist;
+    }
+
+    const now = new Date();
+
+    const potChatEvent: PotChatEventV1 = PotChatEventV1.generatePotChatEvent(
+      req.potRoomPk,
+      now,
+      {
+        potRoomPk: req.potRoomPk,
+        userPk: userPk,
+        message: req.message,
+        timestamp: now,
+      },
+    );
+
+    try {
+      PotEventReducer.reduce(pot, potChatEvent);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return error.baseResultDto;
+      }
+    }
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.potEventRepository.saveEvent(potChatEvent, tx);
+    });
+
+    const chatPotEventDto: PotEventDto<PotEventChatV1Dto> = {
+      pot_pk: pot.pk,
+      timestamp: Date.now(),
+      event_type: "chat_v1",
+      data: {
+        from: userPk,
+        content: req.message,
+      },
+    };
+
+    // 모든 참여자에게 채팅 메시지 전송 (비동기적으로 처리)
+    this.broadcastPotEvent(
+      chatPotEventDto,
+      pot.joinedUserPks.filter((pk) => pk !== userPk),
+    );
+
+    return BaseResultDto.OK;
+  }
+
+  private async getPot(potRoomPk: string): Promise<Pot | null> {
+    // TODO: 팟 캐싱 로직 고려 필요
+    // 여러 서버가 사용될 경우 pot 의 일관성을 보장할 수 없음
+    // 우선 로직만 따로 분리해 둡니다.
+    const pot: Pot =
+      await this.potEventRepository.findByIdWithoutChat(potRoomPk);
+    if (!pot.pk) {
+      return null;
+    }
+    return pot;
+  }
+
+  private broadcastPotEvent(
+    potEventDto: PotEventDto<any>,
+    userPks: string[] = [],
+  ) {
+    from(
+      this.broadcastingService.broadcastPotEvent(potEventDto, userPks),
+    ).subscribe({
+      error: (err) => console.error("Broadcast failed:", err),
+    });
   }
 
   private createPotCreateEvent(

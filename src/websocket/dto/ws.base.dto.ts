@@ -5,7 +5,7 @@ export class WsBaseDto<T> {
 }
 
 export class WsResponseDto {
-  response_code: number;
+  success: boolean;
   result: any;
 
   static OK(type: string, request_id: string): WsBaseDto<WsResponseDto> {
@@ -13,7 +13,7 @@ export class WsResponseDto {
       type: type,
       request_id: request_id,
       body: {
-        response_code: 200,
+        success: true,
         result: "OK",
       },
     };

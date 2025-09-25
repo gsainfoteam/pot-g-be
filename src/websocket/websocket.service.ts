@@ -1,4 +1,9 @@
-import { Injectable, OnModuleDestroy } from "@nestjs/common";
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+} from "@nestjs/common";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
 import { WsBaseDto, WsResponseDto } from "@src/websocket/dto/ws.base.dto";
 import {
@@ -9,13 +14,20 @@ import { AuthService } from "@src/auth/auth.service";
 import type WebSocket from "ws";
 import { randomUUID } from "node:crypto";
 import { WsException } from "@nestjs/websockets";
+import { WsSendChatReqDto } from "@src/websocket/dto/ws.send-chat.dto";
+import { PotService } from "@src/pot/pot.service";
+import { BaseResultDto } from "@src/global/dto/base-result.dto";
 
 @Injectable()
 export class WebsocketService implements OnModuleDestroy {
   private readonly AUTHORIZATION_TIMEOUT_MS = 30 * 1000; // 30초
   private clients: PotgWsClient[] = [];
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    @Inject(forwardRef(() => PotService))
+    private readonly potService: PotService,
+  ) {}
 
   onModuleDestroy() {
     // 모든 클라이언트의 연결을 종료
@@ -97,8 +109,35 @@ export class WebsocketService implements OnModuleDestroy {
     await client.waitForAllTasks();
   }
 
+  async sendChat(client: PotgWsClient, payload: WsBaseDto<WsSendChatReqDto>) {
+    const saveChatRes = await this.potService.saveChat(
+      {
+        potRoomPk: payload.body.pot_pk,
+        message: payload.body.message,
+      },
+      client.getUserId(),
+    );
+
+    if (saveChatRes !== BaseResultDto.OK) {
+      const errorRes: WsBaseDto<WsResponseDto> = {
+        type: "send_chat_res",
+        request_id: payload.request_id,
+        body: {
+          success: false,
+          result: saveChatRes.result,
+        },
+      };
+      client.sendMessage(errorRes);
+      return;
+    }
+  }
+
   private findClient(wsClient: WebSocket): PotgWsClient | undefined {
     return this.clients.find((c) => c.getWsClient() === wsClient);
+  }
+
+  findClientByUserId(userId: string): PotgWsClient | undefined {
+    return this.clients.find((c) => c.getUserId() === userId);
   }
 
   private getAuthorizationUntil(): Date {
