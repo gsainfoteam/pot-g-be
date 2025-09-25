@@ -1,6 +1,7 @@
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { sendWsBaseDtoToClient } from "@src/websocket/websocket.utils";
 import type WebSocket from "ws";
+import { WsException } from "@nestjs/websockets";
 
 export class PotgWsClient {
   private readonly wsClient: WebSocket;
@@ -113,5 +114,15 @@ export class PotgWsClient {
     for (const task of this.queuedTasks) {
       await task;
     }
+  }
+
+  resolveRequestId(requestId: string, type: string) {
+    const pendingReq = this.getSentMessageFromQueue(requestId);
+    if (!pendingReq || pendingReq.type !== type) {
+      // 알 수 없는 요청
+      this.removeSentMessageFromQueue(requestId); // 혹시 남아있다면 정리
+      throw new WsException("Unknown message");
+    }
+    this.removeSentMessageFromQueue(requestId);
   }
 }

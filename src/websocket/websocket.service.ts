@@ -80,13 +80,7 @@ export class WebsocketService implements OnModuleDestroy {
     }
 
     // 요청 상관관계 검증
-    const pendingReq = client.getSentMessageFromQueue(payload.request_id);
-    if (!pendingReq || pendingReq.type !== "request_authorization") {
-      // 알 수 없는/만료된 요청
-      client.removeSentMessageFromQueue(payload.request_id); // 혹시 남아있다면 정리
-      throw new WsException("Unknown or expired authorization request");
-    }
-    client.removeSentMessageFromQueue(payload.request_id);
+    client.resolveRequestId(payload.request_id, "request_authorization");
 
     // 엑세스 토큰 확인
     const accessToken = payload.body.authorization;
