@@ -22,16 +22,34 @@ export class WebsocketService implements OnModuleDestroy {
   }
 
   addClient(wsClient: WebSocket) {
-    const authorizationUntil = new Date(
-      Date.now() + this.AUTHORIZATION_TIMEOUT_MS,
-    );
-    const potgWsClient = new PotgWsClient(wsClient, authorizationUntil);
+    const potgWsClient = new PotgWsClient(wsClient);
     this.clients.push(potgWsClient);
-    this.sendAuthorizationRequest(potgWsClient, authorizationUntil);
+
+    this.sendAuthorizationRequest(potgWsClient, this.getAuthorizationUntil());
   }
 
   deleteClient(wsClient: WebSocket) {
     this.clients = this.clients.filter((c) => c.getWsClient() !== wsClient);
+  }
+
+  checkIfValidClient(
+    wsClient: WebSocket,
+  ): { client: PotgWsClient; needAuthorization: boolean } | null {
+    const client: PotgWsClient = this.findClient(wsClient);
+    if (!client) {
+      return null;
+    }
+
+    if (!client.getIsAuthorized()) {
+      return { client, needAuthorization: true };
+    }
+
+    if (!client.isValidAccessToken()) {
+      client.setNeedAuthorizationUntil(this.getAuthorizationUntil());
+      return { client, needAuthorization: true };
+    }
+
+    return { client, needAuthorization: false };
   }
 
   async authorization(
@@ -56,14 +74,14 @@ export class WebsocketService implements OnModuleDestroy {
 
     // 엑세스 토큰 확인
     const accessToken = payload.body.authorization;
-    const { userId, deviceId } =
-      await this.authService.validateRefreshToken(accessToken);
+    const { userId, deviceId, validUntil } =
+      await this.authService.validateAccessToken(accessToken);
     if (!userId) {
       throw new Error("Invalid refresh token"); // TODO
     }
 
     // 인증 처리
-    client.setAuthorized(userId, deviceId, accessToken);
+    client.setAuthorized(userId, deviceId, accessToken, validUntil);
     client.sendMessage(okRes);
 
     await client.waitForAllTasks();
@@ -73,10 +91,16 @@ export class WebsocketService implements OnModuleDestroy {
     return this.clients.find((c) => c.getWsClient() === wsClient);
   }
 
+  private getAuthorizationUntil(): Date {
+    return new Date(Date.now() + this.AUTHORIZATION_TIMEOUT_MS);
+  }
+
   private sendAuthorizationRequest(
     client: PotgWsClient,
     authorizationUntil: Date,
   ) {
+    client.setNeedAuthorizationUntil(authorizationUntil);
+
     const requestAuthorization: WsBaseDto<WsAuthorizationReqDto> = {
       type: "request_authorization",
       request_id: crypto.randomUUID(),
@@ -90,7 +114,7 @@ export class WebsocketService implements OnModuleDestroy {
     setTimeout(
       () => {
         if (!client.getIsAuthorized()) {
-          client.getWsClient().close();
+          client.destroy();
         }
       },
       this.AUTHORIZATION_TIMEOUT_MS + 5 * 1000,
