@@ -9,6 +9,7 @@ export class PotgWsClient {
   private deviceId: string | null;
   private accessToken: string | null;
   private sentMessageMap: Map<string, WsBaseDto<any>>;
+  private queuedTasks: Promise<any>[] = [];
 
   constructor(wsClient: WebSocket, needAuthorizationUntil: Date) {
     this.wsClient = wsClient;
@@ -70,5 +71,15 @@ export class PotgWsClient {
 
   removeSentMessageFromQueue(requestId: string) {
     this.sentMessageMap.delete(requestId);
+  }
+
+  addTaskToQueue<T>(task: Promise<T>) {
+    this.queuedTasks.push(task);
+  }
+
+  async waitForAllTasks() {
+    for (const task of this.queuedTasks) {
+      await task;
+    }
   }
 }

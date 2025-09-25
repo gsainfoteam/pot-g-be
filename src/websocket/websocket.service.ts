@@ -65,6 +65,8 @@ export class WebsocketService implements OnModuleDestroy {
     // 인증 처리
     client.setAuthorized(userId, deviceId, accessToken);
     client.sendMessage(okRes);
+
+    await client.waitForAllTasks();
   }
 
   private findClient(wsClient: WebSocket): PotgWsClient | undefined {
