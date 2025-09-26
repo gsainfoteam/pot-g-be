@@ -7,9 +7,10 @@ import { PotEventRepository } from "@src/pot/repository/pot-event.repository";
 import { DiscoveryModule } from "@src/discovery/discovery.module";
 import { UserPotRoomRepository } from "@src/pot/repository/user-pot-room.repository";
 import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
+import { BroadcastingModule } from "@src/broadcasting/broadcasting.module";
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, DiscoveryModule],
+  imports: [ConfigModule, DatabaseModule, DiscoveryModule, BroadcastingModule],
   providers: [
     PotService,
     PotEventRepository,
@@ -17,5 +18,6 @@ import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository
     PotRoomRepository,
   ],
   controllers: [PotController],
+  exports: [PotService],
 })
 export class PotModule {}

@@ -12,7 +12,8 @@ export class PotgWsClient {
   private accessToken: string | null;
   private validUntil: Date | null;
   private sentMessageMap: Map<string, WsBaseDto<any>>;
-  private queuedTasks: Promise<any>[] = [];
+  private queuedTasks: (() => Promise<any>)[];
+  private queuedMessages: WsBaseDto<any>[];
 
   constructor(wsClient: WebSocket) {
     this.wsClient = wsClient;
@@ -23,6 +24,8 @@ export class PotgWsClient {
     this.deviceId = null;
     this.validUntil = null;
     this.sentMessageMap = new Map();
+    this.queuedTasks = [];
+    this.queuedMessages = [];
   }
 
   getWsClient() {
@@ -58,6 +61,7 @@ export class PotgWsClient {
     this.wsClient.close();
     this.sentMessageMap.clear();
     this.queuedTasks = [];
+    this.queuedMessages = [];
   }
 
   sendMessage(message: WsBaseDto<any>) {
@@ -106,13 +110,30 @@ export class PotgWsClient {
     this.sentMessageMap.delete(requestId);
   }
 
-  addTaskToQueue<T>(task: Promise<T>) {
+  addTaskToQueue<T>(task: () => Promise<T>) {
     this.queuedTasks.push(task);
+  }
+
+  addMessageToQueue(message: WsBaseDto<any>) {
+    this.queuedMessages.push(message);
+  }
+
+  async sendQueuedMessages() {
+    // 메세지들을 모두 처리하기 전에 다시 호출되는 경우를 방지
+    const messagesToSend = [...this.queuedMessages];
+
+    this.queuedMessages = [];
+    for (const message of messagesToSend) {
+      this.sendMessage(message);
+      // 딜레이 10ms
+      const delay = new Promise((resolve) => setTimeout(resolve, 10));
+      await delay;
+    }
   }
 
   async waitForAllTasks() {
     for (const task of this.queuedTasks) {
-      await task;
+      await task();
     }
   }
 
