@@ -32,8 +32,8 @@ export class BroadcastingService {
       }
 
       if (!targetClient.getIsAuthorized()) {
-        // 인증되지 않은 상태 -> 대기열 추가 TODO
-        pushAlarmTargetUserPks.push(userPk);
+        // 인증되지 않은 상태 -> 대기열 추가
+        targetClient.addMessageToQueue(potEventReceiveDto);
         return;
       }
 
@@ -41,5 +41,7 @@ export class BroadcastingService {
     });
 
     // TODO: 푸시 알람 발송 (rxjs)
+    // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
+    // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
   }
 }

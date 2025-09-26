@@ -106,6 +106,9 @@ export class WebsocketService implements OnModuleDestroy {
     client.setAuthorized(userId, deviceId, accessToken, validUntil);
     client.sendMessage(okRes);
 
+    // 대기열에 쌓인 메시지 전송
+    await client.sendQueuedMessages();
+    // 대기열에 쌓인 작업 처리
     await client.waitForAllTasks();
   }
 
