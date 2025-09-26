@@ -45,9 +45,11 @@ export class WebsocketGateway
       throw new WsException("Client not found");
     }
     if (validClient.needAuthorization) {
-      validClient.client.addTaskToQueue(
+      // 프로미스 생성 시 바로 실행이 되기 때문에 지연시키기 위해 람다로 감싸서 저장합니다.
+      validClient.client.addTaskToQueue(() =>
         this.websocketService.sendChat(validClient.client, payload),
       );
+      return;
     }
 
     await this.websocketService.sendChat(validClient.client, payload);

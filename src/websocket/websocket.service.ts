@@ -133,6 +133,8 @@ export class WebsocketService implements OnModuleDestroy {
       client.sendMessage(errorRes);
       return;
     }
+
+    client.sendMessage(WsResponseDto.OK("send_chat_res", payload.request_id));
   }
 
   private findClient(wsClient: WebSocket): PotgWsClient | undefined {

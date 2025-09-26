@@ -290,6 +290,7 @@ export class PotService {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
       }
+      throw error;
     }
 
     await this.dbService.db.transaction(async (tx: TxType) => {

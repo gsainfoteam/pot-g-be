@@ -12,7 +12,7 @@ export class PotgWsClient {
   private accessToken: string | null;
   private validUntil: Date | null;
   private sentMessageMap: Map<string, WsBaseDto<any>>;
-  private queuedTasks: Promise<any>[];
+  private queuedTasks: (() => Promise<any>)[];
   private queuedMessages: WsBaseDto<any>[];
 
   constructor(wsClient: WebSocket) {
@@ -110,7 +110,7 @@ export class PotgWsClient {
     this.sentMessageMap.delete(requestId);
   }
 
-  addTaskToQueue<T>(task: Promise<T>) {
+  addTaskToQueue<T>(task: () => Promise<T>) {
     this.queuedTasks.push(task);
   }
 
@@ -119,7 +119,11 @@ export class PotgWsClient {
   }
 
   async sendQueuedMessages() {
-    for (const message of this.queuedMessages) {
+    // 메세지들을 모두 처리하기 전에 다시 호출되는 경우를 방지
+    const messagesToSend = [...this.queuedMessages];
+
+    this.queuedMessages = [];
+    for (const message of messagesToSend) {
       this.sendMessage(message);
       // 딜레이 10ms
       const delay = new Promise((resolve) => setTimeout(resolve, 10));
@@ -129,7 +133,7 @@ export class PotgWsClient {
 
   async waitForAllTasks() {
     for (const task of this.queuedTasks) {
-      await task;
+      await task();
     }
   }
 
