@@ -77,4 +77,34 @@ export class AuthService {
       accessToken,
     };
   }
+
+  async validateAccessToken(accessToken: string): Promise<
+    | (AccessTokenJwtPayload & {
+        validUntil: Date;
+      })
+    | null
+  > {
+    try {
+      const { publicKey } = await this.keyPairService.getKeyPair();
+
+      const payload = this.jwtService.verify<AccessTokenJwtPayload>(
+        accessToken,
+        {
+          publicKey: publicKey,
+        },
+      );
+      const decoded = this.jwtService.decode(accessToken) as {
+        exp: number;
+      };
+      const validUntil = new Date(decoded.exp * 1000);
+
+      return {
+        ...payload,
+        validUntil,
+      };
+    } catch (e) {
+      console.error("Invalid refresh token:", e);
+      return null; // Invalid token
+    }
+  }
 }
