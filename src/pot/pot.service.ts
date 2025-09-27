@@ -26,6 +26,10 @@ import { PotChatEventV1 } from "@src/pot/event/pot-chat-event";
 import { PotEventDto } from "@src/pot/dto/event/pot-event.dto";
 import { PotEventChatV1Dto } from "@src/pot/dto/event/pot-event.chat.v1.dto";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
+import { PotEventDepartureConfirmV1Dto } from "@src/pot/dto/event/pot-event.departure-confirm.v1.dto";
+import { PotEventUserKickV1Dto } from "@src/pot/dto/event/pot-event.user-kick.v1.dto";
+import { PotEventUserLeaveV1Dto } from "@src/pot/dto/event/pot-event.user-leave.v1.dto";
+import { PotEventUserInV1Dto } from "@src/pot/dto/event/pot-event.user-in.v1.dto";
 
 @Injectable()
 export class PotService {
@@ -119,6 +123,18 @@ export class PotService {
       await this.userPotRoomRepository.insert(userPotRoomEntity, tx);
     });
 
+    const userInV1DtoPot: PotEventDto<PotEventUserInV1Dto> = {
+      pot_pk: pot.pk,
+      timestamp: Date.now(),
+      event_type: "user_in_v1",
+      data: {
+        user_pk: userCtx.userId,
+      },
+    };
+
+    // 모든 참여자에게 전송 (비동기적으로 처리)
+    this.broadcastPotEvent(userInV1DtoPot, pot.joinedUserPks);
+
     return BaseResultDto.OK;
   }
 
@@ -162,6 +178,20 @@ export class PotService {
         tx,
       );
     });
+
+    const userLeaveV1DtoPot: PotEventDto<PotEventUserLeaveV1Dto> = {
+      pot_pk: pot.pk,
+      timestamp: Date.now(),
+      event_type: "user_leave_v1",
+      data: {
+        user_pk: userCtx.userId,
+      },
+    };
+
+    // 모든 참여자에게 전송 (비동기적으로 처리)
+    this.broadcastPotEvent(userLeaveV1DtoPot, pot.joinedUserPks);
+
+    // TODO 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
 
     return BaseResultDto.OK;
   }
@@ -213,6 +243,19 @@ export class PotService {
       );
     });
 
+    const userKickV1DtoPot: PotEventDto<PotEventUserKickV1Dto> = {
+      pot_pk: pot.pk,
+      timestamp: Date.now(),
+      event_type: "user_kick_v1",
+      data: {
+        host_user_pk: userCtx.userId,
+        kicked_user_pk: targetUserId,
+      },
+    };
+
+    // 모든 참여자에게 전송 (비동기적으로 처리)
+    this.broadcastPotEvent(userKickV1DtoPot, pot.joinedUserPks);
+
     return BaseResultDto.OK;
   }
 
@@ -262,6 +305,20 @@ export class PotService {
       await this.potEventRepository.saveEvent(potDepartureConfirmEvent, tx);
     });
 
+    const departureConfirmV1DtoPot: PotEventDto<PotEventDepartureConfirmV1Dto> =
+      {
+        pot_pk: pot.pk,
+        timestamp: Date.now(),
+        event_type: "departure_confirm_v1",
+        data: {
+          user_pk: userCtx.userId,
+          departure_time: departureTime,
+        },
+      };
+
+    // 모든 참여자에게 전송 (비동기적으로 처리)
+    this.broadcastPotEvent(departureConfirmV1DtoPot, pot.joinedUserPks);
+
     return BaseResultDto.OK;
   }
 
@@ -308,10 +365,7 @@ export class PotService {
     };
 
     // 모든 참여자에게 채팅 메시지 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(
-      chatPotEventDto,
-      pot.joinedUserPks.filter((pk) => pk !== userPk),
-    );
+    this.broadcastPotEvent(chatPotEventDto, pot.joinedUserPks);
 
     return BaseResultDto.OK;
   }
