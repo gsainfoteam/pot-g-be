@@ -189,7 +189,10 @@ export class PotService {
     };
 
     // 모든 참여자에게 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(userLeaveV1DtoPot, pot.joinedUserPks);
+    this.broadcastPotEvent(userLeaveV1DtoPot, [
+      ...pot.joinedUserPks,
+      userCtx.userId,
+    ]);
 
     // TODO 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
 
@@ -254,7 +257,10 @@ export class PotService {
     };
 
     // 모든 참여자에게 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(userKickV1DtoPot, pot.joinedUserPks);
+    this.broadcastPotEvent(userKickV1DtoPot, [
+      ...pot.joinedUserPks,
+      targetUserId,
+    ]);
 
     return BaseResultDto.OK;
   }
