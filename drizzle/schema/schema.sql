@@ -13,7 +13,8 @@ CREATE TABLE "user_pot_room"
 (
     "pot_room_fk" uuid    NOT NULL,
     "user_fk"     uuid    NOT NULL,
-    "is_host"     boolean NOT NULL DEFAULT FALSE
+    "is_host"     boolean NOT NULL DEFAULT FALSE,
+    "is_archived" boolean NOT NULL DEFAULT FALSE,
 );
 
 CREATE TABLE "pot_room"

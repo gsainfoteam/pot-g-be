@@ -7,4 +7,5 @@ export class UserPotRoomEntity {
   userFk: string;
   userEntity?: UserEntity;
   isHost: boolean;
+  isArchived: boolean;
 }

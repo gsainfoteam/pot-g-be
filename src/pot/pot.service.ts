@@ -68,6 +68,7 @@ export class PotService {
       potRoomFk: potRoomEntity.pk,
       userFk: userCtx.userId,
       isHost: true,
+      isArchived: false,
     };
 
     await this.dbService.db.transaction(async (tx: TxType) => {
@@ -116,6 +117,7 @@ export class PotService {
       potRoomFk: pot.pk,
       userFk: userCtx.userId,
       isHost: false,
+      isArchived: false,
     };
 
     await this.dbService.db.transaction(async (tx: TxType) => {
