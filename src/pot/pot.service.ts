@@ -30,6 +30,12 @@ import { PotEventDepartureConfirmV1Dto } from "@src/pot/dto/event/pot-event.depa
 import { PotEventUserKickV1Dto } from "@src/pot/dto/event/pot-event.user-kick.v1.dto";
 import { PotEventUserLeaveV1Dto } from "@src/pot/dto/event/pot-event.user-leave.v1.dto";
 import { PotEventUserInV1Dto } from "@src/pot/dto/event/pot-event.user-in.v1.dto";
+import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
+import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
+import {
+  PotEventListReqDto,
+  PotEventListResDto,
+} from "@src/pot/dto/pot.event.dto";
 
 @Injectable()
 export class PotService {
@@ -81,6 +87,16 @@ export class PotService {
       id: potRoomEntity.pk,
     };
   }
+
+  async getMyPot(userCtx: UserContext): Promise<MyPotResDto> {}
+
+  async getPotInfo(potPk: string, userCtx: UserContext): Promise<PotInfoDto> {}
+
+  async getPotEvents(
+    potPk: string,
+    req: PotEventListReqDto,
+    userCtx: UserContext,
+  ): Promise<PotEventListResDto> {}
 
   /*
     팟에 참여합니다.
