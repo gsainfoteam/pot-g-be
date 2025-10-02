@@ -32,9 +32,11 @@ export class PotArchiveEventV1 implements PotEvent<PotArchiveEventV1Dto> {
     pot: Pot,
     data: PotArchiveEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotArchiveEventV1Dto) => {
-      // 방 존재 여부 확인 및 이미 삭제된 방인 경우 예외 발생
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (pot: Pot, data: PotArchiveEventV1Dto, validation?: boolean) => {
+      if (validation) {
+        // 방 존재 여부 확인 및 이미 삭제된 방인 경우 예외 발생
+        AssertIfValidPot(pot, data.potRoomPk);
+      }
 
       pot.isArchived = true;
 

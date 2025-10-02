@@ -63,7 +63,7 @@ export class PotService {
       userCtx.userId,
     );
 
-    const pot = PotEventReducer.reduceFromInitial([potCreateEvent]);
+    const pot = PotEventReducer.reduceFromInitial([potCreateEvent], true);
     const potRoomEntity: PotRoomEntity = pot.toPotRoomEntity();
 
     // userPotRoom Entity 생성
@@ -166,7 +166,7 @@ export class PotService {
       });
 
     try {
-      PotEventReducer.reduce(pot, potUserInEvent);
+      PotEventReducer.reduce(pot, potUserInEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -226,7 +226,7 @@ export class PotService {
       });
 
     try {
-      PotEventReducer.reduce(pot, potUserLeaveEvent);
+      PotEventReducer.reduce(pot, potUserLeaveEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -293,7 +293,7 @@ export class PotService {
       });
 
     try {
-      PotEventReducer.reduce(pot, potUserKickEvent);
+      PotEventReducer.reduce(pot, potUserKickEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -362,7 +362,7 @@ export class PotService {
       );
 
     try {
-      PotEventReducer.reduce(pot, potDepartureConfirmEvent);
+      PotEventReducer.reduce(pot, potDepartureConfirmEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -412,7 +412,7 @@ export class PotService {
     );
 
     try {
-      PotEventReducer.reduce(pot, potChatEvent);
+      PotEventReducer.reduce(pot, potChatEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;

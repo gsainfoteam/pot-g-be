@@ -43,19 +43,25 @@ export class PotAccountingConfirmEventV1
     pot: Pot,
     data: PotAccountingConfirmEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotAccountingConfirmEventV1Dto) => {
-      // 방 존재 여부 확인
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (
+      pot: Pot,
+      data: PotAccountingConfirmEventV1Dto,
+      validation?: boolean,
+    ) => {
+      if (validation) {
+        // 방 존재 여부 확인
+        AssertIfValidPot(pot, data.potRoomPk);
 
-      // 송금 받을 유저가 방에 존재하는지 확인
-      AssertIfUserInPot(pot, data.userPk);
+        // 송금 받을 유저가 방에 존재하는지 확인
+        AssertIfUserInPot(pot, data.userPk);
 
-      // 출발 시간이 정해지지 않았거나 출발 시간+30분이 아직 지나지 않은 경우 예외 발생
-      AssertIfDepartureTimeSet(pot);
-      AssertIfDeparted(pot);
+        // 출발 시간이 정해지지 않았거나 출발 시간+30분이 아직 지나지 않은 경우 예외 발생
+        AssertIfDepartureTimeSet(pot);
+        AssertIfDeparted(pot);
 
-      // 해당 유저가 송금 받을 유저인지 확인
-      AssertIfAccountingRequestedUser(pot, data.userPk);
+        // 해당 유저가 송금 받을 유저인지 확인
+        AssertIfAccountingRequestedUser(pot, data.userPk);
+      }
 
       // 송금 보낼 유저 제거
       pot.accountingRequestedUserPks = pot.accountingRequestedUserPks.filter(

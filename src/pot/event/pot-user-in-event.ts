@@ -39,20 +39,22 @@ export class PotUserInEventV1 implements PotEvent<PotUserInEventV1Dto> {
     pot: Pot,
     data: PotUserInEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotUserInEventV1Dto) => {
-      // 방 존재 여부 확인
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (pot: Pot, data: PotUserInEventV1Dto, validation?: boolean) => {
+      if (validation) {
+        // 방 존재 여부 확인
+        AssertIfValidPot(pot, data.potRoomPk);
 
-      // 이미 참여한 유저인 경우 참여 불가
-      if (pot.joinedUserPks.includes(data.userPk)) {
-        throw new PotEventError(BaseResultDto.OK);
+        // 이미 참여한 유저인 경우 참여 불가
+        if (pot.joinedUserPks.includes(data.userPk)) {
+          throw new PotEventError(BaseResultDto.OK);
+        }
+
+        // 방 인원 초과인 경우 참여 불가
+        AssertIfPotFull(pot);
+
+        // 출발 시간이 정해지면 참여 불가
+        AssertIfDepartureTimeNotSet(pot);
       }
-
-      // 방 인원 초과인 경우 참여 불가
-      AssertIfPotFull(pot);
-
-      // 출발 시간이 정해지면 참여 불가
-      AssertIfDepartureTimeNotSet(pot);
 
       pot.joinedUserPks.push(data.userPk);
       return pot;

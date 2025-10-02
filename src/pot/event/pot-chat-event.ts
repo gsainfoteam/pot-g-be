@@ -5,6 +5,7 @@ import {
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
+import { parseDate } from "@src/global/utils/convertDate";
 
 export type PotChatEventV1Dto = {
   potRoomPk: string;
@@ -18,7 +19,12 @@ export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
     this.potRoomPk = potPk;
     this.eventType = "chat_v1";
     this.timestamp = timestamp;
-    this.data = data;
+    this.data = {
+      potRoomPk: data.potRoomPk,
+      userPk: data.userPk,
+      message: data.message,
+      timestamp: parseDate(data.timestamp),
+    };
     this.dispatcher = PotChatEventV1.getDispatcherFunction();
   }
 
@@ -34,12 +40,14 @@ export class PotChatEventV1 implements PotEvent<PotChatEventV1Dto> {
     pot: Pot,
     data: PotChatEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotChatEventV1Dto) => {
-      // 방 존재 여부 확인 및 이미 삭제된 방인 경우 예외 발생
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (pot: Pot, data: PotChatEventV1Dto, validation?: boolean) => {
+      if (validation) {
+        // 방 존재 여부 확인 및 이미 삭제된 방인 경우 예외 발생
+        AssertIfValidPot(pot, data.potRoomPk);
 
-      // 채팅을 보낸 유저가 방에 존재하는지 확인
-      AssertIfUserInPot(pot, data.userPk);
+        // 채팅을 보낸 유저가 방에 존재하는지 확인
+        AssertIfUserInPot(pot, data.userPk);
+      }
 
       // 채팅 이외의 모든 데이터는 건드리지 않아야 합니다.
       // 즉 채팅 이벤트를 제외하고 Pot Event 를 조회하여 Dispatch 하여도 무관하여야 합니다.

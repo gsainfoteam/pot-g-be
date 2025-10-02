@@ -36,7 +36,7 @@ export interface PotEvent<T> {
 
   //RealData of Event
   data: T;
-  dispatcher: (room: Pot, data: T) => Pot;
+  dispatcher: (room: Pot, data: T, validation?: boolean) => Pot;
 }
 
 export type PotEventEntityInsert = typeof potEvent.$inferInsert;

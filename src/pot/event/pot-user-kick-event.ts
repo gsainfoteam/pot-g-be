@@ -41,24 +41,26 @@ export class PotUserKickEventV1 implements PotEvent<PotUserKickEventV1Dto> {
     pot: Pot,
     data: PotUserKickEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotUserKickEventV1Dto) => {
-      // 방 존재 여부 확인
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (pot: Pot, data: PotUserKickEventV1Dto, validation?: boolean) => {
+      if (validation) {
+        // 방 존재 여부 확인
+        AssertIfValidPot(pot, data.potRoomPk);
 
-      // 출발 시간이 정해지면 강퇴 불가
-      AssertIfDepartureTimeNotSet(pot);
+        // 출발 시간이 정해지면 강퇴 불가
+        AssertIfDepartureTimeNotSet(pot);
 
-      // 방장만 강퇴 가능
-      AssertIfHost(pot, data.userPk);
+        // 방장만 강퇴 가능
+        AssertIfHost(pot, data.userPk);
 
-      // 방장을 강퇴할 수 없음
-      AssertIfNotHost(pot, data.kickedUserPk);
+        // 방장을 강퇴할 수 없음
+        AssertIfNotHost(pot, data.kickedUserPk);
 
-      // 강퇴할 유저가 방에 존재하는지 확인
-      AssertIfUserInPot(pot, data.kickedUserPk);
+        // 강퇴할 유저가 방에 존재하는지 확인
+        AssertIfUserInPot(pot, data.kickedUserPk);
 
-      // 강퇴할 유저가 정산 대기중이면 강퇴 불가
-      AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.kickedUserPk);
+        // 강퇴할 유저가 정산 대기중이면 강퇴 불가
+        AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.kickedUserPk);
+      }
 
       pot.joinedUserPks = pot.joinedUserPks.filter(
         (userId) => userId !== data.kickedUserPk,

@@ -41,28 +41,30 @@ export class PotUserLeaveEventV1 implements PotEvent<PotUserLeaveEventV1Dto> {
     pot: Pot,
     data: PotUserLeaveEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotUserLeaveEventV1Dto) => {
-      // 방 존재 여부 확인
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (pot: Pot, data: PotUserLeaveEventV1Dto, validation?: boolean) => {
+      if (validation) {
+        // 방 존재 여부 확인
+        AssertIfValidPot(pot, data.potRoomPk);
 
-      // 출발 시간이 정해지면 퇴장 불가
-      AssertIfDepartureTimeNotSet(pot);
+        // 출발 시간이 정해지면 퇴장 불가
+        AssertIfDepartureTimeNotSet(pot);
 
-      // 퇴장할 유저가 방에 존재하는지 확인
-      AssertIfUserInPot(pot, data.userPk);
+        // 퇴장할 유저가 방에 존재하는지 확인
+        AssertIfUserInPot(pot, data.userPk);
 
-      // 본인이 정산 요청 대상자이고 본인의 정산이 완료되지 않았는지 확인
-      AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.userPk);
+        // 본인이 정산 요청 대상자이고 본인의 정산이 완료되지 않았는지 확인
+        AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.userPk);
 
-      // 본인이 정산자인데 정산이 완료되지 않은 다른 사람이 있는지 확인
-      AssertIfUserAccountingRequestingAndNotCompleted(pot, data.userPk);
+        // 본인이 정산자인데 정산이 완료되지 않은 다른 사람이 있는지 확인
+        AssertIfUserAccountingRequestingAndNotCompleted(pot, data.userPk);
+      }
 
       // 퇴장할 유저 제거
       pot.joinedUserPks = pot.joinedUserPks.filter(
         (userId) => userId !== data.userPk,
       );
 
-      // 방에 남은 유저가 없는 경우 방 삭제
+      // 방에 남은 유저가 없는 경우 방 삭제 TODO
       if (pot.joinedUserPks.length === 0) {
         const roomArchiveEvent = PotArchiveEventV1.generatePotArchiveEvent(
           pot.pk,

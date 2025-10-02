@@ -41,20 +41,26 @@ export class PotDepartureConfirmEventV1
     pot: Pot,
     data: PotDepartureConfirmEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotDepartureConfirmEventV1Dto) => {
-      // 방 존재 여부 확인
-      AssertIfValidPot(pot, data.potRoomPk);
+    return (
+      pot: Pot,
+      data: PotDepartureConfirmEventV1Dto,
+      validation?: boolean,
+    ) => {
+      if (validation) {
+        // 방 존재 여부 확인
+        AssertIfValidPot(pot, data.potRoomPk);
 
-      // 방장만 출발 확정을 정할 수 있음
-      AssertIfHost(pot, data.userPk);
+        // 방장만 출발 확정을 정할 수 있음
+        AssertIfHost(pot, data.userPk);
 
-      // TODO: 이미 출발을 하지 않아야 함
+        // TODO: 이미 출발을 하지 않아야 함
 
-      // 출발 시간이 현재 시간 이후여야 함
-      AssertIfDepartureTimeBeforeNow(data.departureTime);
+        // 출발 시간이 현재 시간 이후여야 함
+        AssertIfDepartureTimeBeforeNow(data.departureTime);
 
-      // 출발 시간이 출발 가능 시작 시간과 출발 가능 종료 시간 사이여야 함
-      AssertIfValidDepartureTime(pot, data.departureTime);
+        // 출발 시간이 출발 가능 시작 시간과 출발 가능 종료 시간 사이여야 함
+        AssertIfValidDepartureTime(pot, data.departureTime);
+      }
 
       pot.departureTime = data.departureTime;
       return pot;
