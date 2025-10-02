@@ -19,6 +19,7 @@ export class UserPotRoomRepository {
         potRoomFk: userPotRoomEntity.potRoomFk,
         userFk: userPotRoomEntity.userFk,
         isHost: userPotRoomEntity.isHost,
+        isArchived: userPotRoomEntity.isArchived,
       })
       .returning();
 
@@ -54,6 +55,7 @@ export class UserPotRoomRepository {
       potRoomFk: result.potRoomFk,
       userFk: result.userFk,
       isHost: result.isHost,
+      isArchived: result.isArchived,
     };
   }
 }

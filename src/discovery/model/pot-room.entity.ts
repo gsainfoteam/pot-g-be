@@ -1,4 +1,5 @@
 import { RouteEntity } from "@src/discovery/model/route.entity";
+import { Pot } from "@src/pot/model/pot";
 
 export class PotRoomEntity {
   pk: string;
@@ -14,4 +15,5 @@ export class PotRoomEntity {
   createdAt: Date;
   updatedAt: Date;
   name: string;
+  pot?: Pot; // 팟 이벤트의 reduce 결과 (조인 쿼리 필요)
 }

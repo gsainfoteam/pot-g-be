@@ -5,6 +5,7 @@ import {
   AssertIfValidCapacity,
   AssertIfValidDepartureAvailableTime,
 } from "@src/pot/validator/common-pot-validator";
+import { parseDate } from "@src/global/utils/convertDate";
 
 export type PotCreateEventV1Dto = {
   potRoomPk: string;
@@ -27,7 +28,18 @@ export class PotCreateEventV1 implements PotEvent<PotCreateEventV1Dto> {
     this.potRoomPk = potRoomPk;
     this.eventType = "create_v1";
     this.timestamp = timestamp;
-    this.data = data;
+    this.data = {
+      potRoomPk: data.potRoomPk,
+      name: data.name,
+      createUserId: data.createUserId,
+      routePk: data.routePk,
+      maxCapacity: data.maxCapacity,
+      // convert str to Date
+      departureAvailableStartTime: parseDate(data.departureAvailableStartTime),
+      departureAvailableEndTime: parseDate(data.departureAvailableEndTime),
+      createAt: parseDate(data.createAt),
+      updateAt: parseDate(data.updateAt),
+    };
     this.dispatcher = PotCreateEventV1.getDispatcherFunction();
   }
 
@@ -43,15 +55,17 @@ export class PotCreateEventV1 implements PotEvent<PotCreateEventV1Dto> {
     pot: Pot,
     data: PotCreateEventV1Dto,
   ) => Pot {
-    return (pot: Pot, data: PotCreateEventV1Dto) => {
+    return (pot: Pot, data: PotCreateEventV1Dto, validation?: boolean) => {
       const now = new Date();
 
-      AssertIfValidDepartureAvailableTime(
-        data.departureAvailableStartTime,
-        data.departureAvailableEndTime,
-      );
+      if (validation) {
+        AssertIfValidDepartureAvailableTime(
+          data.departureAvailableStartTime,
+          data.departureAvailableEndTime,
+        );
 
-      AssertIfValidCapacity(data.maxCapacity);
+        AssertIfValidCapacity(data.maxCapacity);
+      }
 
       pot.pk = data.potRoomPk;
 

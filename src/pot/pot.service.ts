@@ -31,11 +31,8 @@ import { PotEventUserKickV1Dto } from "@src/pot/dto/event/pot-event.user-kick.v1
 import { PotEventUserLeaveV1Dto } from "@src/pot/dto/event/pot-event.user-leave.v1.dto";
 import { PotEventUserInV1Dto } from "@src/pot/dto/event/pot-event.user-in.v1.dto";
 import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
-import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
-import {
-  PotEventListReqDto,
-  PotEventListResDto,
-} from "@src/pot/dto/pot.event.dto";
+import { PotEventListReqDto } from "@src/pot/dto/pot.event.dto";
+import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
 
 @Injectable()
 export class PotService {
@@ -88,15 +85,64 @@ export class PotService {
     };
   }
 
-  async getMyPot(userCtx: UserContext): Promise<MyPotResDto> {}
+  async getMyPot(userCtx: UserContext): Promise<MyPotResDto> {
+    const myPotRoomEntityList = await this.potRoomRepository.getUserPotRoomList(
+      userCtx.userId,
+      "chat_v1",
+    );
 
-  async getPotInfo(potPk: string, userCtx: UserContext): Promise<PotInfoDto> {}
+    const myPotList: PotDetailDto[] = [];
+    const myArchivedPotList: PotDetailDto[] = [];
+
+    // separate archived and non-archived pots
+    for (const potRoomEntity of myPotRoomEntityList) {
+      if (potRoomEntity.isArchived) {
+        myArchivedPotList.push(
+          this.potRoomEntityToPotDetailDto(potRoomEntity, userCtx),
+        );
+      } else {
+        myPotList.push(
+          this.potRoomEntityToPotDetailDto(potRoomEntity, userCtx),
+        );
+      }
+    }
+
+    return {
+      pot_list: myPotList,
+      archived_pot_list: myArchivedPotList,
+    };
+  }
+
+  private potRoomEntityToPotDetailDto(
+    potRoomEntity: PotRoomEntity,
+    userCtx: UserContext,
+  ): PotDetailDto {
+    const pot = potRoomEntity.pot;
+    const route = this.routeService.getRouteById(potRoomEntity.routeFk);
+
+    return {
+      id: potRoomEntity.pk,
+      name: potRoomEntity.name,
+      route: this.routeService.routeEntityToDto(route),
+      starts_at: potRoomEntity.startsAt,
+      ends_at: potRoomEntity.endsAt,
+      departure_time: potRoomEntity.isDepartureConfirmed
+        ? pot.departureTime
+        : undefined,
+      current: pot.joinedUserPks.length,
+      total: potRoomEntity.maxCapacity,
+      status: pot.getStatus(userCtx.userId),
+      accounting_requested: pot.recipientAmount,
+    };
+  }
+
+  async getPotInfo(potPk: string, userCtx: UserContext): Promise<any> {}
 
   async getPotEvents(
     potPk: string,
     req: PotEventListReqDto,
     userCtx: UserContext,
-  ): Promise<PotEventListResDto> {}
+  ): Promise<any> {}
 
   /*
     팟에 참여합니다.
