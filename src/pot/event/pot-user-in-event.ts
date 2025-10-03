@@ -57,6 +57,7 @@ export class PotUserInEventV1 implements PotEvent<PotUserInEventV1Dto> {
       }
 
       pot.joinedUserPks.push(data.userPk);
+      pot.loggedUserPks.push(data.userPk);
       return pot;
     };
   }

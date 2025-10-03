@@ -6,18 +6,18 @@ import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { InfoteamIdpService } from "@lib/infoteam-idp";
-import { UserRepository } from "@src/user/repository/user.repository";
+import { UserRepository } from "@src/database/repository/user.repository";
 import { AuthService } from "@src/auth/auth.service";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
-import { DeviceRepository } from "@src/user/repository/device.repository";
-import { UserAlarmSettingRepository } from "@src/user/repository/user-alarm-setting.repository";
+import { DeviceRepository } from "@src/database/repository/device.repository";
+import { UserAlarmSettingRepository } from "@src/database/repository/user-alarm-setting.repository";
 import {
   RefreshRequestDto,
   RefreshResponseDto,
 } from "@src/user/dto/refresh.dto";
-import { DeviceEntity } from "./model/device.entity";
-import { UserEntity } from "@src/user/model/user.entity";
+import { DeviceEntity } from "../database/model/device.entity";
+import { UserEntity } from "@src/database/model/user.entity";
 
 @Injectable()
 export class UserService {

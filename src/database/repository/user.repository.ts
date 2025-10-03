@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { users } from "../../../drizzle/schema/users";
-import { eq } from "drizzle-orm";
-import { UserEntity } from "@src/user/model/user.entity";
+import { eq, inArray } from "drizzle-orm";
+import { UserEntity } from "@src/database/model/user.entity";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { bank } from "../../../drizzle/schema/bank";
 import { userBank } from "../../../drizzle/schema/user-bank";
@@ -154,5 +154,25 @@ export class UserRepository {
       .update(users)
       .set({ isDeleted: true, updatedAt: new Date() })
       .where(eq(users.pk, userId));
+  }
+
+  /*
+  SELECT u.pk, u.name
+  FROM user as u
+  WHERE u.pk in (?1);
+   */
+  async getUserProfileByPks(userPks: string[]) {
+    const result = await this.dbService.db
+      .select({
+        pk: users.pk,
+        name: users.name,
+      })
+      .from(users)
+      .where(inArray(users.pk, userPks));
+
+    return result.map((user) => ({
+      pk: user.pk,
+      name: user.name,
+    }));
   }
 }

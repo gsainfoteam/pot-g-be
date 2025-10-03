@@ -1,9 +1,9 @@
 import { DatabaseService } from "@src/database/database.service";
-import { Pot } from "../model/pot";
-import { PotEvent, PotEventFactory } from "../event/pot-event";
-import { potEvent } from "drizzle/schema/pot-event";
+import { Pot } from "../../pot/model/pot";
+import { PotEvent, PotEventFactory } from "../../pot/event/pot-event";
+import { potEvent } from "../../../drizzle/schema/pot-event";
 import { and, asc, eq, not, SQL, sql } from "drizzle-orm";
-import { PotEventReducer } from "../event/pot-event-reducer";
+import { PotEventReducer } from "../../pot/event/pot-event-reducer";
 import { Injectable } from "@nestjs/common";
 import { TxType } from "@src/global/types/tx.types";
 

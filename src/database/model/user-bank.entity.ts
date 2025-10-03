@@ -1,5 +1,5 @@
-import { UserEntity } from "@src/user/model/user.entity";
-import { BankEntity } from "@src/accounting/model/bank.entity";
+import { UserEntity } from "@src/database/model/user.entity";
+import { BankEntity } from "@src/database/model/bank.entity";
 
 export class UserBankEntity {
   userFk?: string;

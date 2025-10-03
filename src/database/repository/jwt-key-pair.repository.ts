@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { jwtKeyPair } from "../../drizzle/schema/jwt-key-pair";
+import { jwtKeyPair } from "../../../drizzle/schema/jwt-key-pair";
 
 @Injectable()
 export class JwtKeyPairRepository {

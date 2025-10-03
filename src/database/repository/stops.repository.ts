@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { StopsEntity } from "@src/discovery/model/stops.entity";
+import { StopsEntity } from "@src/database/model/stops.entity";
 import { stops } from "../../../drizzle/schema/stops";
 
 @Injectable()

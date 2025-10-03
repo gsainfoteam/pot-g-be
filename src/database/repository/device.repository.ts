@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { DeviceEntity } from "@src/user/model/device.entity";
+import { DeviceEntity } from "@src/database/model/device.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { device } from "../../../drizzle/schema/device";
 import { and, eq } from "drizzle-orm";

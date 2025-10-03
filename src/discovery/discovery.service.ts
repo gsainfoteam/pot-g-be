@@ -5,8 +5,8 @@ import { StopDto } from "@src/discovery/dto/stop.dto";
 import { PaginationDto } from "@src/global/dto/pagination.dto";
 import { PotDto } from "@src/discovery/dto/pot.dto";
 import { PotSearchDto } from "@src/discovery/dto/pot-search.dto";
-import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
+import { PotRoomEntity } from "@src/database/model/pot-room.entity";
 
 @Injectable()
 export class PotGDiscoveryService {

@@ -1,4 +1,4 @@
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/model/pot-room.entity";
 
 export type ChatMessage = {
   userPk: string; // 채팅을 보낸 유저의 ID
@@ -26,6 +26,7 @@ export class Pot {
 
   hostUserPk: string; // 방장
   joinedUserPks: string[] = []; // 참여자
+  loggedUserPks: string[] = []; // 한번이라도 팟에 참여한 적이 있는 유저 (퇴장했더라도 남아있음) /info API 용도
   routePk: string; // 택시 경로
   maxCapacity: number; // 최대 인원
 

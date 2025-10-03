@@ -71,6 +71,7 @@ export class PotCreateEventV1 implements PotEvent<PotCreateEventV1Dto> {
 
       pot.hostUserPk = data.createUserId;
       pot.joinedUserPks.push(data.createUserId);
+      pot.loggedUserPks.push(data.createUserId);
       pot.name = data.name;
       pot.routePk = data.routePk;
 

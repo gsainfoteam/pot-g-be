@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/model/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { potRoom } from "../../../drizzle/schema/pot-room";
 import { and, asc, eq, gte, lte, not, sql } from "drizzle-orm";
@@ -191,6 +191,67 @@ export class PotRoomRepository {
       }
       return acc;
     }, [] as PotRoomEntity[]);
+  }
+
+  /*
+  SELECT pr.*, pe.*
+  FROM pot_room as pr
+    INNER JOIN pot_event as pe ON pr.pk = pe.pot_fk
+  WHERE pr.pk = ?1
+    AND pr.is_deleted = false
+    AND pe.type != ?2 // exclude 'chat' type
+  GROUP BY pe.pot_fk, pe.timestamp
+  ORDER BY pe.timestamp ASC
+   */
+  async getPotRoomInfoByPk(
+    potPk: string,
+    chatEventType: PotEventStringType,
+  ): Promise<PotRoomEntity | null> {
+    const results = await this.dbService.db
+      .select({
+        pk: potRoom.pk,
+        routeFk: potRoom.routeFk,
+        isArchived: potRoom.isArchived,
+        isDeleted: potRoom.isDeleted,
+        isDepartureConfirmed: potRoom.isDepartureConfirmed,
+        maxCapacity: potRoom.maxCapacity,
+        startsAt: potRoom.startsAt,
+        endsAt: potRoom.endsAt,
+        createdAt: potRoom.createdAt,
+        updatedAt: potRoom.updatedAt,
+        name: potRoom.name,
+        // PotEvent fields
+        potFk: potEvent.potFk,
+        timestamp: potEvent.timestamp,
+        type: potEvent.type,
+        data: potEvent.data,
+      })
+      .from(potRoom)
+      .innerJoin(potEvent, eq(potRoom.pk, potEvent.potFk))
+      .where(
+        and(
+          eq(potRoom.pk, potPk),
+          eq(potRoom.isDeleted, false),
+          // Exclude 'chat' type events
+          not(eq(potEvent.type, chatEventType)),
+        ),
+      )
+      .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp)
+      .orderBy(asc(potEvent.timestamp));
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const potRoomEntity = this.resultToPotRoomEntity(results[0]);
+    potRoomEntity.pot = new Pot();
+
+    results.forEach((result) => {
+      const potEvent = PotEventFactory.toModel(result);
+      PotEventReducer.reduce(potRoomEntity.pot, potEvent);
+    });
+
+    return potRoomEntity;
   }
 
   private getSearchPotListWhereClause(

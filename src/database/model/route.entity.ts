@@ -1,4 +1,4 @@
-import { StopsEntity } from "@src/discovery/model/stops.entity";
+import { StopsEntity } from "@src/database/model/stops.entity";
 
 export class RouteEntity {
   pk?: string;

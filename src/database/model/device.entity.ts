@@ -1,4 +1,4 @@
-import { UserEntity } from "@src/user/model/user.entity";
+import { UserEntity } from "@src/database/model/user.entity";
 
 export class DeviceEntity {
   pk?: string;

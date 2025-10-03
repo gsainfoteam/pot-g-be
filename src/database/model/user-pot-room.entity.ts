@@ -1,5 +1,5 @@
-import { UserEntity } from "@src/user/model/user.entity";
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { UserEntity } from "@src/database/model/user.entity";
+import { PotRoomEntity } from "@src/database/model/pot-room.entity";
 
 export class UserPotRoomEntity {
   potRoomFk: string;

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { UserAlarmSettingEntity } from "@src/user/model/user-alarm-setting.entity";
+import { UserAlarmSettingEntity } from "@src/database/model/user-alarm-setting.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { eq } from "drizzle-orm";

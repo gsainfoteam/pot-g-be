@@ -6,14 +6,14 @@ import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotCreateEventV1 } from "@src/pot/event/pot-create-event";
 import { RouteService } from "@src/discovery/route.service";
 import { DatabaseService } from "@src/database/database.service";
-import { RouteEntity } from "@src/discovery/model/route.entity";
+import { RouteEntity } from "@src/database/model/route.entity";
 import { randomUUID } from "node:crypto";
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/model/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
-import { PotEventRepository } from "@src/pot/repository/pot-event.repository";
-import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
-import { UserPotRoomEntity } from "@src/pot/model/user-pot-room.entity";
-import { UserPotRoomRepository } from "@src/pot/repository/user-pot-room.repository";
+import { PotEventRepository } from "@src/database/repository/pot-event.repository";
+import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
+import { UserPotRoomEntity } from "@src/database/model/user-pot-room.entity";
+import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.repository";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { Pot } from "@src/pot/model/pot";
 import { PotUserInEventV1 } from "@src/pot/event/pot-user-in-event";
@@ -33,6 +33,8 @@ import { PotEventUserInV1Dto } from "@src/pot/dto/event/pot-event.user-in.v1.dto
 import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
 import { PotEventListReqDto } from "@src/pot/dto/pot.event.dto";
 import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
+import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
+import { UserRepository } from "@src/database/repository/user.repository";
 
 @Injectable()
 export class PotService {
@@ -43,6 +45,7 @@ export class PotService {
     private readonly potRoomRepository: PotRoomRepository,
     private readonly potEventRepository: PotEventRepository,
     private readonly userPotRoomRepository: UserPotRoomRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async createPot(
@@ -136,7 +139,60 @@ export class PotService {
     };
   }
 
-  async getPotInfo(potPk: string, userCtx: UserContext): Promise<any> {}
+  async getPotInfo(potPk: string, userCtx: UserContext): Promise<PotInfoDto> {
+    const potRoomEntity = await this.potRoomRepository.getPotRoomInfoByPk(
+      potPk,
+      "chat_v1",
+    );
+
+    return await this.potRoomEntityToPotInfoDto(potRoomEntity, userCtx);
+  }
+
+  private async potRoomEntityToPotInfoDto(
+    potRoomEntity: PotRoomEntity,
+    userCtx: UserContext,
+  ): Promise<PotInfoDto> {
+    if (!potRoomEntity) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    const pot = potRoomEntity.pot;
+
+    const userProfiles = await this.userRepository.getUserProfileByPks(
+      pot.loggedUserPks,
+    );
+
+    const route = this.routeService.getRouteById(potRoomEntity.routeFk);
+
+    return {
+      id: potRoomEntity.pk,
+      name: potRoomEntity.name,
+      route: this.routeService.routeEntityToDto(route),
+      starts_at: potRoomEntity.startsAt,
+      ends_at: potRoomEntity.endsAt,
+      departure_time: potRoomEntity.isDepartureConfirmed
+        ? pot.departureTime
+        : undefined,
+      status: pot.getStatus(userCtx.userId),
+      users_info: {
+        current: pot.joinedUserPks.length,
+        total: potRoomEntity.maxCapacity,
+        users: userProfiles.map((u) => {
+          return {
+            id: u.pk,
+            name: u.name,
+            is_host: pot.hostUserPk == u.pk,
+            is_in_pot: pot.joinedUserPks.includes(u.pk),
+          };
+        }),
+      },
+      accounting_info: {
+        requested: pot.accountingRequestedUserPks.includes(userCtx.userId),
+        requesting_user: pot.accountingRequestUserId || undefined,
+        requested_users: pot.accountingRequestedUserPks,
+      },
+    };
+  }
 
   async getPotEvents(
     potPk: string,
