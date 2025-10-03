@@ -3,10 +3,10 @@ import { BankDto } from "@src/accounting/dto/bank.dto";
 import { ChangeAccountingRequestDto } from "@src/accounting/dto/change-accounting.dto";
 import { AccountingDto } from "@src/user/dto/accounting.dto";
 import { UserContext } from "@src/auth/user-context.entity";
-import { BankEntity } from "@src/accounting/model/bank.entity";
-import { BankRepository } from "@src/accounting/repository/bank.repository";
-import { UserBankRepository } from "@src/accounting/repository/user-bank.repository";
-import { UserBankEntity } from "@src/accounting/model/user-bank.entity";
+import { BankEntity } from "@src/database/entity/bank.entity";
+import { BankRepository } from "@src/database/repository/bank.repository";
+import { UserBankRepository } from "@src/database/repository/user-bank.repository";
+import { UserBankEntity } from "@src/database/entity/user-bank.entity";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 

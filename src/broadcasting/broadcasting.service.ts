@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { WebsocketService } from "@src/websocket/websocket.service";
-import { PotEventDto } from "@src/pot/dto/event/pot-event.dto";
+import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { randomUUID } from "node:crypto";
 

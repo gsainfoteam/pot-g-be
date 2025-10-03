@@ -1,10 +1,17 @@
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 
 export type ChatMessage = {
   userPk: string; // 채팅을 보낸 유저의 ID
   message: string; // 채팅 메시지
   timestamp: Date; // 메시지 전송 시간
 };
+
+export type PotStatus =
+  | "BEFORE_CONFIRMED" // 출발 확정 전
+  | "CONFIRMED" // 출발 확정 후
+  | "WAIT_ACCOUNTING" // 정산 대기 중
+  | "ACCOUNTING_DONE" // 정산 완료;
+  | "ARCHIVED"; // 방이 아카이브된 상태
 
 export class Pot {
   constructor() {
@@ -19,6 +26,7 @@ export class Pot {
 
   hostUserPk: string; // 방장
   joinedUserPks: string[] = []; // 참여자
+  loggedUserPks: string[] = []; // 한번이라도 팟에 참여한 적이 있는 유저 (퇴장했더라도 남아있음) /info API 용도
   routePk: string; // 택시 경로
   maxCapacity: number; // 최대 인원
 
@@ -39,6 +47,33 @@ export class Pot {
   accountingConfirmedUserPks: string[] = []; // 송금 보낸 유저의 ID 리스트
 
   chatHistory: ChatMessage[] = [];
+
+  public getStatus(userPk: string): PotStatus {
+    // 아카이브 된 상태 -> "ARCHIVED"
+    if (this.isArchived) {
+      return "ARCHIVED";
+    }
+    // 출발 시간도 안정해진 상태 -> "BEFORE_CONFIRMED"
+    if (!this.departureTime) {
+      return "BEFORE_CONFIRMED";
+    }
+
+    const now = new Date();
+
+    // 출발 시간이 정해졌지만 아직 지나지 않은 상태 -> "CONFIRMED"
+    if (this.departureTime > now) {
+      return "CONFIRMED";
+    }
+    // 정해진 출발 시간이 지났고, 정산이 완료되지 않은 상태 -> "WAIT_ACCOUNTING"
+    if (
+      this.departureTime <= now &&
+      !this.accountingConfirmedUserPks.includes(userPk) // 정산자가 정산 요청을 하지 않았더라도 정산 전으로 표시합니다.
+    ) {
+      return "WAIT_ACCOUNTING";
+    }
+    // 정산이 완료되었고 아카이브 되지 않은 상태 -> "ACCOUNTING_DONE"
+    return "ACCOUNTING_DONE";
+  }
 
   public toPotRoomEntity(): PotRoomEntity {
     return {

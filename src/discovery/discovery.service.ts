@@ -5,10 +5,8 @@ import { StopDto } from "@src/discovery/dto/stop.dto";
 import { PaginationDto } from "@src/global/dto/pagination.dto";
 import { PotDto } from "@src/discovery/dto/pot.dto";
 import { PotSearchDto } from "@src/discovery/dto/pot-search.dto";
-import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
-import { RouteEntity } from "@src/discovery/model/route.entity";
-import { StopsEntity } from "@src/discovery/model/stops.entity";
+import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
+import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 
 @Injectable()
 export class PotGDiscoveryService {
@@ -47,11 +45,13 @@ export class PotGDiscoveryService {
   async getRoutes(): Promise<RouteDto[]> {
     return this.routeService
       .getRoutesWithStops()
-      .map(this.routeEntityToDto.bind(this));
+      .map(this.routeService.routeEntityToDto.bind(this));
   }
 
   async getStops(): Promise<StopDto[]> {
-    return this.routeService.getStops().map(this.stopEntityToDto.bind(this));
+    return this.routeService
+      .getStops()
+      .map(this.routeService.stopEntityToDto.bind(this));
   }
 
   private potRoomEntityToDto(potRoom: PotRoomEntity): PotDto {
@@ -60,32 +60,11 @@ export class PotGDiscoveryService {
     return {
       id: potRoom.pk,
       name: potRoom.name,
-      route: this.routeEntityToDto(route),
+      route: this.routeService.routeEntityToDto(route),
       starts_at: potRoom.startsAt,
       ends_at: potRoom.endsAt,
       current: potRoom.currentUserCount || 1,
       total: potRoom.maxCapacity,
-    };
-  }
-
-  private routeEntityToDto(route: RouteEntity): RouteDto {
-    return {
-      id: route.pk,
-      from: {
-        id: route.fromStopFk,
-        name: route.fromStop.nameKor,
-      },
-      to: {
-        id: route.toStopFk,
-        name: route.toStop.nameKor,
-      },
-    };
-  }
-
-  private stopEntityToDto(stops: StopsEntity): StopDto {
-    return {
-      id: stops.pk,
-      name: stops.nameKor,
     };
   }
 }

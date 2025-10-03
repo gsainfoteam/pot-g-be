@@ -1,35 +1,48 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { from } from "rxjs";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
-import { PotCreateEventV1 } from "@src/pot/event/pot-create-event";
+import { PotCreateEventV1 } from "@src/pot/event/v1/pot-create-event";
 import { RouteService } from "@src/discovery/route.service";
 import { DatabaseService } from "@src/database/database.service";
-import { RouteEntity } from "@src/discovery/model/route.entity";
+import { RouteEntity } from "@src/database/entity/route.entity";
 import { randomUUID } from "node:crypto";
-import { PotRoomEntity } from "@src/discovery/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
-import { PotEventRepository } from "@src/pot/repository/pot-event.repository";
-import { PotRoomRepository } from "@src/discovery/repository/pot-room.repository";
-import { UserPotRoomEntity } from "@src/pot/model/user-pot-room.entity";
-import { UserPotRoomRepository } from "@src/pot/repository/user-pot-room.repository";
+import { PotEventRepository } from "@src/database/repository/pot-event.repository";
+import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
+import { UserPotRoomEntity } from "@src/database/entity/user-pot-room.entity";
+import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.repository";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { Pot } from "@src/pot/model/pot";
-import { PotUserInEventV1 } from "@src/pot/event/pot-user-in-event";
-import { PotUserLeaveEventV1 } from "@src/pot/event/pot-user-leave-event";
-import { PotUserKickEventV1 } from "@src/pot/event/pot-user-kick-event";
-import { PotDepartureConfirmEventV1 } from "@src/pot/event/pot-departure-confirm-event";
+import { PotUserInEventV1 } from "@src/pot/event/v1/pot-user-in-event";
+import { PotUserLeaveEventV1 } from "@src/pot/event/v1/pot-user-leave-event";
+import { PotUserKickEventV1 } from "@src/pot/event/v1/pot-user-kick-event";
+import { PotDepartureConfirmEventV1 } from "@src/pot/event/v1/pot-departure-confirm-event";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { SendChatReqDto } from "@src/pot/dto/send-chat.pot.dto";
-import { PotChatEventV1 } from "@src/pot/event/pot-chat-event";
-import { PotEventDto } from "@src/pot/dto/event/pot-event.dto";
-import { PotEventChatV1Dto } from "@src/pot/dto/event/pot-event.chat.v1.dto";
+import { PotChatEventV1 } from "@src/pot/event/v1/pot-chat-event";
+import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
+import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
-import { PotEventDepartureConfirmV1Dto } from "@src/pot/dto/event/pot-event.departure-confirm.v1.dto";
-import { PotEventUserKickV1Dto } from "@src/pot/dto/event/pot-event.user-kick.v1.dto";
-import { PotEventUserLeaveV1Dto } from "@src/pot/dto/event/pot-event.user-leave.v1.dto";
-import { PotEventUserInV1Dto } from "@src/pot/dto/event/pot-event.user-in.v1.dto";
+import { PotEventDepartureConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.departure-confirm.v1.dto";
+import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
+import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
+import { PotEventUserInV1Dto } from "@src/pot/event/v1/dto/pot-event.user-in.v1.dto";
+import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
+import {
+  PotEventListReqDto,
+  PotEventListResDto,
+} from "@src/pot/dto/pot.event.dto";
+import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
+import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
+import { UserRepository } from "@src/database/repository/user.repository";
+import { fromUnixTime, getUnixTime } from "date-fns";
 
 @Injectable()
 export class PotService {
@@ -40,6 +53,7 @@ export class PotService {
     private readonly potRoomRepository: PotRoomRepository,
     private readonly potEventRepository: PotEventRepository,
     private readonly userPotRoomRepository: UserPotRoomRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async createPot(
@@ -60,7 +74,7 @@ export class PotService {
       userCtx.userId,
     );
 
-    const pot = PotEventReducer.reduceFromInitial([potCreateEvent]);
+    const pot = PotEventReducer.reduceFromInitial([potCreateEvent], true);
     const potRoomEntity: PotRoomEntity = pot.toPotRoomEntity();
 
     // userPotRoom Entity 생성
@@ -68,6 +82,7 @@ export class PotService {
       potRoomFk: potRoomEntity.pk,
       userFk: userCtx.userId,
       isHost: true,
+      isArchived: false,
     };
 
     await this.dbService.db.transaction(async (tx: TxType) => {
@@ -78,6 +93,160 @@ export class PotService {
 
     return {
       id: potRoomEntity.pk,
+    };
+  }
+
+  async getMyPot(userCtx: UserContext): Promise<MyPotResDto> {
+    const myPotRoomEntityList = await this.potRoomRepository.getUserPotRoomList(
+      userCtx.userId,
+      "chat_v1",
+    );
+
+    const myPotList: PotDetailDto[] = [];
+    const myArchivedPotList: PotDetailDto[] = [];
+
+    // separate archived and non-archived pots
+    for (const potRoomEntity of myPotRoomEntityList) {
+      if (potRoomEntity.isArchived) {
+        myArchivedPotList.push(
+          this.potRoomEntityToPotDetailDto(potRoomEntity, userCtx),
+        );
+      } else {
+        myPotList.push(
+          this.potRoomEntityToPotDetailDto(potRoomEntity, userCtx),
+        );
+      }
+    }
+
+    return {
+      pot_list: myPotList,
+      archived_pot_list: myArchivedPotList,
+    };
+  }
+
+  private potRoomEntityToPotDetailDto(
+    potRoomEntity: PotRoomEntity,
+    userCtx: UserContext,
+  ): PotDetailDto {
+    const pot = potRoomEntity.pot;
+    const route = this.routeService.getRouteById(potRoomEntity.routeFk);
+
+    return {
+      id: potRoomEntity.pk,
+      name: potRoomEntity.name,
+      route: this.routeService.routeEntityToDto(route),
+      starts_at: potRoomEntity.startsAt,
+      ends_at: potRoomEntity.endsAt,
+      departure_time: potRoomEntity.isDepartureConfirmed
+        ? pot.departureTime
+        : undefined,
+      current: pot.joinedUserPks.length,
+      total: potRoomEntity.maxCapacity,
+      status: pot.getStatus(userCtx.userId),
+      accounting_requested: pot.recipientAmount,
+    };
+  }
+
+  async getPotInfo(potPk: string, userCtx: UserContext): Promise<PotInfoDto> {
+    const potRoomEntity = await this.potRoomRepository.getPotRoomInfoByPk(
+      potPk,
+      "chat_v1",
+    );
+
+    // 팟이 존재하는지 확인
+    if (!potRoomEntity) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    // 유저가 팟에 참여하고 있는지 확인 필요
+    if (!potRoomEntity.pot.joinedUserPks.includes(userCtx.userId)) {
+      throw new ForbiddenException("User not in pot");
+    }
+
+    return await this.potRoomEntityToPotInfoDto(potRoomEntity, userCtx);
+  }
+
+  private async potRoomEntityToPotInfoDto(
+    potRoomEntity: PotRoomEntity,
+    userCtx: UserContext,
+  ): Promise<PotInfoDto> {
+    if (!potRoomEntity) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    const pot = potRoomEntity.pot;
+
+    const userProfiles = await this.userRepository.getUserProfileByPks(
+      pot.loggedUserPks,
+    );
+
+    const route = this.routeService.getRouteById(potRoomEntity.routeFk);
+
+    return {
+      id: potRoomEntity.pk,
+      name: potRoomEntity.name,
+      route: this.routeService.routeEntityToDto(route),
+      starts_at: potRoomEntity.startsAt,
+      ends_at: potRoomEntity.endsAt,
+      departure_time: potRoomEntity.isDepartureConfirmed
+        ? pot.departureTime
+        : undefined,
+      status: pot.getStatus(userCtx.userId),
+      users_info: {
+        current: pot.joinedUserPks.length,
+        total: potRoomEntity.maxCapacity,
+        users: userProfiles.map((u) => {
+          return {
+            id: u.pk,
+            name: u.name,
+            is_host: pot.hostUserPk == u.pk,
+            is_in_pot: pot.joinedUserPks.includes(u.pk),
+          };
+        }),
+      },
+      accounting_info: {
+        requested: pot.accountingRequestedUserPks.includes(userCtx.userId),
+        requesting_user: pot.accountingRequestUserId || undefined,
+        requested_users: pot.accountingRequestedUserPks,
+      },
+    };
+  }
+
+  async getPotEvents(
+    potPk: string,
+    req: PotEventListReqDto,
+    userCtx: UserContext,
+  ): Promise<PotEventListResDto> {
+    // 유저가 팟에 참여하고 있는지 확인
+    if (
+      !(await this.userPotRoomRepository.existsByPotRoomFkAndUserFk(
+        potPk,
+        userCtx.userId,
+      ))
+    ) {
+      throw new ForbiddenException("User not in pot");
+    }
+
+    const potEvents = await this.potEventRepository.getEventsByPotPkWithLimit(
+      potPk,
+      fromUnixTime(req.starts_from),
+      req.limit,
+    );
+
+    // 팟이 존재하는지 확인
+    if (potEvents.length === 0) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    return {
+      events: potEvents.reverse().map((pe) => {
+        return {
+          pot_pk: pe.potRoomPk,
+          timestamp: getUnixTime(pe.timestamp),
+          event_type: pe.eventType,
+          data: pe.toDto(),
+        };
+      }),
     };
   }
 
@@ -103,7 +272,7 @@ export class PotService {
       });
 
     try {
-      PotEventReducer.reduce(pot, potUserInEvent);
+      PotEventReducer.reduce(pot, potUserInEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -116,6 +285,7 @@ export class PotService {
       potRoomFk: pot.pk,
       userFk: userCtx.userId,
       isHost: false,
+      isArchived: false,
     };
 
     await this.dbService.db.transaction(async (tx: TxType) => {
@@ -162,7 +332,7 @@ export class PotService {
       });
 
     try {
-      PotEventReducer.reduce(pot, potUserLeaveEvent);
+      PotEventReducer.reduce(pot, potUserLeaveEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -229,7 +399,7 @@ export class PotService {
       });
 
     try {
-      PotEventReducer.reduce(pot, potUserKickEvent);
+      PotEventReducer.reduce(pot, potUserKickEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -298,7 +468,7 @@ export class PotService {
       );
 
     try {
-      PotEventReducer.reduce(pot, potDepartureConfirmEvent);
+      PotEventReducer.reduce(pot, potDepartureConfirmEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -348,7 +518,7 @@ export class PotService {
     );
 
     try {
-      PotEventReducer.reduce(pot, potChatEvent);
+      PotEventReducer.reduce(pot, potChatEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
