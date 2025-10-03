@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { from } from "rxjs";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/user-context.entity";
@@ -144,6 +148,16 @@ export class PotService {
       potPk,
       "chat_v1",
     );
+
+    // 팟이 존재하는지 확인
+    if (!potRoomEntity) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    // 유저가 팟에 참여하고 있는지 확인 필요
+    if (!potRoomEntity.pot.joinedUserPks.includes(userCtx.userId)) {
+      throw new ForbiddenException("User not in pot");
+    }
 
     return await this.potRoomEntityToPotInfoDto(potRoomEntity, userCtx);
   }
