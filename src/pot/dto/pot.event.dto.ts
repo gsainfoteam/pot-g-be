@@ -1,4 +1,4 @@
-import { PotEventDto } from "@src/pot/dto/event/pot-event.dto";
+import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { IsNumber, Max, Min } from "class-validator";
 import { Type } from "class-transformer";
 

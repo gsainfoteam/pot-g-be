@@ -7,7 +7,7 @@ import { from } from "rxjs";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
-import { PotCreateEventV1 } from "@src/pot/event/pot-create-event";
+import { PotCreateEventV1 } from "@src/pot/event/v1/pot-create-event";
 import { RouteService } from "@src/discovery/route.service";
 import { DatabaseService } from "@src/database/database.service";
 import { RouteEntity } from "@src/database/entity/route.entity";
@@ -20,22 +20,25 @@ import { UserPotRoomEntity } from "@src/database/entity/user-pot-room.entity";
 import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.repository";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { Pot } from "@src/pot/model/pot";
-import { PotUserInEventV1 } from "@src/pot/event/pot-user-in-event";
-import { PotUserLeaveEventV1 } from "@src/pot/event/pot-user-leave-event";
-import { PotUserKickEventV1 } from "@src/pot/event/pot-user-kick-event";
-import { PotDepartureConfirmEventV1 } from "@src/pot/event/pot-departure-confirm-event";
+import { PotUserInEventV1 } from "@src/pot/event/v1/pot-user-in-event";
+import { PotUserLeaveEventV1 } from "@src/pot/event/v1/pot-user-leave-event";
+import { PotUserKickEventV1 } from "@src/pot/event/v1/pot-user-kick-event";
+import { PotDepartureConfirmEventV1 } from "@src/pot/event/v1/pot-departure-confirm-event";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { SendChatReqDto } from "@src/pot/dto/send-chat.pot.dto";
-import { PotChatEventV1 } from "@src/pot/event/pot-chat-event";
-import { PotEventDto } from "@src/pot/dto/event/pot-event.dto";
-import { PotEventChatV1Dto } from "@src/pot/dto/event/pot-event.chat.v1.dto";
+import { PotChatEventV1 } from "@src/pot/event/v1/pot-chat-event";
+import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
+import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
-import { PotEventDepartureConfirmV1Dto } from "@src/pot/dto/event/pot-event.departure-confirm.v1.dto";
-import { PotEventUserKickV1Dto } from "@src/pot/dto/event/pot-event.user-kick.v1.dto";
-import { PotEventUserLeaveV1Dto } from "@src/pot/dto/event/pot-event.user-leave.v1.dto";
-import { PotEventUserInV1Dto } from "@src/pot/dto/event/pot-event.user-in.v1.dto";
+import { PotEventDepartureConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.departure-confirm.v1.dto";
+import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
+import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
+import { PotEventUserInV1Dto } from "@src/pot/event/v1/dto/pot-event.user-in.v1.dto";
 import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
-import { PotEventListReqDto } from "@src/pot/dto/pot.event.dto";
+import {
+  PotEventListReqDto,
+  PotEventListResDto,
+} from "@src/pot/dto/pot.event.dto";
 import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
 import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
@@ -212,7 +215,7 @@ export class PotService {
     potPk: string,
     req: PotEventListReqDto,
     userCtx: UserContext,
-  ): Promise<any> {}
+  ): Promise<PotEventListResDto> {}
 
   /*
     팟에 참여합니다.

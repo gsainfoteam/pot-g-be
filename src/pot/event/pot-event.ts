@@ -1,32 +1,41 @@
 import type { Pot } from "@src/pot/model/pot";
 import { potEvent, PotEventStringType } from "drizzle/schema/pot-event";
-import { PotCreateEventV1, PotCreateEventV1Dto } from "./pot-create-event";
-import { PotUserInEventV1, PotUserInEventV1Dto } from "./pot-user-in-event";
+import {
+  PotCreateEventV1,
+  PotCreateEventV1Schema,
+} from "./v1/pot-create-event";
+import {
+  PotUserInEventV1,
+  PotUserInEventV1Schema,
+} from "./v1/pot-user-in-event";
 import {
   PotDepartureConfirmEventV1,
-  PotDepartureConfirmEventV1Dto,
-} from "./pot-departure-confirm-event";
+  PotDepartureConfirmEventV1Schema,
+} from "./v1/pot-departure-confirm-event";
 import {
   PotUserKickEventV1,
-  PotUserKickEventV1Dto,
-} from "./pot-user-kick-event";
-import { PotArchiveEventV1, PotArchiveEventV1Dto } from "./pot-archive-event";
+  PotUserKickEventV1Schema,
+} from "./v1/pot-user-kick-event";
+import {
+  PotArchiveEventV1,
+  PotArchiveEventV1Schema,
+} from "./v1/pot-archive-event";
 import {
   PotUserLeaveEventV1,
-  PotUserLeaveEventV1Dto,
-} from "./pot-user-leave-event";
+  PotUserLeaveEventV1Schema,
+} from "./v1/pot-user-leave-event";
 import {
   PotAccountingConfirmEventV1,
-  PotAccountingConfirmEventV1Dto,
-} from "./pot-accounting-confirm-event";
+  PotAccountingConfirmEventV1Schema,
+} from "./v1/pot-accounting-confirm-event";
 import {
   PotAccountingRequestEventV1,
-  PotAccountingRequestEventV1Dto,
-} from "./pot-accounting-request-event";
+  PotAccountingRequestEventV1Schema,
+} from "./v1/pot-accounting-request-event";
 import {
   PotChatEventV1,
-  PotChatEventV1Dto,
-} from "@src/pot/event/pot-chat-event";
+  PotChatEventV1Schema,
+} from "@src/pot/event/v1/pot-chat-event";
 
 export interface PotEvent<T> {
   //Metadata of event
@@ -36,7 +45,8 @@ export interface PotEvent<T> {
 
   //RealData of Event
   data: T;
-  dispatcher: (room: Pot, data: T, validation?: boolean) => Pot;
+  dispatcher(pot: Pot, data: T): Pot;
+  validate(pot: Pot, data: T): void;
 }
 
 export type PotEventEntityInsert = typeof potEvent.$inferInsert;
@@ -55,7 +65,7 @@ export class PotEventFactory {
   static toModel(entity: PotEventEntitySelect): PotEvent<any> {
     switch (entity.type) {
       case "create_v1": {
-        const data = entity.data as PotCreateEventV1Dto;
+        const data = entity.data as PotCreateEventV1Schema;
         return PotCreateEventV1.generatePotCreateEvent(
           entity.potFk,
           entity.timestamp,
@@ -63,7 +73,7 @@ export class PotEventFactory {
         );
       }
       case "chat_v1": {
-        const data = entity.data as PotChatEventV1Dto;
+        const data = entity.data as PotChatEventV1Schema;
         return PotChatEventV1.generatePotChatEvent(
           entity.potFk,
           entity.timestamp,
@@ -71,7 +81,7 @@ export class PotEventFactory {
         );
       }
       case "user_in_v1": {
-        const data = entity.data as PotUserInEventV1Dto;
+        const data = entity.data as PotUserInEventV1Schema;
         return PotUserInEventV1.generatePotUserInEvent(
           entity.potFk,
           entity.timestamp,
@@ -79,7 +89,7 @@ export class PotEventFactory {
         );
       }
       case "departure_confirm_v1": {
-        const data = entity.data as PotDepartureConfirmEventV1Dto;
+        const data = entity.data as PotDepartureConfirmEventV1Schema;
         return PotDepartureConfirmEventV1.generatePotDepartureConfirmEvent(
           entity.potFk,
           entity.timestamp,
@@ -87,7 +97,7 @@ export class PotEventFactory {
         );
       }
       case "user_kick_v1": {
-        const data = entity.data as PotUserKickEventV1Dto;
+        const data = entity.data as PotUserKickEventV1Schema;
         return PotUserKickEventV1.generatePotUserKickEvent(
           entity.potFk,
           entity.timestamp,
@@ -95,7 +105,7 @@ export class PotEventFactory {
         );
       }
       case "archive_v1": {
-        const data = entity.data as PotArchiveEventV1Dto;
+        const data = entity.data as PotArchiveEventV1Schema;
         return PotArchiveEventV1.generatePotArchiveEvent(
           entity.potFk,
           entity.timestamp,
@@ -103,7 +113,7 @@ export class PotEventFactory {
         );
       }
       case "user_leave_v1": {
-        const data = entity.data as PotUserLeaveEventV1Dto;
+        const data = entity.data as PotUserLeaveEventV1Schema;
         return PotUserLeaveEventV1.generatePotUserLeaveEvent(
           entity.potFk,
           entity.timestamp,
@@ -111,7 +121,7 @@ export class PotEventFactory {
         );
       }
       case "accounting_confirm_v1": {
-        const data = entity.data as PotAccountingConfirmEventV1Dto;
+        const data = entity.data as PotAccountingConfirmEventV1Schema;
         return PotAccountingConfirmEventV1.generatePotAccountingConfirmEvent(
           entity.potFk,
           entity.timestamp,
@@ -119,7 +129,7 @@ export class PotEventFactory {
         );
       }
       case "accounting_request_v1": {
-        const data = entity.data as PotAccountingRequestEventV1Dto;
+        const data = entity.data as PotAccountingRequestEventV1Schema;
         return PotAccountingRequestEventV1.generatePotAccountingRequestEvent(
           entity.potFk,
           entity.timestamp,

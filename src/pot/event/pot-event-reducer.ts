@@ -3,7 +3,10 @@ import type { PotEvent } from "./pot-event";
 
 export class PotEventReducer {
   static reduce<T>(pot: Pot, event: PotEvent<T>, validation?: boolean): Pot {
-    return event.dispatcher(pot, event.data, validation);
+    if (validation) {
+      event.validate(pot, event.data);
+    }
+    return event.dispatcher(pot, event.data);
   }
 
   static reduceAll(
@@ -11,9 +14,16 @@ export class PotEventReducer {
     events: PotEvent<any>[],
     validation?: boolean,
   ): Pot {
-    return events.reduce((currentRoom, event) => {
-      return event.dispatcher(currentRoom, event.data, validation);
-    }, pot);
+    if (validation) {
+      return events.reduce((currentRoom, event) => {
+        event.validate(currentRoom, event.data);
+        return event.dispatcher(currentRoom, event.data);
+      }, pot);
+    } else {
+      return events.reduce((currentRoom, event) => {
+        return event.dispatcher(currentRoom, event.data);
+      }, pot);
+    }
   }
 
   static reduceFromInitial(events: PotEvent<any>[], validation?: boolean): Pot {
