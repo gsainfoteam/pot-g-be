@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { PotRoomEntity } from "@src/database/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { potRoom } from "../../../drizzle/schema/pot-room";
 import { and, asc, eq, gte, lte, not, sql } from "drizzle-orm";

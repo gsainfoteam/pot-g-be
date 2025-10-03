@@ -1,8 +1,8 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { RouteRepository } from "@src/database/repository/route.repository";
 import { StopsRepository } from "@src/database/repository/stops.repository";
-import { StopsEntity } from "@src/database/model/stops.entity";
-import { RouteEntity } from "@src/database/model/route.entity";
+import { StopsEntity } from "@src/database/entity/stops.entity";
+import { RouteEntity } from "@src/database/entity/route.entity";
 import { RouteDto } from "@src/discovery/dto/route.dto";
 import { StopDto } from "@src/discovery/dto/stop.dto";
 

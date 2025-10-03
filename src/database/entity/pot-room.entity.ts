@@ -1,4 +1,4 @@
-import { RouteEntity } from "@src/database/model/route.entity";
+import { RouteEntity } from "@src/database/entity/route.entity";
 import { Pot } from "@src/pot/model/pot";
 
 export class PotRoomEntity {

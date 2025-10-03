@@ -16,8 +16,8 @@ import {
   RefreshRequestDto,
   RefreshResponseDto,
 } from "@src/user/dto/refresh.dto";
-import { DeviceEntity } from "../database/model/device.entity";
-import { UserEntity } from "@src/database/model/user.entity";
+import { DeviceEntity } from "@src/database/entity/device.entity";
+import { UserEntity } from "@src/database/entity/user.entity";
 
 @Injectable()
 export class UserService {

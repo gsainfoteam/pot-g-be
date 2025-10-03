@@ -1,4 +1,4 @@
-import { DeviceEntity } from "@src/database/model/device.entity";
+import { DeviceEntity } from "@src/database/entity/device.entity";
 
 export class UserAlarmSettingEntity {
   pk?: string;

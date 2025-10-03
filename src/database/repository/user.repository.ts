@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { users } from "../../../drizzle/schema/users";
 import { eq, inArray } from "drizzle-orm";
-import { UserEntity } from "@src/database/model/user.entity";
+import { UserEntity } from "@src/database/entity/user.entity";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { bank } from "../../../drizzle/schema/bank";
 import { userBank } from "../../../drizzle/schema/user-bank";

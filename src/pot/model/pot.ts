@@ -1,4 +1,4 @@
-import { PotRoomEntity } from "@src/database/model/pot-room.entity";
+import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 
 export type ChatMessage = {
   userPk: string; // 채팅을 보낸 유저의 ID
