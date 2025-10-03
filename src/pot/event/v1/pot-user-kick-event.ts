@@ -9,6 +9,7 @@ import {
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
+import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 
 export type PotUserKickEventV1Schema = {
   potRoomPk: string; // 방의 ID
@@ -16,7 +17,9 @@ export type PotUserKickEventV1Schema = {
   kickedUserPk: string; // 강퇴할 유저의 ID
 };
 
-export class PotUserKickEventV1 implements PotEvent<PotUserKickEventV1Schema> {
+export class PotUserKickEventV1
+  implements PotEvent<PotUserKickEventV1Schema, PotEventUserKickV1Dto>
+{
   private constructor(
     potPk: string,
     timestamp: Date,
@@ -62,6 +65,13 @@ export class PotUserKickEventV1 implements PotEvent<PotUserKickEventV1Schema> {
 
     // 강퇴할 유저가 정산 대기중이면 강퇴 불가
     AssertIfUserAccountingRequestedAndNotConfirmed(pot, data.kickedUserPk);
+  }
+
+  toDto(): PotEventUserKickV1Dto {
+    return {
+      host_user_pk: this.data.userPk,
+      kicked_user_pk: this.data.kickedUserPk,
+    };
   }
 
   readonly potRoomPk: string;

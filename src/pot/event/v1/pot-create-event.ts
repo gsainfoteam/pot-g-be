@@ -6,6 +6,7 @@ import {
   AssertIfValidDepartureAvailableTime,
 } from "@src/pot/validator/common-pot-validator";
 import { parseDate } from "@src/global/utils/convertDate";
+import { PotEventCreateV1Dto } from "@src/pot/event/v1/dto/pot-event.create.v1.dto";
 
 export type PotCreateEventV1Schema = {
   potRoomPk: string;
@@ -19,7 +20,9 @@ export type PotCreateEventV1Schema = {
   updateAt?: Date;
 };
 
-export class PotCreateEventV1 implements PotEvent<PotCreateEventV1Schema> {
+export class PotCreateEventV1
+  implements PotEvent<PotCreateEventV1Schema, PotEventCreateV1Dto>
+{
   private constructor(
     potRoomPk: string,
     timestamp: Date,
@@ -78,6 +81,10 @@ export class PotCreateEventV1 implements PotEvent<PotCreateEventV1Schema> {
     );
 
     AssertIfValidCapacity(data.maxCapacity);
+  }
+
+  toDto(): PotEventCreateV1Dto {
+    return {};
   }
 
   readonly potRoomPk: string;

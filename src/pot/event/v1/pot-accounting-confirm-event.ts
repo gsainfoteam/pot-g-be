@@ -8,6 +8,7 @@ import {
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
+import { PotEventAccountingConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.accounting-confirm.v1.dto";
 
 export type PotAccountingConfirmEventV1Schema = {
   userPk: string; // 송금 받을 유저의 ID
@@ -17,7 +18,8 @@ export type PotAccountingConfirmEventV1Schema = {
 
 // 송금 확인 이벤트
 export class PotAccountingConfirmEventV1
-  implements PotEvent<PotAccountingConfirmEventV1Schema>
+  implements
+    PotEvent<PotAccountingConfirmEventV1Schema, PotEventAccountingConfirmV1Dto>
 {
   private constructor(
     potPk: string,
@@ -63,6 +65,12 @@ export class PotAccountingConfirmEventV1
 
     // 해당 유저가 송금 받을 유저인지 확인
     AssertIfAccountingRequestedUser(pot, data.userPk);
+  }
+
+  toDto(): PotEventAccountingConfirmV1Dto {
+    return {
+      confirm_user_pk: this.data.sentUserId,
+    };
   }
 
   readonly potRoomPk: string;

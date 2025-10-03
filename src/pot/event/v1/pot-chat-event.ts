@@ -6,6 +6,7 @@ import {
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
 import { parseDate } from "@src/global/utils/convertDate";
+import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 
 export type PotChatEventV1Schema = {
   potRoomPk: string;
@@ -14,7 +15,9 @@ export type PotChatEventV1Schema = {
   timestamp: Date; // 메시지 전송 시간
 };
 
-export class PotChatEventV1 implements PotEvent<PotChatEventV1Schema> {
+export class PotChatEventV1
+  implements PotEvent<PotChatEventV1Schema, PotEventChatV1Dto>
+{
   private constructor(
     potPk: string,
     timestamp: Date,
@@ -54,6 +57,13 @@ export class PotChatEventV1 implements PotEvent<PotChatEventV1Schema> {
 
     // 채팅을 보낸 유저가 방에 존재하는지 확인
     AssertIfUserInPot(pot, data.userPk);
+  }
+
+  toDto(): PotEventChatV1Dto {
+    return {
+      from: this.data.userPk,
+      content: this.data.message,
+    };
   }
 
   readonly potRoomPk: string;

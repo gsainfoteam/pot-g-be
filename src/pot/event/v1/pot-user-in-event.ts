@@ -8,13 +8,16 @@ import {
   AssertIfPotFull,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
+import { PotEventUserInV1Dto } from "@src/pot/event/v1/dto/pot-event.user-in.v1.dto";
 
 export type PotUserInEventV1Schema = {
   potRoomPk: string;
   userPk: string;
 };
 
-export class PotUserInEventV1 implements PotEvent<PotUserInEventV1Schema> {
+export class PotUserInEventV1
+  implements PotEvent<PotUserInEventV1Schema, PotEventUserInV1Dto>
+{
   private constructor(
     potPk: string,
     timestamp: Date,
@@ -54,6 +57,12 @@ export class PotUserInEventV1 implements PotEvent<PotUserInEventV1Schema> {
 
     // 출발 시간이 정해지면 참여 불가
     AssertIfDepartureTimeNotSet(pot);
+  }
+
+  toDto(): PotEventUserInV1Dto {
+    return {
+      user_pk: this.data.userPk,
+    };
   }
 
   readonly potRoomPk: string;

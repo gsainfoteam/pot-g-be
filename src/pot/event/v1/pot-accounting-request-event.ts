@@ -8,6 +8,7 @@ import {
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
+import { PotEventAccountingRequestV1Dto } from "@src/pot/event/v1/dto/pot-event.accounting-request.v1.dto";
 
 export type PotAccountingRequestEventV1Schema = {
   userPk: string; // 송금 받을 유저의 ID
@@ -17,7 +18,8 @@ export type PotAccountingRequestEventV1Schema = {
 };
 
 export class PotAccountingRequestEventV1
-  implements PotEvent<PotAccountingRequestEventV1Schema>
+  implements
+    PotEvent<PotAccountingRequestEventV1Schema, PotEventAccountingRequestV1Dto>
 {
   private constructor(
     potPk: string,
@@ -64,6 +66,15 @@ export class PotAccountingRequestEventV1
       data.senderUserId,
       "All sender users must be in the pot",
     );
+  }
+
+  toDto(): PotEventAccountingRequestV1Dto {
+    return {
+      request_user_pk: this.data.userPk,
+      requested_users_pk: this.data.senderUserId,
+      total_cost: this.data.amount,
+      cost_per_user: this.data.amount, // TODo: 나중에 나눠서 계산하도록 변경
+    };
   }
 
   readonly potRoomPk: string;

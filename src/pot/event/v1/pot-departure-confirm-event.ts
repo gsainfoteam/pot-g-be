@@ -8,6 +8,7 @@ import {
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
 import { parseDate } from "@src/global/utils/convertDate";
+import { PotEventDepartureConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.departure-confirm.v1.dto";
 
 export type PotDepartureConfirmEventV1Schema = {
   potRoomPk: string;
@@ -16,7 +17,8 @@ export type PotDepartureConfirmEventV1Schema = {
 };
 
 export class PotDepartureConfirmEventV1
-  implements PotEvent<PotDepartureConfirmEventV1Schema>
+  implements
+    PotEvent<PotDepartureConfirmEventV1Schema, PotEventDepartureConfirmV1Dto>
 {
   private constructor(
     potPk: string,
@@ -57,6 +59,13 @@ export class PotDepartureConfirmEventV1
 
     // 출발 시간이 출발 가능 시작 시간과 출발 가능 종료 시간 사이여야 함
     AssertIfValidDepartureTime(pot, data.departureTime);
+  }
+
+  toDto(): PotEventDepartureConfirmV1Dto {
+    return {
+      user_pk: this.data.userPk,
+      departure_time: this.data.departureTime,
+    };
   }
 
   readonly potRoomPk: string;

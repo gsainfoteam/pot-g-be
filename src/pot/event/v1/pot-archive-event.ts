@@ -2,12 +2,15 @@ import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
 import { AssertIfValidPot } from "@src/pot/validator/common-pot-validator";
+import { PotEventArchiveV1Dto } from "@src/pot/event/v1/dto/pot-event.archive.v1.dto";
 
 export type PotArchiveEventV1Schema = {
   potRoomPk: string;
 };
 
-export class PotArchiveEventV1 implements PotEvent<PotArchiveEventV1Schema> {
+export class PotArchiveEventV1
+  implements PotEvent<PotArchiveEventV1Schema, PotEventArchiveV1Dto>
+{
   private constructor(
     potPk: string,
     timestamp: Date,
@@ -37,6 +40,10 @@ export class PotArchiveEventV1 implements PotEvent<PotArchiveEventV1Schema> {
   validate(pot: Pot, data: PotArchiveEventV1Schema) {
     // 방 존재 여부 확인 및 이미 삭제된 방인 경우 예외 발생
     AssertIfValidPot(pot, data.potRoomPk);
+  }
+
+  toDto(): PotEventArchiveV1Dto {
+    return {};
   }
 
   readonly potRoomPk: string;
