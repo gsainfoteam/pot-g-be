@@ -7,7 +7,7 @@ import { AuthModule } from "@src/auth/auth.module";
 
 @Module({
   imports: [InfoteamIdpModule, DatabaseModule, AuthModule],
-  providers: [UserController, UserService],
+  providers: [UserService],
   exports: [],
   controllers: [UserController],
 })

@@ -16,8 +16,8 @@ export type PotCreateEventV1Schema = {
   maxCapacity: number;
   departureAvailableStartTime: Date;
   departureAvailableEndTime: Date;
-  createAt?: Date;
-  updateAt?: Date;
+  createAt: Date;
+  updateAt: Date;
 };
 
 export class PotCreateEventV1

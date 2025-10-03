@@ -239,7 +239,7 @@ export class PotService {
     }
 
     return {
-      events: potEvents.map((pe) => {
+      events: potEvents.reverse().map((pe) => {
         return {
           pot_pk: pe.potRoomPk,
           timestamp: getUnixTime(pe.timestamp),

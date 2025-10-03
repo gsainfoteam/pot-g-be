@@ -6,7 +6,7 @@ import { DiscoveryController } from "@src/discovery/discovery.controller";
 
 @Module({
   imports: [DatabaseModule],
-  providers: [PotGDiscoveryService, RouteService, DiscoveryController],
+  providers: [PotGDiscoveryService, RouteService],
   exports: [RouteService],
   controllers: [DiscoveryController],
 })
