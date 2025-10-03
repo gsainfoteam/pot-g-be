@@ -1,11 +1,12 @@
 import { DatabaseService } from "@src/database/database.service";
-import { Pot } from "../../pot/model/pot";
-import { PotEvent, PotEventFactory } from "../../pot/event/pot-event";
+import { Pot } from "@src/pot/model/pot";
+import { PotEvent, PotEventFactory } from "@src/pot/event/pot-event";
 import { potEvent } from "../../../drizzle/schema/pot-event";
-import { and, asc, eq, not, SQL, sql } from "drizzle-orm";
-import { PotEventReducer } from "../../pot/event/pot-event-reducer";
+import { and, asc, eq, lte, not, SQL, sql } from "drizzle-orm";
+import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Injectable } from "@nestjs/common";
 import { TxType } from "@src/global/types/tx.types";
+import { desc } from "drizzle-orm/sql/expressions/select";
 
 type DataCondition = { eventType: string; data: Record<string, any> };
 
@@ -13,7 +14,10 @@ type DataCondition = { eventType: string; data: Record<string, any> };
 export class PotEventRepository {
   constructor(private readonly db: DatabaseService) {}
 
-  async saveEvent<T>(event: PotEvent<T>, tx: TxType): Promise<PotEvent<T>> {
+  async saveEvent<S, D>(
+    event: PotEvent<S, D>,
+    tx: TxType,
+  ): Promise<PotEvent<S, D>> {
     const result = await tx
       .insert(potEvent)
       .values(PotEventFactory.toEntity(event))
@@ -25,7 +29,7 @@ export class PotEventRepository {
   /*
   SELECT * FROM pot_event
     WHERE pot_fk = ?1
-    AND type != 'chat_v1'
+      AND type != 'chat_v1'
     ORDER BY timestamp ASC;
    */
   async findByIdWithoutChat(potPk: string): Promise<Pot> {
@@ -48,10 +52,32 @@ export class PotEventRepository {
     return PotEventReducer.reduceFromInitial(result);
   }
 
+  /*
+  SELECT * FROM pot_event
+    WHERE pot_fk = ?1
+      AND timestamp <= ?2
+    ORDER BY timestamp DESC
+    LIMIT ?3;
+   */
+  async getEventsByPotPkWithLimit(
+    potPk: string,
+    before: Date,
+    limit: number,
+  ): Promise<PotEvent<any, any>[]> {
+    const result = await this.db.db
+      .select()
+      .from(potEvent)
+      .where(and(eq(potEvent.potFk, potPk), lte(potEvent.timestamp, before)))
+      .orderBy(desc(potEvent.timestamp))
+      .limit(limit);
+
+    return result.map((event) => PotEventFactory.toModel(event));
+  }
+
   private async findEventsByCondition(params: {
     potPks?: string[];
     dataConditions: DataCondition[];
-  }): Promise<PotEvent<any>[]> {
+  }): Promise<PotEvent<any, any>[]> {
     const conditions: SQL[] = [];
 
     if (params.potPks && params.potPks.length > 0) {

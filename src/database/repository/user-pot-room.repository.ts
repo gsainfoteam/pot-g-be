@@ -3,7 +3,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { UserPotRoomEntity } from "@src/database/entity/user-pot-room.entity";
 import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 
 @Injectable()
 export class UserPotRoomRepository {
@@ -48,6 +48,31 @@ export class UserPotRoomRepository {
           eq(userPotRoom.userFk, userFk),
         ),
       );
+  }
+
+  /*
+  SELECT count(*) as count
+  FROM user_pot_room
+  WHERE pot_room_fk = ?1
+    AND user_fk = ?2;
+   */
+  async existsByPotRoomFkAndUserFk(
+    potRoomFk: string,
+    userFk: string,
+  ): Promise<boolean> {
+    const result = await this.dbService.db
+      .select({
+        count: count(),
+      })
+      .from(userPotRoom)
+      .where(
+        and(
+          eq(userPotRoom.potRoomFk, potRoomFk),
+          eq(userPotRoom.userFk, userFk),
+        ),
+      );
+
+    return result[0].count > 0;
   }
 
   private resultToUserPotRoomEntity(result: any): UserPotRoomEntity {

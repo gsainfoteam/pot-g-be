@@ -2,7 +2,11 @@ import { Pot } from "../model/pot";
 import type { PotEvent } from "./pot-event";
 
 export class PotEventReducer {
-  static reduce<T>(pot: Pot, event: PotEvent<T>, validation?: boolean): Pot {
+  static reduce<S, D>(
+    pot: Pot,
+    event: PotEvent<S, D>,
+    validation?: boolean,
+  ): Pot {
     if (validation) {
       event.validate(pot, event.data);
     }
@@ -11,7 +15,7 @@ export class PotEventReducer {
 
   static reduceAll(
     pot: Pot,
-    events: PotEvent<any>[],
+    events: PotEvent<any, any>[],
     validation?: boolean,
   ): Pot {
     if (validation) {
@@ -26,7 +30,10 @@ export class PotEventReducer {
     }
   }
 
-  static reduceFromInitial(events: PotEvent<any>[], validation?: boolean): Pot {
+  static reduceFromInitial(
+    events: PotEvent<any, any>[],
+    validation?: boolean,
+  ): Pot {
     return PotEventReducer.reduceAll(new Pot(), events, validation);
   }
 }

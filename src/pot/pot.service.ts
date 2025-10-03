@@ -42,6 +42,7 @@ import {
 import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
 import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
+import { fromUnixTime, getUnixTime } from "date-fns";
 
 @Injectable()
 export class PotService {
@@ -215,7 +216,39 @@ export class PotService {
     potPk: string,
     req: PotEventListReqDto,
     userCtx: UserContext,
-  ): Promise<PotEventListResDto> {}
+  ): Promise<PotEventListResDto> {
+    // 유저가 팟에 참여하고 있는지 확인
+    if (
+      !(await this.userPotRoomRepository.existsByPotRoomFkAndUserFk(
+        potPk,
+        userCtx.userId,
+      ))
+    ) {
+      throw new ForbiddenException("User not in pot");
+    }
+
+    const potEvents = await this.potEventRepository.getEventsByPotPkWithLimit(
+      potPk,
+      fromUnixTime(req.starts_from),
+      req.limit,
+    );
+
+    // 팟이 존재하는지 확인
+    if (potEvents.length === 0) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    return {
+      events: potEvents.map((pe) => {
+        return {
+          pot_pk: pe.potRoomPk,
+          timestamp: getUnixTime(pe.timestamp),
+          event_type: pe.eventType,
+          data: pe.toDto(),
+        };
+      }),
+    };
+  }
 
   /*
     팟에 참여합니다.
