@@ -64,4 +64,14 @@ export class BaseResultDto {
     // 출발 가능 시작 시간과 출발 가능 종료 시간 사이가 아닌 시간으로 시간을 확정하는 경우
     result: "NotInAvailableTimeRange",
   };
+
+  static AccountInfoNotSet: BaseResultDto = {
+    // 사용자 정산 계좌가 설정되지 않은 경우
+    result: "AccountInfoNotSet",
+  };
+
+  static CostPerUserMismatch: BaseResultDto = {
+    // 1인당 부담 금액과 총 정산 금액에 큰 차이가 발생하는 경우
+    result: "CostPerUserMismatch",
+  };
 }
