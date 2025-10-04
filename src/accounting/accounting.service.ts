@@ -272,6 +272,8 @@ export class AccountingService implements OnModuleInit {
       },
       pot.joinedUserPks,
     );
+
+    return BaseResultDto.OK;
   }
 
   private async updateUserBank(
