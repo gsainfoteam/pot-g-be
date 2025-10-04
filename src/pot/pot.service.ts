@@ -3,7 +3,6 @@ import {
   ForbiddenException,
   Injectable,
 } from "@nestjs/common";
-import { from } from "rxjs";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
@@ -27,13 +26,7 @@ import { PotDepartureConfirmEventV1 } from "@src/pot/event/v1/pot-departure-conf
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { SendChatReqDto } from "@src/pot/dto/send-chat.pot.dto";
 import { PotChatEventV1 } from "@src/pot/event/v1/pot-chat-event";
-import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
-import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
-import { PotEventDepartureConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.departure-confirm.v1.dto";
-import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
-import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
-import { PotEventUserInV1Dto } from "@src/pot/event/v1/dto/pot-event.user-in.v1.dto";
 import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
 import {
   PotEventListReqDto,
@@ -293,17 +286,15 @@ export class PotService {
       await this.userPotRoomRepository.insert(userPotRoomEntity, tx);
     });
 
-    const userInV1DtoPot: PotEventDto<PotEventUserInV1Dto> = {
-      pot_pk: pot.pk,
-      timestamp: Date.now(),
-      event_type: "user_in_v1",
-      data: {
-        user_pk: userCtx.userId,
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potUserInEvent.timestamp),
+        event_type: potUserInEvent.eventType,
+        data: potUserInEvent.toDto(),
       },
-    };
-
-    // 모든 참여자에게 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(userInV1DtoPot, pot.joinedUserPks);
+      pot.joinedUserPks,
+    );
 
     return BaseResultDto.OK;
   }
@@ -349,20 +340,15 @@ export class PotService {
       );
     });
 
-    const userLeaveV1DtoPot: PotEventDto<PotEventUserLeaveV1Dto> = {
-      pot_pk: pot.pk,
-      timestamp: Date.now(),
-      event_type: "user_leave_v1",
-      data: {
-        user_pk: userCtx.userId,
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potUserLeaveEvent.timestamp),
+        event_type: potUserLeaveEvent.eventType,
+        data: potUserLeaveEvent.toDto(),
       },
-    };
-
-    // 모든 참여자에게 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(userLeaveV1DtoPot, [
-      ...pot.joinedUserPks,
-      userCtx.userId,
-    ]);
+      [...pot.joinedUserPks, userCtx.userId],
+    );
 
     // TODO 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
 
@@ -416,21 +402,15 @@ export class PotService {
       );
     });
 
-    const userKickV1DtoPot: PotEventDto<PotEventUserKickV1Dto> = {
-      pot_pk: pot.pk,
-      timestamp: Date.now(),
-      event_type: "user_kick_v1",
-      data: {
-        host_user_pk: userCtx.userId,
-        kicked_user_pk: targetUserId,
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potUserKickEvent.timestamp),
+        event_type: potUserKickEvent.eventType,
+        data: potUserKickEvent.toDto(),
       },
-    };
-
-    // 모든 참여자에게 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(userKickV1DtoPot, [
-      ...pot.joinedUserPks,
-      targetUserId,
-    ]);
+      [...pot.joinedUserPks, targetUserId],
+    );
 
     return BaseResultDto.OK;
   }
@@ -481,19 +461,15 @@ export class PotService {
       await this.potEventRepository.saveEvent(potDepartureConfirmEvent, tx);
     });
 
-    const departureConfirmV1DtoPot: PotEventDto<PotEventDepartureConfirmV1Dto> =
+    this.broadcastingService.asyncBroadcastPotEvent(
       {
         pot_pk: pot.pk,
-        timestamp: Date.now(),
-        event_type: "departure_confirm_v1",
-        data: {
-          user_pk: userCtx.userId,
-          departure_time: departureTime,
-        },
-      };
-
-    // 모든 참여자에게 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(departureConfirmV1DtoPot, pot.joinedUserPks);
+        timestamp: getUnixTime(potDepartureConfirmEvent.timestamp),
+        event_type: potDepartureConfirmEvent.eventType,
+        data: potDepartureConfirmEvent.toDto(),
+      },
+      pot.joinedUserPks,
+    );
 
     return BaseResultDto.OK;
   }
@@ -530,23 +506,20 @@ export class PotService {
       await this.potEventRepository.saveEvent(potChatEvent, tx);
     });
 
-    const chatPotEventDto: PotEventDto<PotEventChatV1Dto> = {
-      pot_pk: pot.pk,
-      timestamp: Date.now(),
-      event_type: "chat_v1",
-      data: {
-        from: userPk,
-        content: req.message,
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potChatEvent.timestamp),
+        event_type: potChatEvent.eventType,
+        data: potChatEvent.toDto(),
       },
-    };
-
-    // 모든 참여자에게 채팅 메시지 전송 (비동기적으로 처리)
-    this.broadcastPotEvent(chatPotEventDto, pot.joinedUserPks);
+      pot.joinedUserPks,
+    );
 
     return BaseResultDto.OK;
   }
 
-  private async getPot(potRoomPk: string): Promise<Pot | null> {
+  async getPot(potRoomPk: string): Promise<Pot | null> {
     // TODO: 팟 캐싱 로직 고려 필요
     // 여러 서버가 사용될 경우 pot 의 일관성을 보장할 수 없음
     // 우선 로직만 따로 분리해 둡니다.
@@ -556,17 +529,6 @@ export class PotService {
       return null;
     }
     return pot;
-  }
-
-  private broadcastPotEvent(
-    potEventDto: PotEventDto<any>,
-    userPks: string[] = [],
-  ) {
-    from(
-      this.broadcastingService.broadcastPotEvent(potEventDto, userPks),
-    ).subscribe({
-      error: (err) => console.error("Broadcast failed:", err),
-    });
   }
 
   private createPotCreateEvent(

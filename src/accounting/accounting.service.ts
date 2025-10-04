@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, OnModuleInit } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  OnModuleInit,
+} from "@nestjs/common";
 import { BankDto } from "@src/accounting/dto/bank.dto";
 import { ChangeAccountingRequestDto } from "@src/accounting/dto/change-accounting.dto";
 import { AccountingDto } from "@src/user/dto/accounting.dto";
@@ -9,6 +14,17 @@ import { UserBankRepository } from "@src/database/repository/user-bank.repositor
 import { UserBankEntity } from "@src/database/entity/user-bank.entity";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
+import { BaseResultDto } from "@src/global/dto/base-result.dto";
+import { PotService } from "@src/pot/pot.service";
+import { PotAccountingRequestEventV1 } from "@src/pot/event/v1/pot-accounting-request-event";
+import { RequestAccountingRequestDto } from "@src/accounting/dto/request-accounting.dto";
+import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
+import { PotEventError } from "@src/global/exceptions/pot-event.error";
+import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
+import { PotEventRepository } from "@src/database/repository/pot-event.repository";
+import { PotAccountingConfirmEventV1 } from "@src/pot/event/v1/pot-accounting-confirm-event";
+import { Pot } from "@src/pot/model/pot";
+import { getUnixTime } from "date-fns";
 
 @Injectable()
 export class AccountingService implements OnModuleInit {
@@ -17,8 +33,11 @@ export class AccountingService implements OnModuleInit {
 
   constructor(
     private readonly dbService: DatabaseService,
+    private readonly potService: PotService,
+    private readonly broadcastingService: BroadcastingService,
     private readonly bankRepository: BankRepository,
     private readonly userBankRepository: UserBankRepository,
+    private readonly potEventRepository: PotEventRepository,
   ) {}
 
   async onModuleInit() {
@@ -32,13 +51,11 @@ export class AccountingService implements OnModuleInit {
     // Check if req.bank_pk is valid
     const requestedBank = this.cachedBanks.find((b) => b.pk === req.bank_pk);
     if (!requestedBank) {
-      // TODO
       throw new BadRequestException("Invalid bank_pk");
     }
 
     // Check if req.account is valid
     if (!this.ACCOUNT_REGEX.test(req.account)) {
-      // TODO
       throw new BadRequestException("Invalid account format");
     }
 
@@ -53,12 +70,13 @@ export class AccountingService implements OnModuleInit {
         await this.updateUserBank(userBank, requestedBank, req.account, tx);
       } else {
         // Insert new user bank
-        await this.insertNewUserBank(
-          userCtx.userId,
-          requestedBank,
-          req.account,
-          tx,
-        );
+        const newUserBank: UserBankEntity = {
+          userFk: userCtx.userId,
+          bankFk: requestedBank.pk,
+          account: req.account,
+        };
+
+        await this.userBankRepository.insert(newUserBank, tx);
       }
     });
 
@@ -79,18 +97,183 @@ export class AccountingService implements OnModuleInit {
     });
   }
 
-  private async insertNewUserBank(
-    userPk: string,
-    bank: BankEntity,
-    account: string,
-    tx: TxType,
-  ): Promise<void> {
-    const newUserBank: UserBankEntity = {
-      userFk: userPk,
-      bankFk: bank.pk,
-      account: account,
-    };
-    await this.userBankRepository.insert(newUserBank, tx);
+  async requestAccounting(
+    potPk: string,
+    req: RequestAccountingRequestDto,
+    userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    // 아래 두 validation 은 DTO validation 으로 취급하고 PotAccountingRequestEventV1 클래스에서 validate 하지 않습니다.
+    // 1인당 부담 금액과 총 정산 금액에 큰 차이가 발생하는 경우 (5000원 이상) 요청 거부
+    if (
+      Math.abs(
+        req.total_cost - req.cost_per_user * (req.requested_user.length + 1),
+      ) >= 5000
+    ) {
+      return BaseResultDto.CostPerUserMismatch;
+    }
+
+    if (req.total_cost < 0 || req.cost_per_user < 0) {
+      return BaseResultDto.CostCannotBeNegative;
+    }
+
+    // 사용자 정산 계좌 설정 여부 확인
+    let userBank: UserBankEntity = await this.userBankRepository.findByUserPk(
+      userCtx.userId,
+    );
+    if (!userBank && req.account_info.use_exist_info) {
+      return BaseResultDto.AccountInfoNotSet;
+    }
+
+    // 계좌 정보가 없거나, 기존 정보를 사용하지 않는 경우, 요청으로 들어온 계좌 정보 유효성 검사
+    if (!userBank || !req.account_info.use_exist_info) {
+      // Check if req.bank_pk is valid
+      const requestedBank: BankEntity = this.cachedBanks.find(
+        (b) => b.pk === req.account_info.bank_pk,
+      );
+      if (!requestedBank) {
+        throw new BadRequestException("Invalid bank_pk");
+      }
+
+      // Check if req.account_info.account is valid
+      if (!this.ACCOUNT_REGEX.test(req.account_info.account)) {
+        throw new BadRequestException("Invalid account format");
+      }
+
+      userBank = {
+        userFk: userCtx.userId,
+        bankFk: requestedBank.pk,
+        bankEntity: requestedBank,
+        account: req.account_info.account,
+      };
+    } else {
+      const bankEntity: BankEntity = this.cachedBanks.find(
+        (b) => b.pk === userBank.bankFk,
+      );
+      if (!bankEntity) {
+        throw new InternalServerErrorException(
+          "User bank's bank entity not found",
+        );
+      }
+      userBank.bankEntity = bankEntity;
+    }
+
+    const pot = await this.potService.getPot(potPk);
+    if (!pot) {
+      return BaseResultDto.PotNotExist;
+    }
+
+    const now = new Date();
+
+    const potAccountingRequestEvent: PotAccountingRequestEventV1 =
+      PotAccountingRequestEventV1.generatePotAccountingRequestEvent(
+        potPk,
+        now,
+        {
+          userPk: userCtx.userId,
+          potRoomPk: potPk,
+          total_cost: req.total_cost,
+          cost_per_user: req.cost_per_user,
+          senderUserId: req.requested_user,
+          bankPk: userBank.bankFk,
+          bankName: userBank.bankEntity.bankShortName,
+          bankAccount: userBank.account,
+        },
+      );
+
+    try {
+      PotEventReducer.reduce(pot, potAccountingRequestEvent, true);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return error.baseResultDto;
+      }
+      throw error;
+    }
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      if (req.account_info.need_set) {
+        await this.userBankRepository.insert(userBank, tx);
+      }
+      await this.potEventRepository.saveEvent(potAccountingRequestEvent, tx);
+    });
+
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potAccountingRequestEvent.timestamp),
+        event_type: potAccountingRequestEvent.eventType,
+        data: potAccountingRequestEvent.toDto(),
+      },
+      pot.joinedUserPks,
+    );
+
+    // total cost 가 0원인 경우 바로 정산 확정 처리
+    if (req.total_cost === 0) {
+      for (const userPk of req.requested_user) {
+        await this.processConfirmAccounting(pot, userCtx.userId, userPk);
+      }
+    }
+
+    return BaseResultDto.OK;
+  }
+
+  async confirmAccounting(
+    potPk: string,
+    userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    const pot = await this.potService.getPot(potPk);
+    if (!pot) {
+      return BaseResultDto.PotNotExist;
+    }
+
+    return this.processConfirmAccounting(
+      pot,
+      pot.accountingRequestUserId,
+      userCtx.userId,
+    );
+  }
+
+  private async processConfirmAccounting(
+    pot: Pot,
+    receiverPk: string,
+    senderPk: string,
+  ): Promise<BaseResultDto> {
+    const now = new Date();
+
+    const potAccountingConfirmEvent: PotAccountingConfirmEventV1 =
+      PotAccountingConfirmEventV1.generatePotAccountingConfirmEvent(
+        pot.pk,
+        now,
+        {
+          userPk: receiverPk,
+          potRoomPk: pot.pk,
+          sentUserId: senderPk,
+        },
+      );
+
+    try {
+      PotEventReducer.reduce(pot, potAccountingConfirmEvent, true);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return error.baseResultDto;
+      }
+      throw error;
+    }
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.potEventRepository.saveEvent(potAccountingConfirmEvent, tx);
+    });
+
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potAccountingConfirmEvent.timestamp),
+        event_type: potAccountingConfirmEvent.eventType,
+        data: potAccountingConfirmEvent.toDto(),
+      },
+      pot.joinedUserPks,
+    );
+
+    return BaseResultDto.OK;
   }
 
   private async updateUserBank(

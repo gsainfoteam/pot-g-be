@@ -3,10 +3,20 @@ import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { randomUUID } from "node:crypto";
+import { from } from "rxjs";
 
 @Injectable()
 export class BroadcastingService {
   constructor(private websocketService: WebsocketService) {}
+
+  asyncBroadcastPotEvent(
+    potEventDto: PotEventDto<any>,
+    userPks: string[] = [],
+  ) {
+    from(this.broadcastPotEvent(potEventDto, userPks)).subscribe({
+      error: (err) => console.error("Broadcast failed:", err),
+    });
+  }
 
   async broadcastPotEvent(
     potEventDto: PotEventDto<any>,

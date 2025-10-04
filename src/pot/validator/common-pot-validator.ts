@@ -70,9 +70,9 @@ export const AssertIfDepartureTimeNotSet = (pot: Pot) => {
 };
 
 export const AssertIfDeparted = (pot: Pot, message?: string) => {
-  if (new Date(pot.departureTime.getTime() + 30 * 60 * 1000) > new Date()) {
+  if (new Date(pot.departureTime.getTime() + 10 * 60 * 1000) > new Date()) {
     throw new Error(
-      message || "Departure time + 30 minutes has not passed yet",
+      message || "Departure time + 10 minutes has not passed yet",
     );
   }
 };

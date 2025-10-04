@@ -13,8 +13,12 @@ import { PotEventAccountingRequestV1Dto } from "@src/pot/event/v1/dto/pot-event.
 export type PotAccountingRequestEventV1Schema = {
   userPk: string; // 송금 받을 유저의 ID
   potRoomPk: string; // 송금 받을 방의 ID
-  amount: number; // 송금 금액 (원)
+  total_cost: number; // 송금 금액 (원)
+  cost_per_user: number; // 1인당 송금 금액 (원)
   senderUserId: string[]; // 송금 보낼 유저의 ID 리스트
+  bankPk: string; // 은행 pk
+  bankName: string; // 은행 이름 (추후 사용자에게 보여주기 위함이므로 이름 저장)
+  bankAccount: string; // 은행 계좌
 };
 
 export class PotAccountingRequestEventV1
@@ -43,7 +47,7 @@ export class PotAccountingRequestEventV1
   dispatcher(pot: Pot, data: PotAccountingRequestEventV1Schema): Pot {
     // 송금 받을 유저와 송금 금액 설정
     pot.accountingRequestUserId = data.userPk;
-    pot.recipientAmount = data.amount;
+    pot.recipientAmount = data.total_cost;
     pot.accountingRequestedUserPks = data.senderUserId;
 
     return pot;
@@ -56,7 +60,7 @@ export class PotAccountingRequestEventV1
     // 송금 받을 유저가 방에 존재하는지 확인
     AssertIfUserInPot(pot, data.userPk);
 
-    // 출발 시간이 정해지지 않았거나 출발 시간+30분이 아직 지나지 않은 경우 예외 발생
+    // 출발 시간이 정해지지 않았거나 출발 시간+10분이 아직 지나지 않은 경우 예외 발생
     AssertIfDepartureTimeSet(pot);
     AssertIfDeparted(pot);
 
@@ -72,8 +76,11 @@ export class PotAccountingRequestEventV1
     return {
       request_user_pk: this.data.userPk,
       requested_users_pk: this.data.senderUserId,
-      total_cost: this.data.amount,
-      cost_per_user: this.data.amount, // TODo: 나중에 나눠서 계산하도록 변경
+      total_cost: this.data.total_cost,
+      cost_per_user: this.data.cost_per_user,
+      bank_pk: this.data.bankPk,
+      bank_name: this.data.bankName,
+      bank_account: this.data.bankAccount,
     };
   }
 
