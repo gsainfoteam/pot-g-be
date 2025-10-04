@@ -102,13 +102,18 @@ export class AccountingService implements OnModuleInit {
     req: RequestAccountingRequestDto,
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
+    // 아래 두 validation 은 DTO validation 으로 취급하고 PotAccountingRequestEventV1 클래스에서 validate 하지 않습니다.
     // 1인당 부담 금액과 총 정산 금액에 큰 차이가 발생하는 경우 (5000원 이상) 요청 거부
     if (
       Math.abs(
-        req.total_cost - req.cost_per_user * req.requested_user.length,
+        req.total_cost - req.cost_per_user * (req.requested_user.length + 1),
       ) >= 5000
     ) {
       return BaseResultDto.CostPerUserMismatch;
+    }
+
+    if (req.total_cost < 0 || req.cost_per_user < 0) {
+      return BaseResultDto.CostCannotBeNegative;
     }
 
     // 사용자 정산 계좌 설정 여부 확인
@@ -167,7 +172,7 @@ export class AccountingService implements OnModuleInit {
           userPk: userCtx.userId,
           potRoomPk: potPk,
           total_cost: req.total_cost,
-          cost_per_user: req.total_cost,
+          cost_per_user: req.cost_per_user,
           senderUserId: req.requested_user,
           bankPk: userBank.bankFk,
           bankName: userBank.bankEntity.bankShortName,

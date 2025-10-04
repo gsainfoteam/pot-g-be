@@ -74,4 +74,9 @@ export class BaseResultDto {
     // 1인당 부담 금액과 총 정산 금액에 큰 차이가 발생하는 경우
     result: "CostPerUserMismatch",
   };
+
+  static CostCannotBeNegative: BaseResultDto = {
+    // 금액이 음수인 경우
+    result: "CostCannotBeNegative",
+  };
 }
