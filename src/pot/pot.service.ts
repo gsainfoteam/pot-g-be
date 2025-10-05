@@ -35,7 +35,14 @@ import {
 import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
 import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
-import { fromUnixTime, getUnixTime } from "date-fns";
+import {
+  addHours,
+  fromUnixTime,
+  getUnixTime,
+  subDays,
+  subMinutes,
+} from "date-fns";
+import { PopoService } from "@src/popo/popo.service";
 
 @Injectable()
 export class PotService {
@@ -43,6 +50,7 @@ export class PotService {
     private readonly dbService: DatabaseService,
     private readonly routeService: RouteService,
     private readonly broadcastingService: BroadcastingService,
+    private readonly popoService: PopoService,
     private readonly potRoomRepository: PotRoomRepository,
     private readonly potEventRepository: PotEventRepository,
     private readonly userPotRoomRepository: UserPotRoomRepository,
@@ -83,6 +91,18 @@ export class PotService {
       await this.potEventRepository.saveEvent(potCreateEvent, tx);
       await this.userPotRoomRepository.insert(userPotRoomEntity, tx);
     });
+
+    const popoChatMsg = this.popoService.getPopoChatMsgByType(
+      "popo-departure-confirm-request-v1",
+    );
+
+    // starts_at 시간 24시간 전 메세지 발송 예약
+    this.popoService.asyncReservePopoChatMsg(
+      popoChatMsg,
+      subDays(req.starts_at, 1),
+      null,
+      pot,
+    );
 
     return {
       id: potRoomEntity.pk,
@@ -469,6 +489,56 @@ export class PotService {
         data: potDepartureConfirmEvent.toDto(),
       },
       pot.joinedUserPks,
+    );
+
+    const departureConfirmedPopoChatMsg = this.popoService.getPopoChatMsgByType(
+      "popo-departure-confirmed-v1",
+    );
+
+    // 출발 시간 확정 안내 메세지 즉시 발송
+    this.popoService.asyncSendPopoChatMsgToPotRoom(
+      departureConfirmedPopoChatMsg,
+      null,
+      pot,
+    );
+
+    const taxiCallPopoChatMsg = this.popoService.getPopoChatMsgByType(
+      "popo-reminder-taxi-call-v1",
+    );
+
+    // 출발 시간 확정 요청 메세지 삭제
+    this.popoService.asyncDeletePopoChatReservation(
+      "popo-departure-confirm-request-v1",
+      pot.pk,
+    );
+
+    // 출발 확정을 20분 안으로 했을 경우 바로 발송
+    if (subMinutes(departureTime, 20) < new Date()) {
+      this.popoService.asyncSendPopoChatMsgToPotRoom(
+        taxiCallPopoChatMsg,
+        null,
+        pot,
+      );
+    } else {
+      // departureTime 시간 20분 전 taxi call reminder 메세지 발송 예약
+      this.popoService.asyncReservePopoChatMsg(
+        taxiCallPopoChatMsg,
+        subMinutes(departureTime, 20),
+        null,
+        pot,
+      );
+    }
+
+    const accountingPopoChatMsg = this.popoService.getPopoChatMsgByType(
+      "popo-accounting-reminder-v1",
+    );
+
+    // departureTime 시간 2시간 후 accounting reminder 메세지 발송 예약
+    this.popoService.asyncReservePopoChatMsg(
+      accountingPopoChatMsg,
+      addHours(departureTime, 2),
+      null,
+      pot,
     );
 
     return BaseResultDto.OK;

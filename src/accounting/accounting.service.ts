@@ -25,6 +25,7 @@ import { PotEventRepository } from "@src/database/repository/pot-event.repositor
 import { PotAccountingConfirmEventV1 } from "@src/pot/event/v1/pot-accounting-confirm-event";
 import { Pot } from "@src/pot/model/pot";
 import { getUnixTime } from "date-fns";
+import { PopoService } from "@src/popo/popo.service";
 
 @Injectable()
 export class AccountingService implements OnModuleInit {
@@ -35,6 +36,7 @@ export class AccountingService implements OnModuleInit {
     private readonly dbService: DatabaseService,
     private readonly potService: PotService,
     private readonly broadcastingService: BroadcastingService,
+    private readonly popoService: PopoService,
     private readonly bankRepository: BankRepository,
     private readonly userBankRepository: UserBankRepository,
     private readonly potEventRepository: PotEventRepository,
@@ -211,7 +213,19 @@ export class AccountingService implements OnModuleInit {
       for (const userPk of req.requested_user) {
         await this.processConfirmAccounting(pot, userCtx.userId, userPk);
       }
+    } else {
+      // 아닌 경우 포포 정산 안내 메세지 즉시 발송
+      const popoChatMsg = this.popoService.getPopoChatMsgByType(
+        "popo-accounting-request-v1",
+      );
+      this.popoService.asyncSendPopoChatMsgToPotRoom(popoChatMsg, null, pot);
     }
+
+    // 기존에 예약된 포포 정산 안내 메세지가 있다면 삭제
+    this.popoService.asyncDeletePopoChatReservation(
+      "popo-accounting-reminder-v1",
+      pot.pk,
+    );
 
     return BaseResultDto.OK;
   }

@@ -14,6 +14,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
 import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
+import { asyncScheduler, scheduled } from "rxjs";
 
 @Injectable()
 export class PopoService implements OnModuleInit {
@@ -37,6 +38,20 @@ export class PopoService implements OnModuleInit {
     // Implementation for processing reserved Popo chat messages
   }
 
+  asyncReservePopoChatMsg(
+    popoChatMsg: PopoChatMsgEntity,
+    sendAfter: Date,
+    potPk?: string,
+    pot?: Pot,
+  ) {
+    scheduled(
+      this.reservePopoChatMsg(popoChatMsg, sendAfter, potPk, pot),
+      asyncScheduler,
+    ).subscribe({
+      error: (err) => console.error("Reserve PopoChatMsg failed:", err),
+    });
+  }
+
   async reservePopoChatMsg(
     popoChatMsg: PopoChatMsgEntity,
     sendAfter: Date,
@@ -45,12 +60,18 @@ export class PopoService implements OnModuleInit {
   ) {
     pot = await this.resolvePot(potPk, pot);
 
+    const now = new Date();
+
+    if (sendAfter <= now) {
+      throw new Error("sendAfter must be a future date");
+    }
+
     const newPopoChatReservation: PopoChatReservationEntity = {
       potFk: pot.pk,
       popoChatMsgType: popoChatMsg.type,
       sendAfter: sendAfter,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
 
     await this.dbService.db.transaction(async (tx: TxType) => {
@@ -58,6 +79,19 @@ export class PopoService implements OnModuleInit {
         newPopoChatReservation,
         tx,
       );
+    });
+  }
+
+  asyncSendPopoChatMsgToPotRoom(
+    popoChatMsg: PopoChatMsgEntity,
+    potPk?: string,
+    pot?: Pot,
+  ) {
+    scheduled(
+      this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot),
+      asyncScheduler,
+    ).subscribe({
+      error: (err) => console.error("Send PopoChatMsg failed:", err),
     });
   }
 
@@ -101,6 +135,23 @@ export class PopoService implements OnModuleInit {
       pot.joinedUserPks,
     );
   }
+
+  asyncDeletePopoChatReservation(
+    popoChatMsgType: PopoChatStringType,
+    potPk: string,
+  ) {
+    scheduled(
+      this.deletePopoChatReservation(popoChatMsgType, potPk),
+      asyncScheduler,
+    ).subscribe({
+      error: (err) => console.error("Send PopoChatMsg failed:", err),
+    });
+  }
+
+  async deletePopoChatReservation(
+    popoChatMsgType: PopoChatStringType,
+    potPk: string,
+  ) {}
 
   getPopoChatMsgByType(type: PopoChatStringType): PopoChatMsgEntity | null {
     return this.cachedPopoChatMsgs.find((msg) => msg.type === type) || null;
