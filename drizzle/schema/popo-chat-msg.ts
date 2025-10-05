@@ -21,7 +21,7 @@ export type PopoActionBtnStringType =
   (typeof popoActionBtnType.enumValues)[number];
 
 /*
-CREATE TABLE "popo-chat-msg" (
+CREATE TABLE "popo_chat_msg" (
     "type" popo_chat_type NOT NULL, // pk
     "action_btns" popo_action_btn_type[] NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT now(),
@@ -29,7 +29,7 @@ CREATE TABLE "popo-chat-msg" (
     "message" text NOT NULL
 );
 */
-export const popoChatMsg = pgTable("popo-chat-msg", {
+export const popoChatMsg = pgTable("popo_chat_msg", {
   type: popoChatType("type").primaryKey().notNull(),
   actionBtns: popoActionBtnType("action_btns").array().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })

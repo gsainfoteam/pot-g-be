@@ -3,7 +3,7 @@ import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { randomUUID } from "node:crypto";
-import { from } from "rxjs";
+import { asyncScheduler, scheduled } from "rxjs";
 
 @Injectable()
 export class BroadcastingService {
@@ -13,7 +13,10 @@ export class BroadcastingService {
     potEventDto: PotEventDto<any>,
     userPks: string[] = [],
   ) {
-    from(this.broadcastPotEvent(potEventDto, userPks)).subscribe({
+    scheduled(
+      this.broadcastPotEvent(potEventDto, userPks),
+      asyncScheduler,
+    ).subscribe({
       error: (err) => console.error("Broadcast failed:", err),
     });
   }
