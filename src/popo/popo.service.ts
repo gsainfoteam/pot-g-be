@@ -13,6 +13,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
+import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
 
 @Injectable()
 export class PopoService implements OnModuleInit {
@@ -37,26 +38,35 @@ export class PopoService implements OnModuleInit {
   }
 
   async reservePopoChatMsg(
-    potPk: string,
     popoChatMsg: PopoChatMsgEntity,
     sendAfter: Date,
-  ) {}
+    potPk?: string,
+    pot?: Pot,
+  ) {
+    pot = await this.resolvePot(potPk, pot);
+
+    const newPopoChatReservation: PopoChatReservationEntity = {
+      potFk: pot.pk,
+      popoChatMsgType: popoChatMsg.type,
+      sendAfter: sendAfter,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.popoChatReservationRepository.insert(
+        newPopoChatReservation,
+        tx,
+      );
+    });
+  }
 
   async sendPopoChatMsgToPotRoom(
     popoChatMsg: PopoChatMsgEntity,
     potPk?: string,
     pot?: Pot,
   ) {
-    if (!pot && !potPk) {
-      throw new Error("Either pot or potPk must be provided");
-    }
-    if (!pot && potPk) {
-      pot = await this.potService.getPot(potPk);
-    }
-
-    if (!pot) {
-      throw new Error("Pot not found");
-    }
+    pot = await this.resolvePot(potPk, pot);
 
     const now = new Date();
 
@@ -94,6 +104,21 @@ export class PopoService implements OnModuleInit {
 
   getPopoChatMsgByType(type: PopoChatStringType): PopoChatMsgEntity | null {
     return this.cachedPopoChatMsgs.find((msg) => msg.type === type) || null;
+  }
+
+  private async resolvePot(potPk?: string, pot?: Pot): Promise<Pot> {
+    if (!pot && !potPk) {
+      throw new Error("Either pot or potPk must be provided");
+    }
+    if (!pot && potPk) {
+      pot = await this.potService.getPot(potPk);
+    }
+
+    if (!pot) {
+      throw new Error("Pot not found");
+    }
+
+    return pot;
   }
 
   private async cachePopoChatMsgs() {

@@ -1,32 +1,48 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { popoChatMsg } from "../../../drizzle/schema/popo-chat-msg";
-import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
+import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
+import { TxType } from "@src/global/types/tx.types";
+import { popoChatReservation } from "../../../drizzle/schema/popo-chat-reservation";
+import { randomUUID } from "node:crypto";
 
 @Injectable()
 export class PopoChatReservationRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
-  /*
-  SELECT * from popo_chat_msg
-   */
-  async findAll(): Promise<PopoChatMsgEntity[]> {
-    const results = await this.dbService.db
-      .select({
-        type: popoChatMsg.type,
-        actionBtns: popoChatMsg.actionBtns,
-        message: popoChatMsg.message,
+  async insert(
+    popoChatReservationEntity: PopoChatReservationEntity,
+    tx: TxType,
+  ): Promise<PopoChatReservationEntity> {
+    const result = await tx
+      .insert(popoChatReservation)
+      .values({
+        pk: popoChatReservationEntity.pk || randomUUID(),
+        potFk: popoChatReservationEntity.potFk,
+        popoChatMsgType: popoChatReservationEntity.popoChatMsgType,
+        sendAfter: popoChatReservationEntity.sendAfter,
+        createdAt: popoChatReservationEntity.createdAt,
+        updatedAt: popoChatReservationEntity.updatedAt,
       })
-      .from(popoChatMsg);
+      .returning();
 
-    return results.map((result) => this.resultToPopoChatMsgEntity(result));
+    if (result.length === 0) {
+      throw new Error("Failed to insert popo chat reservation"); // TODO
+    }
+
+    const insertedReservation = result[0];
+    return this.resultToPopoChatReservationEntity(insertedReservation);
   }
 
-  private resultToPopoChatMsgEntity(result: any): PopoChatMsgEntity {
+  private resultToPopoChatReservationEntity(
+    result: any,
+  ): PopoChatReservationEntity {
     return {
-      type: result.type,
-      actionBtns: result.actionBtns,
-      message: result.message,
+      pk: result.pk,
+      potFk: result.potFk,
+      popoChatMsgType: result.popoChatMsgType,
+      sendAfter: result.sendAfter,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
     };
   }
 }

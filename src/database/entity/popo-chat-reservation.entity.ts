@@ -3,7 +3,7 @@ import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
 
 export class PopoChatReservationEntity {
-  pk: string;
+  pk?: string;
   potFk: string;
   pot?: PotRoomEntity;
   popoChatMsgType: PopoChatStringType;
