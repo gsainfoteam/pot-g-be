@@ -24,7 +24,7 @@ import { asyncScheduler, scheduled } from "rxjs";
 
 @Injectable()
 export class PopoService implements OnModuleInit {
-  private readonly logger = new Logger(PopoSchedulerService.name);
+  private readonly logger = new Logger(PopoService.name);
   private cachedPopoChatMsgs: PopoChatMsgEntity[] = [];
 
   constructor(
