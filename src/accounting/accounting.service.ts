@@ -218,7 +218,11 @@ export class AccountingService implements OnModuleInit {
       const popoChatMsg = this.popoService.getPopoChatMsgByType(
         "popo-accounting-request-v1",
       );
-      this.popoService.asyncSendPopoChatMsgToPotRoom(popoChatMsg, null, pot);
+      this.popoService.asyncSendPopoChatMsgToPotRoom(popoChatMsg, null, pot, {
+        totalNum: pot.accountingRequestedUserPks.length,
+        totalCost: req.total_cost,
+        costPerUser: req.cost_per_user,
+      });
     }
 
     // 기존에 예약된 포포 정산 안내 메세지가 있다면 삭제

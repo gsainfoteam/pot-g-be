@@ -1,4 +1,4 @@
-import { pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { potRoom } from "./pot-room";
 import { popoChatMsg, popoChatType } from "./popo-chat-msg";
@@ -11,6 +11,7 @@ CREATE TABLE "popo_chat_reservation" (
     "send_after"         timestamp with time zone NOT NULL,
     "created_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
+    "format_arguments"   jsonb                    NULL
 );
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
     ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
@@ -26,6 +27,7 @@ export const popoChatReservation = pgTable("popo_chat_reservation", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  formatArguments: jsonb("format_arguments"),
 });
 
 export const popoChatReservationRelations = relations(

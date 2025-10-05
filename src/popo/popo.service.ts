@@ -144,9 +144,16 @@ export class PopoService implements OnModuleInit {
     sendAfter: Date,
     potPk?: string,
     pot?: Pot,
+    formatArguments?: any,
   ) {
     scheduled(
-      this.reservePopoChatMsg(popoChatMsg, sendAfter, potPk, pot),
+      this.reservePopoChatMsg(
+        popoChatMsg,
+        sendAfter,
+        potPk,
+        pot,
+        formatArguments,
+      ),
       asyncScheduler,
     ).subscribe({
       error: (err) => console.error("Reserve PopoChatMsg failed:", err),
@@ -158,6 +165,7 @@ export class PopoService implements OnModuleInit {
     sendAfter: Date,
     potPk?: string,
     pot?: Pot,
+    formatArguments?: any,
   ) {
     pot = await this.resolvePot(potPk, pot);
 
@@ -173,6 +181,7 @@ export class PopoService implements OnModuleInit {
       sendAfter: sendAfter,
       createdAt: now,
       updatedAt: now,
+      formatArguments: formatArguments,
     };
 
     await this.dbService.db.transaction(async (tx: TxType) => {
@@ -187,9 +196,10 @@ export class PopoService implements OnModuleInit {
     popoChatMsg: PopoChatMsgEntity,
     potPk?: string,
     pot?: Pot,
+    formatArguments?: any,
   ) {
     scheduled(
-      this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot),
+      this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot, formatArguments),
       asyncScheduler,
     ).subscribe({
       error: (err) => console.error("Send PopoChatMsg failed:", err),
@@ -200,6 +210,7 @@ export class PopoService implements OnModuleInit {
     popoChatMsg: PopoChatMsgEntity,
     potPk?: string,
     pot?: Pot,
+    formatArguments?: any,
   ) {
     pot = await this.resolvePot(potPk, pot);
 
@@ -211,6 +222,7 @@ export class PopoService implements OnModuleInit {
         message: popoChatMsg.message,
         actionBtns: popoChatMsg.actionBtns,
         timestamp: now,
+        formatArguments: formatArguments,
       });
 
     try {

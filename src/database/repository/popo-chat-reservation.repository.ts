@@ -24,6 +24,7 @@ export class PopoChatReservationRepository {
         sendAfter: popoChatReservationEntity.sendAfter,
         createdAt: popoChatReservationEntity.createdAt,
         updatedAt: popoChatReservationEntity.updatedAt,
+        formatArguments: popoChatReservationEntity.formatArguments,
       })
       .returning();
 
@@ -48,6 +49,7 @@ export class PopoChatReservationRepository {
         sendAfter: popoChatReservation.sendAfter,
         createdAt: popoChatReservation.createdAt,
         updatedAt: popoChatReservation.updatedAt,
+        formatArguments: popoChatReservation.formatArguments,
       })
       .from(popoChatReservation)
       .where(lte(popoChatReservation.sendAfter, new Date()));
@@ -87,6 +89,7 @@ export class PopoChatReservationRepository {
       sendAfter: result.sendAfter,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      formatArguments: result.formatArguments,
     };
   }
 }

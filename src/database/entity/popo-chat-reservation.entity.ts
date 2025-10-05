@@ -11,4 +11,5 @@ export class PopoChatReservationEntity {
   sendAfter: Date;
   createdAt: Date;
   updatedAt: Date;
+  formatArguments?: any;
 }

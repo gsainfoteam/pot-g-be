@@ -7,12 +7,14 @@ import {
   PopoChatStringType,
 } from "../../../../drizzle/schema/popo-chat-msg";
 import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
+import Format from "string-format";
 
 export type PotPopoChatEventV1Schema = {
   popoChatType: PopoChatStringType;
   message: string; // 채팅 메시지
   actionBtns: PopoActionBtnStringType[]; // 메시지에 포함된 액션 버튼들
   timestamp: Date; // 메시지 전송 시간
+  formatArguments?: any; // 메시지 포맷팅에 사용되는 인자들
 };
 
 export class PotPopoChatEventV1
@@ -49,7 +51,7 @@ export class PotPopoChatEventV1
   toDto(): PotEventPopoChatV1Dto {
     return {
       popo_chat_type: this.data.popoChatType,
-      content: this.data.message,
+      content: Format(this.data.message, this.data.formatArguments),
       action_btns: this.data.actionBtns,
     };
   }

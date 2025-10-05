@@ -102,6 +102,9 @@ export class PotService {
       subDays(req.starts_at, 1),
       null,
       pot,
+      {
+        departureTimeEndsAt: pot.departureAvailableEndTime,
+      },
     );
 
     return {
@@ -500,10 +503,9 @@ export class PotService {
       departureConfirmedPopoChatMsg,
       null,
       pot,
-    );
-
-    const taxiCallPopoChatMsg = this.popoService.getPopoChatMsgByType(
-      "popo-reminder-taxi-call-v1",
+      {
+        departureTimeEndsAt: pot.departureAvailableEndTime,
+      },
     );
 
     // 출발 시간 확정 요청 메세지 삭제
@@ -512,12 +514,21 @@ export class PotService {
       pot.pk,
     );
 
+    const taxiCallPopoChatMsg = this.popoService.getPopoChatMsgByType(
+      "popo-reminder-taxi-call-v1",
+    );
+
     // 출발 확정을 20분 안으로 했을 경우 바로 발송
     if (subMinutes(departureTime, 20) < new Date()) {
       this.popoService.asyncSendPopoChatMsgToPotRoom(
         taxiCallPopoChatMsg,
         null,
         pot,
+        {
+          remainDepartureTime: Math.floor(
+            (departureTime.getTime() - new Date().getTime()) / 60000,
+          ),
+        },
       );
     } else {
       // departureTime 시간 20분 전 taxi call reminder 메세지 발송 예약
@@ -526,6 +537,9 @@ export class PotService {
         subMinutes(departureTime, 20),
         null,
         pot,
+        {
+          remainDepartureTime: 20,
+        },
       );
     }
 
