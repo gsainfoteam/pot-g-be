@@ -35,6 +35,7 @@ CREATE TABLE "pot_room"
 CREATE TYPE "pot_event_type" AS ENUM (
     'create_v1',
     'chat_v1',
+    'popo_chat_v1',
     'user_in_v1',
     'user_leave_v1',
     'user_kick_v1',
@@ -119,6 +120,39 @@ CREATE TABLE "jwt_key_pair"
     "updated_at"  timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
+CREATE TYPE "popo_chat_type" AS ENUM (
+    'popo-departure-confirm-request-v1',
+    'popo-departure-confirmed-v1',
+    'popo-reminder-taxi-call-v1',
+    'popo-accounting-reminder-v1',
+    'popo-accounting-request-v1'
+);
+
+CREATE TYPE "popo_action_btn_type" AS ENUM (
+    'departure-confirm-btn',
+    'taxi-call-btn',
+    'accounting-request-btn',
+    'accounting-info-check-btn',
+    'accounting-process-btn'
+);
+
+CREATE TABLE "popo-chat-msg" (
+    "type" popo_chat_type NOT NULL,
+    "action_btns" popo_action_btn_type[] NOT NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "message" text NOT NULL
+);
+
+CREATE TABLE "popo-chat-reservation" (
+    "pk"                 uuid                     NOT NULL,
+    "pot_fk"             uuid                     NOT NULL,
+    "popo_chat_msg_type" popo_chat_type           NOT NULL,
+    "send_after"         timestamp with time zone NOT NULL,
+    "created_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
+);
+
 ALTER TABLE "users"
     ADD CONSTRAINT "PK_USERS" PRIMARY KEY ("pk");
 
@@ -152,6 +186,12 @@ ALTER TABLE "user_bank"
 ALTER TABLE "jwt_key_pair"
     ADD CONSTRAINT "PK_JWT_KEY_PAIR" PRIMARY KEY ("pk");
 
+ALTER TABLE "popo-chat-msg"
+    ADD CONSTRAINT "PK_POPO_CHAT_MSG" PRIMARY KEY ("type");
+
+ALTER TABLE "popo-chat-reservation"
+    ADD CONSTRAINT "PK_POPO_CHAT_RESERVATION" PRIMARY KEY ("pk");
+
 ALTER TABLE "user_pot_room"
     ADD CONSTRAINT "FK_users_TO_user_pot_room_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
 
@@ -181,3 +221,13 @@ ALTER TABLE "route"
 
 ALTER TABLE "route"
     ADD CONSTRAINT "FK_stops_TO_route_to" FOREIGN KEY ("to_stop_fk") REFERENCES "stops" ("pk");
+
+ALTER TABLE "popo-chat-reservation"
+    ADD CONSTRAINT "FK_popo_chat_msg_type_TO_popo_chat_reservation_1" FOREIGN KEY ("popo_chat_msg_type") REFERENCES "popo-chat-msg" ("type");
+
+ALTER TABLE "popo-chat-reservation"
+    ADD CONSTRAINT "FK_pot_room_TO_popo_chat_reservation_1" FOREIGN KEY ("pot_fk") REFERENCES "pot_room" ("pk");
+
+CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
+    ON "popo-chat-reservation" ("pot_fk", "popo_chat_msg_type");
+

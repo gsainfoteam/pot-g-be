@@ -14,6 +14,7 @@ import { potRoom } from "./pot-room";
 export const potEventType = pgEnum("pot_event_type", [
   "create_v1",
   "chat_v1",
+  "popo_chat_v1",
   "user_in_v1",
   "user_leave_v1",
   "user_kick_v1",
