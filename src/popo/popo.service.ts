@@ -1,4 +1,10 @@
-import { forwardRef, Inject, Injectable, OnModuleInit } from "@nestjs/common";
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from "@nestjs/common";
 import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
 import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
 import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
@@ -18,6 +24,7 @@ import { asyncScheduler, scheduled } from "rxjs";
 
 @Injectable()
 export class PopoService implements OnModuleInit {
+  private readonly logger = new Logger(PopoSchedulerService.name);
   private cachedPopoChatMsgs: PopoChatMsgEntity[] = [];
 
   constructor(
@@ -36,6 +43,100 @@ export class PopoService implements OnModuleInit {
 
   async processReservedPopoChatMsg() {
     // Implementation for processing reserved Popo chat messages
+    const reservations =
+      await this.popoChatReservationRepository.findAllReadyToSend();
+
+    /*
+    예약 되어있는것들
+    popo-departure-confirm-request (출발 시간 확정 시 무시)
+    popo-reminder-taxi-call (반드시 발송)
+    popo-accounting-reminder (정산 요청 들어왔을 경우 무시)
+    나머지 -> 무시
+
+    같은 팟의 같은 타입이 여러가 있는 경우는 이론상 없으므로 반드시 매번 pot 을 조회해 주어야 함.
+    -> 느려지는 원인이 될 수 있긴 하지만 유저 요청도 아니기 때문에 우선 무시
+     */
+    for (const reservation of reservations) {
+      // try catch 로 감싸서 하나 실패해도 계속 진행되도록 함
+      try {
+        switch (reservation.popoChatMsgType) {
+          case "popo-departure-confirm-request-v1":
+            await this.processDepartureConfirmRequest(reservation);
+            break;
+          case "popo-reminder-taxi-call-v1":
+            await this.processReminderTaxiCall(reservation);
+            break;
+          case "popo-accounting-reminder-v1":
+            await this.processAccountingReminder(reservation);
+            break;
+          default:
+            // Do nothing for other types
+            break;
+        }
+      } catch (error) {
+        // TODO: 에러 핸들링 필요 -> 재예약?
+        this.logger.error(error);
+      }
+    }
+  }
+
+  private async processDepartureConfirmRequest(
+    reservation: PopoChatReservationEntity,
+  ) {
+    // 출발 시간 확정 시 무시
+    const pot = await this.potService.getPot(reservation.potFk);
+
+    if (pot.departureTime) {
+      // 출발 시간 확정 되어있음 -> 무시
+      return;
+    }
+
+    const departureConfirmedPopoChatMsg = this.getPopoChatMsgByType(
+      "popo-departure-confirmed-v1",
+    );
+
+    this.asyncSendPopoChatMsgToPotRoom(
+      departureConfirmedPopoChatMsg,
+      reservation.potFk,
+      pot,
+    );
+  }
+
+  private async processReminderTaxiCall(
+    reservation: PopoChatReservationEntity,
+  ) {
+    // 반드시 발송
+    const reminderTaxiCallPopoChatMsg = this.getPopoChatMsgByType(
+      "popo-reminder-taxi-call-v1",
+    );
+
+    this.asyncSendPopoChatMsgToPotRoom(
+      reminderTaxiCallPopoChatMsg,
+      reservation.potFk,
+      null,
+    );
+  }
+
+  private async processAccountingReminder(
+    reservation: PopoChatReservationEntity,
+  ) {
+    // 정산 요청 들어왔을 경우 무시
+    const pot = await this.potService.getPot(reservation.potFk);
+
+    if (pot.accountingRequestUserId) {
+      // 정산 요청 들어왔음 -> 무시
+      return;
+    }
+
+    const accountingReminderPopoChatMsg = this.getPopoChatMsgByType(
+      "popo-accounting-reminder-v1",
+    );
+
+    this.asyncSendPopoChatMsgToPotRoom(
+      accountingReminderPopoChatMsg,
+      reservation.potFk,
+      pot,
+    );
   }
 
   asyncReservePopoChatMsg(

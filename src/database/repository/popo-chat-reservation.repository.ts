@@ -4,7 +4,7 @@ import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reserv
 import { TxType } from "@src/global/types/tx.types";
 import { popoChatReservation } from "../../../drizzle/schema/popo-chat-reservation";
 import { randomUUID } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { PopoChatStringType } from "../../../drizzle/schema/popo-chat-msg";
 
 @Injectable()
@@ -36,7 +36,29 @@ export class PopoChatReservationRepository {
   }
 
   /*
-  DELETE FROM popo_chat_msg
+  SELECT * FROM popo_chat_reservation
+  WHERE send_after <= NOW()
+   */
+  async findAllReadyToSend(): Promise<PopoChatReservationEntity[]> {
+    const results = await this.dbService.db
+      .select({
+        pk: popoChatReservation.pk,
+        potFk: popoChatReservation.potFk,
+        popoChatMsgType: popoChatReservation.popoChatMsgType,
+        sendAfter: popoChatReservation.sendAfter,
+        createdAt: popoChatReservation.createdAt,
+        updatedAt: popoChatReservation.updatedAt,
+      })
+      .from(popoChatReservation)
+      .where(lte(popoChatReservation.sendAfter, new Date()));
+
+    return results.map((result) =>
+      this.resultToPopoChatReservationEntity(result),
+    );
+  }
+
+  /*
+  DELETE FROM popo_chat_reservation
     WHERE pot_fk = ?1
     AND popo_chat_msg_type = ?2
    */
