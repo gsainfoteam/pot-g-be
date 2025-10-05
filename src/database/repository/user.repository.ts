@@ -66,7 +66,7 @@ export class UserRepository {
   }
 
   /*
-  SELECT u.name, u.email,
+  SELECT u.pk, u.name, u.email,
          uas.any_push,
          uas.chat_push,
          uas.marketing_push,
@@ -82,6 +82,7 @@ export class UserRepository {
   async getUserInfoByPk(userId: string, deviceId: string) {
     const result = await this.dbService.db
       .select({
+        pk: users.pk,
         name: users.name,
         email: users.email,
         anyPush: userAlarmSetting.anyPush,
@@ -104,6 +105,7 @@ export class UserRepository {
     const userInfo = result[0];
 
     return {
+      pk: userInfo.pk,
       name: userInfo.name,
       email: userInfo.email,
       pushSetting: {

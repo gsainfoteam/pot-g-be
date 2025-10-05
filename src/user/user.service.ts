@@ -141,6 +141,7 @@ export class UserService {
     }
 
     return {
+      id: userInfo.pk,
       name: userInfo.name,
       email: userInfo.email,
       push_setting: userInfo.pushSetting,
