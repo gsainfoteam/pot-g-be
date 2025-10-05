@@ -4,7 +4,7 @@ import { potRoom } from "./pot-room";
 import { popoChatMsg, popoChatType } from "./popo-chat-msg";
 
 /*
-CREATE TABLE "popo-chat-reservation" (
+CREATE TABLE "popo_chat_reservation" (
     "pk"                 uuid                     NOT NULL,
     "pot_fk"             uuid                     NOT NULL,
     "popo_chat_msg_type" popo_chat_type           NOT NULL,
@@ -13,9 +13,9 @@ CREATE TABLE "popo-chat-reservation" (
     "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
 );
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
-    ON "popo-chat-reservation" ("pot_fk", "popo_chat_msg_type");
+    ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
 */
-export const popoChatReservation = pgTable("popo-chat-reservation", {
+export const popoChatReservation = pgTable("popo_chat_reservation", {
   pk: uuid("pk").primaryKey().notNull(),
   potFk: uuid("pot_fk").notNull(),
   popoChatMsgType: popoChatType("popo_chat_msg_type").notNull(),

@@ -12,6 +12,8 @@ import { UserRepository } from "@src/database/repository/user.repository";
 import { UserAlarmSettingRepository } from "@src/database/repository/user-alarm-setting.repository";
 import { UserBankRepository } from "@src/database/repository/user-bank.repository";
 import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.repository";
+import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
+import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
 
 @Module({
   imports: [ConfigModule],
@@ -28,6 +30,8 @@ import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.re
     UserAlarmSettingRepository,
     UserBankRepository,
     UserPotRoomRepository,
+    PopoChatMsgRepository,
+    PopoChatReservationRepository,
   ],
   exports: [
     DatabaseService,
@@ -42,6 +46,8 @@ import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.re
     UserAlarmSettingRepository,
     UserBankRepository,
     UserPotRoomRepository,
+    PopoChatMsgRepository,
+    PopoChatReservationRepository,
   ],
 })
 export class DatabaseModule {}

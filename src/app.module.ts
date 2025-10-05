@@ -8,6 +8,7 @@ import { DiscoveryModule } from "@src/discovery/discovery.module";
 import { AccountingModule } from "@src/accounting/accounting.module";
 import { PotModule } from "@src/pot/pot.module";
 import { WebsocketModule } from "@src/websocket/websocket.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { WebsocketModule } from "@src/websocket/websocket.module";
     AccountingModule,
     PotModule,
     WebsocketModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [],
