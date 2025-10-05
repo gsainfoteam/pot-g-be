@@ -73,6 +73,14 @@ export class PopoService implements OnModuleInit {
             // Do nothing for other types
             break;
         }
+
+        // 처리 완료 후 삭제
+        await this.dbService.db.transaction(async (tx: TxType) => {
+          await this.popoChatReservationRepository.deleteByPk(
+            reservation.pk,
+            tx,
+          );
+        });
       } catch (error) {
         // TODO: 에러 핸들링 필요 -> 재예약?
         this.logger.error(error);

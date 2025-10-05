@@ -61,6 +61,14 @@ export class PopoChatReservationRepository {
 
   /*
   DELETE FROM popo_chat_reservation
+    WHERE pk = ?1
+   */
+  async deleteByPk(pk: string, tx: TxType): Promise<void> {
+    await tx.delete(popoChatReservation).where(eq(popoChatReservation.pk, pk));
+  }
+
+  /*
+  DELETE FROM popo_chat_reservation
     WHERE pot_fk = ?1
     AND popo_chat_msg_type = ?2
    */
