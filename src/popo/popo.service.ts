@@ -151,7 +151,15 @@ export class PopoService implements OnModuleInit {
   async deletePopoChatReservation(
     popoChatMsgType: PopoChatStringType,
     potPk: string,
-  ) {}
+  ) {
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.popoChatReservationRepository.deleteByPotFkAndType(
+        potPk,
+        popoChatMsgType,
+        tx,
+      );
+    });
+  }
 
   getPopoChatMsgByType(type: PopoChatStringType): PopoChatMsgEntity | null {
     return this.cachedPopoChatMsgs.find((msg) => msg.type === type) || null;
