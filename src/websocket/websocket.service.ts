@@ -142,8 +142,8 @@ export class WebsocketService implements OnModuleDestroy {
     return this.clients.find((c) => c.getWsClient() === wsClient);
   }
 
-  findClientByUserId(userId: string): PotgWsClient | undefined {
-    return this.clients.find((c) => c.getUserId() === userId);
+  findClientByUserId(userId: string): PotgWsClient[] {
+    return this.clients.filter((c) => c.getUserId() === userId);
   }
 
   private getAuthorizationUntil(): Date {
