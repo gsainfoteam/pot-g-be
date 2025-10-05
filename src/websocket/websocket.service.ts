@@ -122,11 +122,12 @@ export class WebsocketService implements OnModuleDestroy {
     );
 
     if (saveChatRes !== BaseResultDto.OK) {
+      // TODO: exception 으로 처리
       const errorRes: WsBaseDto<WsResponseDto> = {
         type: "send_chat_res",
         request_id: payload.request_id,
         body: {
-          success: false,
+          response_code: 400,
           result: saveChatRes.result,
         },
       };
