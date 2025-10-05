@@ -12,8 +12,8 @@ CREATE TABLE "popo-chat-reservation" (
     "created_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
 );
-CREATE INDEX "idx_popo_chat_reservation_popo_chat_msg_fk_pot_fk"
-    ON "popo-chat-reservation" ("popo_chat_msg_fk", "pot_fk");
+CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
+    ON "popo-chat-reservation" ("pot_fk", "popo_chat_msg_type");
 */
 export const popoChatReservation = pgTable("popo-chat-reservation", {
   pk: uuid("pk").primaryKey().notNull(),
