@@ -99,6 +99,7 @@ export class PopoService implements OnModuleInit {
       departureConfirmedPopoChatMsg,
       reservation.potFk,
       pot,
+      reservation.formatArguments,
     );
   }
 
@@ -114,6 +115,7 @@ export class PopoService implements OnModuleInit {
       reminderTaxiCallPopoChatMsg,
       reservation.potFk,
       null,
+      reservation.formatArguments,
     );
   }
 
@@ -136,6 +138,7 @@ export class PopoService implements OnModuleInit {
       accountingReminderPopoChatMsg,
       reservation.potFk,
       pot,
+      reservation.formatArguments,
     );
   }
 
