@@ -1,5 +1,5 @@
 export class RefreshTokenEntity {
-  tokenHmac: string;
+  tokenSignature: string;
   refreshToken: string;
   createdAt?: Date;
   updatedAt?: Date;

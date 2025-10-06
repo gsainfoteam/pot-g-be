@@ -59,7 +59,7 @@ export class UserService {
           }
         }
 
-        return await this.authService.createNewJwtToken(user, device);
+        return await this.authService.createNewJwtToken(user, device, tx);
       },
     );
 
@@ -70,7 +70,7 @@ export class UserService {
   }
 
   async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
-    const { userId, deviceId } = await this.authService.validateRefreshToken(
+    const { userId, devicePk } = await this.authService.validateRefreshToken(
       req.refresh_token,
     );
     if (!userId) {
@@ -84,7 +84,7 @@ export class UserService {
 
     const { accessToken } = await this.authService.refreshAccessToken(
       user,
-      deviceId,
+      devicePk,
     );
     return { access_token: accessToken };
   }

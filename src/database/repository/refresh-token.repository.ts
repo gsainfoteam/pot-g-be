@@ -10,13 +10,15 @@ export class RefreshTokenRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
-  SELECT * FROM refresh_token WHERE token_hmac = ?1;
+  SELECT * FROM refresh_token WHERE token_signature = ?1;
    */
-  async findByTokenHmac(tokenHmac: string): Promise<RefreshTokenEntity | null> {
+  async findByTokenSignature(
+    tokenSignature: string,
+  ): Promise<RefreshTokenEntity | null> {
     const result = await this.dbService.db
       .select()
       .from(refreshToken)
-      .where(eq(refreshToken.tokenHmac, tokenHmac));
+      .where(eq(refreshToken.tokenSignature, tokenSignature));
 
     if (result.length === 0) {
       return null;
@@ -33,7 +35,7 @@ export class RefreshTokenRepository {
     const result = await tx
       .insert(refreshToken)
       .values({
-        tokenHmac: refreshTokenEntity.tokenHmac,
+        tokenSignature: refreshTokenEntity.tokenSignature,
         refreshToken: refreshTokenEntity.refreshToken,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -50,7 +52,7 @@ export class RefreshTokenRepository {
 
   private resultToRefreshTokenEntity(result: any): RefreshTokenEntity {
     return {
-      tokenHmac: result.tokenHmac,
+      tokenSignature: result.tokenSignature,
       refreshToken: result.refreshToken,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
