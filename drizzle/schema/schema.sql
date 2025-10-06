@@ -136,7 +136,7 @@ CREATE TYPE "popo_action_btn_type" AS ENUM (
     'accounting-process-btn'
 );
 
-CREATE TABLE "popo-chat-msg" (
+CREATE TABLE "popo_chat_msg" (
     "type" popo_chat_type NOT NULL,
     "action_btns" popo_action_btn_type[] NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT now(),
@@ -144,7 +144,7 @@ CREATE TABLE "popo-chat-msg" (
     "message" text NOT NULL
 );
 
-CREATE TABLE "popo-chat-reservation" (
+CREATE TABLE "popo_chat_reservation" (
     "pk"                 uuid                     NOT NULL,
     "pot_fk"             uuid                     NOT NULL,
     "popo_chat_msg_type" popo_chat_type           NOT NULL,
