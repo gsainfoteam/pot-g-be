@@ -154,10 +154,10 @@ CREATE TABLE "popo-chat-reservation" (
 );
 
 CREATE TABLE "refresh_token" (
-    "token_hmac"    text                     NOT NULL,
-    "refresh_token" text                     NOT NULL,
-    "created_at"    timestamp with time zone NOT NULL DEFAULT NOW(),
-    "updated_at"    timestamp with time zone NOT NULL DEFAULT NOW()
+    "token_signature" text                     NOT NULL,
+    "refresh_token"   text                     NOT NULL,
+    "created_at"      timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"      timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE "users"
@@ -200,7 +200,7 @@ ALTER TABLE "popo_chat_reservation"
     ADD CONSTRAINT "PK_POPO_CHAT_RESERVATION" PRIMARY KEY ("pk");
 
 ALTER TABLE "refresh_token"
-    ADD CONSTRAINT "PK_REFRESH_TOKEN" PRIMARY KEY ("token_hmac");
+    ADD CONSTRAINT "PK_REFRESH_TOKEN" PRIMARY KEY ("token_signature");
 
 ALTER TABLE "user_pot_room"
     ADD CONSTRAINT "FK_users_TO_user_pot_room_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
