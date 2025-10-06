@@ -59,7 +59,7 @@ export class UserService {
           }
         }
 
-        return await this.authService.createNewJwtToken(user, device);
+        return await this.authService.createNewJwtToken(user, device, tx);
       },
     );
 

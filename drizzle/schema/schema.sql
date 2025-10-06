@@ -136,7 +136,7 @@ CREATE TYPE "popo_action_btn_type" AS ENUM (
     'accounting-process-btn'
 );
 
-CREATE TABLE "popo-chat-msg" (
+CREATE TABLE "popo_chat_msg" (
     "type" popo_chat_type NOT NULL,
     "action_btns" popo_action_btn_type[] NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT now(),
@@ -144,13 +144,20 @@ CREATE TABLE "popo-chat-msg" (
     "message" text NOT NULL
 );
 
-CREATE TABLE "popo-chat-reservation" (
+CREATE TABLE "popo_chat_reservation" (
     "pk"                 uuid                     NOT NULL,
     "pot_fk"             uuid                     NOT NULL,
     "popo_chat_msg_type" popo_chat_type           NOT NULL,
     "send_after"         timestamp with time zone NOT NULL,
     "created_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
+);
+
+CREATE TABLE "refresh_token" (
+    "token_signature" text                     NOT NULL,
+    "refresh_token"   text                     NOT NULL,
+    "created_at"      timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"      timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE "users"
@@ -186,11 +193,14 @@ ALTER TABLE "user_bank"
 ALTER TABLE "jwt_key_pair"
     ADD CONSTRAINT "PK_JWT_KEY_PAIR" PRIMARY KEY ("pk");
 
-ALTER TABLE "popo-chat-msg"
+ALTER TABLE "popo_chat_msg"
     ADD CONSTRAINT "PK_POPO_CHAT_MSG" PRIMARY KEY ("type");
 
-ALTER TABLE "popo-chat-reservation"
+ALTER TABLE "popo_chat_reservation"
     ADD CONSTRAINT "PK_POPO_CHAT_RESERVATION" PRIMARY KEY ("pk");
+
+ALTER TABLE "refresh_token"
+    ADD CONSTRAINT "PK_REFRESH_TOKEN" PRIMARY KEY ("token_signature");
 
 ALTER TABLE "user_pot_room"
     ADD CONSTRAINT "FK_users_TO_user_pot_room_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
@@ -222,12 +232,12 @@ ALTER TABLE "route"
 ALTER TABLE "route"
     ADD CONSTRAINT "FK_stops_TO_route_to" FOREIGN KEY ("to_stop_fk") REFERENCES "stops" ("pk");
 
-ALTER TABLE "popo-chat-reservation"
-    ADD CONSTRAINT "FK_popo_chat_msg_type_TO_popo_chat_reservation_1" FOREIGN KEY ("popo_chat_msg_type") REFERENCES "popo-chat-msg" ("type");
+ALTER TABLE "popo_chat_reservation"
+    ADD CONSTRAINT "FK_popo_chat_msg_type_TO_popo_chat_reservation_1" FOREIGN KEY ("popo_chat_msg_type") REFERENCES "popo_chat_msg" ("type");
 
-ALTER TABLE "popo-chat-reservation"
+ALTER TABLE "popo_chat_reservation"
     ADD CONSTRAINT "FK_pot_room_TO_popo_chat_reservation_1" FOREIGN KEY ("pot_fk") REFERENCES "pot_room" ("pk");
 
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
-    ON "popo-chat-reservation" ("pot_fk", "popo_chat_msg_type");
+    ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
 
