@@ -7,6 +7,7 @@ import { userAlarmSetting } from "./user-alarm-setting";
 CREATE TABLE "device" (
     "pk"         uuid                     NOT NULL,
     "user_fk"    uuid                     NOT NULL,
+    "device_id"  varchar(64)              NOT NULL,
     "fcm_token"  varchar(64)              NOT NULL,
     "os"         varchar(4)               NOT NULL,
     "version"    varchar(8)               NOT NULL,
@@ -17,6 +18,7 @@ CREATE TABLE "device" (
 export const device = pgTable("device", {
   pk: uuid("pk").primaryKey().notNull(),
   userFk: uuid("user_fk").notNull(),
+  deviceId: varchar("device_id", { length: 64 }).notNull(),
   fcmToken: varchar("fcm_token", { length: 64 }).notNull(),
   os: varchar("os", { length: 4 }).notNull(),
   version: varchar("version", { length: 8 }).notNull(),
