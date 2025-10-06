@@ -15,6 +15,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: AccessTokenJwtPayload): Promise<UserContext> {
-    return new UserContext(payload.userId, payload.deviceId);
+    return new UserContext(payload.userId, payload.devicePk);
   }
 }

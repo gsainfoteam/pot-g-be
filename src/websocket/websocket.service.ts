@@ -96,14 +96,14 @@ export class WebsocketService implements OnModuleDestroy {
 
     // 엑세스 토큰 확인
     const accessToken = payload.body.authorization;
-    const { userId, deviceId, validUntil } =
+    const { userId, devicePk, validUntil } =
       await this.authService.validateAccessToken(accessToken);
     if (!userId) {
       throw new WsException("Invalid refresh token"); // TODO
     }
 
     // 인증 처리
-    client.setAuthorized(userId, deviceId, accessToken, validUntil);
+    client.setAuthorized(userId, devicePk, accessToken, validUntil);
     client.sendMessage(okRes);
 
     // 대기열에 쌓인 메시지 전송

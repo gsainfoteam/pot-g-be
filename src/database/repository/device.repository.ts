@@ -11,6 +11,26 @@ export class DeviceRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
+  SELECT * FROM device WHERE deviceId = ?1 and user_fk = ?2;
+   */
+  async findByDeviceIdAndUserFk(
+    deviceId: string,
+    userFk: string,
+  ): Promise<DeviceEntity | null> {
+    const result = await this.dbService.db
+      .select()
+      .from(device)
+      .where(and(eq(device.deviceId, deviceId), eq(device.userFk, userFk)));
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const foundDevice = result[0];
+    return this.resultToDeviceEntity(foundDevice);
+  }
+
+  /*
   SELECT * FROM device WHERE pk = ?1 and user_fk = ?2;
    */
   async findByPkAndUserFk(
@@ -39,6 +59,7 @@ export class DeviceRepository {
       .values({
         pk: deviceEntity.pk || randomUUID(),
         userFk: deviceEntity.userFk,
+        deviceId: deviceEntity.deviceId,
         fcmToken: deviceEntity.fcmToken,
         os: deviceEntity.os,
         version: deviceEntity.version,
@@ -54,18 +75,22 @@ export class DeviceRepository {
   }
 
   async update(deviceEntity: DeviceEntity, tx: TxType) {
-    await tx.update(device).set({
-      fcmToken: deviceEntity.fcmToken,
-      os: deviceEntity.os,
-      version: deviceEntity.version,
-      updatedAt: new Date(),
-    });
+    await tx
+      .update(device)
+      .set({
+        fcmToken: deviceEntity.fcmToken,
+        os: deviceEntity.os,
+        version: deviceEntity.version,
+        updatedAt: new Date(),
+      })
+      .where(eq(device.pk, deviceEntity.pk));
   }
 
   private resultToDeviceEntity(result: any): DeviceEntity {
     return {
       pk: result.pk,
       userFk: result.userFk,
+      deviceId: result.deviceId,
       fcmToken: result.fcmToken,
       os: result.os,
       version: result.version,

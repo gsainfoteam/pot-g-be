@@ -18,7 +18,7 @@ export class AuthService {
   async createNewJwtToken(user: UserEntity, device: DeviceEntity) {
     const payload: AccessTokenJwtPayload = {
       userId: user.pk,
-      deviceId: device.pk,
+      devicePk: device.pk,
     };
 
     const { privateKey } = await this.keyPairService.getKeyPair();
@@ -58,10 +58,10 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(user: UserEntity, deviceId: string) {
+  async refreshAccessToken(user: UserEntity, devicePk: string) {
     const payload: AccessTokenJwtPayload = {
       userId: user.pk,
-      deviceId: deviceId,
+      devicePk: devicePk,
     };
 
     const { privateKey } = await this.keyPairService.getKeyPair();

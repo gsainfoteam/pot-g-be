@@ -50,7 +50,7 @@ export class UserService {
           user = await this.createNewUser(sub, name, email, tx);
           device = await this.createNewDevice(user, req.device_id, tx);
         } else {
-          device = await this.deviceRepository.findByPkAndUserFk(
+          device = await this.deviceRepository.findByDeviceIdAndUserFk(
             req.device_id,
             user.pk,
           );
@@ -70,7 +70,7 @@ export class UserService {
   }
 
   async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
-    const { userId, deviceId } = await this.authService.validateRefreshToken(
+    const { userId, devicePk } = await this.authService.validateRefreshToken(
       req.refresh_token,
     );
     if (!userId) {
@@ -84,7 +84,7 @@ export class UserService {
 
     const { accessToken } = await this.authService.refreshAccessToken(
       user,
-      deviceId,
+      devicePk,
     );
     return { access_token: accessToken };
   }
@@ -97,7 +97,7 @@ export class UserService {
     const { fcm_token: fcmToken, os, version } = req;
 
     const device = await this.deviceRepository.findByPkAndUserFk(
-      userCtx.deviceId,
+      userCtx.devicePk,
       userCtx.userId,
     );
     if (!device) {
@@ -134,7 +134,7 @@ export class UserService {
     // 사용자 정보를 조회합니다.
     const userInfo = await this.userRepository.getUserInfoByPk(
       userCtx.userId,
-      userCtx.deviceId,
+      userCtx.devicePk,
     );
     if (!userInfo) {
       throw new Error("User not found"); // TODO
@@ -154,7 +154,7 @@ export class UserService {
     userCtx: UserContext,
   ): Promise<PushSettingDto> {
     const userAlarmSetting =
-      await this.userAlarmSettingRepository.findByDeviceFk(userCtx.deviceId);
+      await this.userAlarmSettingRepository.findByDeviceFk(userCtx.devicePk);
     if (!userAlarmSetting) {
       throw new Error("User alarm setting not found"); // TODO
     }
@@ -240,9 +240,9 @@ export class UserService {
     // insert device
     const device = await this.deviceRepository.insert(
       {
-        pk: deviceId,
         userFk: user.pk,
         fcmToken: "", // 초기값은 빈 문자열로 설정
+        deviceId: deviceId,
         os: "iOS", // OS 정보는 추후에 업데이트 필요
         version: "0.0.1", // 초기 버전 정보
       },

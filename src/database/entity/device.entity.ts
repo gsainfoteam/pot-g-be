@@ -4,6 +4,7 @@ export class DeviceEntity {
   pk?: string;
   userFk?: string;
   user?: UserEntity;
+  deviceId: string;
   fcmToken?: string;
   os: string;
   version: string;

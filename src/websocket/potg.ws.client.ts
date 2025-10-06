@@ -8,7 +8,7 @@ export class PotgWsClient {
   private isAuthorized: boolean;
   private needAuthorizationUntil: Date | null;
   private userId: string | null;
-  private deviceId: string | null;
+  private devicePk: string | null;
   private accessToken: string | null;
   private validUntil: Date | null;
   private sentMessageMap: Map<string, WsBaseDto<any>>;
@@ -21,7 +21,7 @@ export class PotgWsClient {
     this.needAuthorizationUntil = null;
     this.userId = null;
     this.accessToken = null;
-    this.deviceId = null;
+    this.devicePk = null;
     this.validUntil = null;
     this.sentMessageMap = new Map();
     this.queuedTasks = [];
@@ -41,7 +41,7 @@ export class PotgWsClient {
   }
 
   getDeviceId() {
-    return this.deviceId;
+    return this.devicePk;
   }
 
   getAccessToken() {
@@ -71,7 +71,7 @@ export class PotgWsClient {
 
   setAuthorized(
     userId: string,
-    deviceId: string,
+    devicePk: string,
     accessToken: string,
     validUntil: Date,
   ) {
@@ -85,7 +85,7 @@ export class PotgWsClient {
 
     this.isAuthorized = true;
     this.userId = userId;
-    this.deviceId = deviceId;
+    this.devicePk = devicePk;
     this.accessToken = accessToken;
     this.validUntil = validUntil;
     this.needAuthorizationUntil = null;
