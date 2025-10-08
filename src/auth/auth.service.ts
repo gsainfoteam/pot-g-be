@@ -7,7 +7,7 @@ import { DeviceEntity } from "@src/database/entity/device.entity";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { TxType } from "@src/global/types/tx.types";
-import { createSign, createVerify } from "node:crypto";
+import { createHash, getRandomValues } from "node:crypto";
 
 @Injectable()
 export class AuthService {
@@ -43,56 +43,41 @@ export class AuthService {
       expiresIn: this.refreshTokenExpiresIn,
     });
 
-    const signature = await this.createSignatureRefreshToken(refreshToken, tx);
+    const hash = await this.createCSPRNHash(refreshToken, tx);
 
     return {
       accessToken,
-      refreshToken: signature,
+      refreshToken: hash,
     };
   }
 
-  private async createSignatureRefreshToken(refreshToken: string, tx: TxType) {
-    const { privateKey } = await this.keyPairService.getKeyPair();
-
-    const sign = createSign("RSA-SHA256");
-    sign.update(refreshToken);
-    sign.end();
-
-    const signature = sign.sign(privateKey, "base64");
+  private async createCSPRNHash(refreshToken: string, tx: TxType) {
+    const randomNumberArray = new Uint32Array(16);
+    getRandomValues(randomNumberArray);
+    // 좀 긴 문자열을 만들고 싶은 의도로 hash 를 생성하는 것이지 위변조를 검증하기 위함이 아니므로 추후 validate 시 hash 를 비교하지는 않습니다.
+    const hash = createHash("sha256").update(randomNumberArray).digest("hex");
 
     const refreshTokenEntity: RefreshTokenEntity = {
-      tokenSignature: signature,
+      opaqueHash: hash,
       refreshToken: refreshToken,
     };
     await this.refreshTokenRepository.insert(refreshTokenEntity, tx);
 
-    return signature;
+    return hash;
   }
 
-  async validateRefreshToken(
-    refreshTokenSignature: string,
+  async validateOpaqueHash(
+    opaqueHash: string,
   ): Promise<AccessTokenJwtPayload | null> {
     try {
       const { publicKey } = await this.keyPairService.getKeyPair();
 
       const refreshTokenEntity =
-        await this.refreshTokenRepository.findByTokenSignature(
-          refreshTokenSignature,
-        );
+        await this.refreshTokenRepository.findByOpaqueHash(opaqueHash);
 
       if (!refreshTokenEntity) {
+        // TODO
         this.logger.error("Refresh token not found");
-        return null; // Invalid token
-      }
-
-      const verify = createVerify("RSA-SHA256");
-      verify.update(refreshTokenEntity.refreshToken);
-      verify.end();
-
-      if (
-        !verify.verify(publicKey, refreshTokenEntity.tokenSignature, "base64")
-      ) {
-        this.logger.error("Refresh token signature mismatch");
         return null; // Invalid token
       }
 
@@ -103,6 +88,7 @@ export class AuthService {
         },
       );
     } catch (e) {
+      // TODO
       console.error("Invalid refresh token:", e);
       return null; // Invalid token
     }
@@ -148,6 +134,7 @@ export class AuthService {
         validUntil,
       };
     } catch (e) {
+      // TODO
       console.error("Invalid refresh token:", e);
       return null; // Invalid token
     }

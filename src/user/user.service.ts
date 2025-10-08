@@ -70,7 +70,7 @@ export class UserService {
   }
 
   async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
-    const { userId, devicePk } = await this.authService.validateRefreshToken(
+    const { userId, devicePk } = await this.authService.validateOpaqueHash(
       req.refresh_token,
     );
     if (!userId) {

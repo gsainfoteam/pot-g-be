@@ -10,15 +10,15 @@ export class RefreshTokenRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
-  SELECT * FROM refresh_token WHERE token_signature = ?1;
+  SELECT * FROM refresh_token WHERE opaque_hash = ?1;
    */
-  async findByTokenSignature(
-    tokenSignature: string,
+  async findByOpaqueHash(
+    opaqueHash: string,
   ): Promise<RefreshTokenEntity | null> {
     const result = await this.dbService.db
       .select()
       .from(refreshToken)
-      .where(eq(refreshToken.tokenSignature, tokenSignature));
+      .where(eq(refreshToken.opaqueHash, opaqueHash));
 
     if (result.length === 0) {
       return null;
@@ -35,7 +35,7 @@ export class RefreshTokenRepository {
     const result = await tx
       .insert(refreshToken)
       .values({
-        tokenSignature: refreshTokenEntity.tokenSignature,
+        opaqueHash: refreshTokenEntity.opaqueHash,
         refreshToken: refreshTokenEntity.refreshToken,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -52,7 +52,7 @@ export class RefreshTokenRepository {
 
   private resultToRefreshTokenEntity(result: any): RefreshTokenEntity {
     return {
-      tokenSignature: result.tokenSignature,
+      opaqueHash: result.opaqueHash,
       refreshToken: result.refreshToken,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,

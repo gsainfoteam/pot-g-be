@@ -1,5 +1,5 @@
 export class RefreshTokenEntity {
-  tokenSignature: string;
+  opaqueHash: string;
   refreshToken: string;
   createdAt?: Date;
   updatedAt?: Date;
