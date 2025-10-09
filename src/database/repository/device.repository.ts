@@ -3,7 +3,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { DeviceEntity } from "@src/database/entity/device.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { device } from "../../../drizzle/schema/device";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 @Injectable()
@@ -48,6 +48,18 @@ export class DeviceRepository {
 
     const foundDevice = result[0];
     return this.resultToDeviceEntity(foundDevice);
+  }
+
+  /*
+  SELECT fcm_token FROM device WHERE user_fk in (?1);
+   */
+  async findFcmTokensByUserFks(userFks: string[]): Promise<string[]> {
+    const results = await this.dbService.db
+      .select({ fcmToken: device.fcmToken })
+      .from(device)
+      .where(inArray(device.userFk, userFks));
+
+    return results.map((result) => result.fcmToken);
   }
 
   async insert(
