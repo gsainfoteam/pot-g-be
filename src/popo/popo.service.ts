@@ -74,6 +74,7 @@ export class PopoService implements OnModuleInit {
             break;
           case "popo-auto-archive-v1":
             await this.processAutoArchive(reservation);
+            break;
           default:
             // Do nothing for other types
             break;

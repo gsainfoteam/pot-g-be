@@ -58,7 +58,9 @@ export class PotAccountingConfirmEventV1
 
     sentUserPks.forEach((userPk) => {
       if (pot.accountingRequestedUserPks.includes(userPk)) {
-        pot.accountingRequestedUserPks.filter((userId) => userId !== userPk);
+        pot.accountingRequestedUserPks = pot.accountingRequestedUserPks.filter(
+          (userId) => userId !== userPk,
+        );
       }
       if (!pot.accountingConfirmedUserPks.includes(userPk)) {
         pot.accountingConfirmedUserPks.push(userPk);
@@ -70,7 +72,9 @@ export class PotAccountingConfirmEventV1
         pot.accountingRequestedUserPks.push(userPk);
       }
       if (pot.accountingConfirmedUserPks.includes(userPk)) {
-        pot.accountingConfirmedUserPks.filter((userId) => userId !== userPk);
+        pot.accountingConfirmedUserPks = pot.accountingConfirmedUserPks.filter(
+          (userId) => userId !== userPk,
+        );
       }
     });
 
