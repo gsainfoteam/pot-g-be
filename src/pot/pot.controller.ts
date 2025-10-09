@@ -19,6 +19,7 @@ import {
   PotEventListReqDto,
   PotEventListResDto,
 } from "@src/pot/dto/pot.event.dto";
+import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 
 @Controller("/api/v1/pot")
 export class PotController {
@@ -46,6 +47,11 @@ export class PotController {
     @GetUser() userCtx: UserContext,
   ): Promise<PotInfoDto> {
     return this.potService.getPotInfo(potPk, userCtx);
+  }
+
+  @Get("/:potPk/overview")
+  async getPotOverview(@Param("potPk") potPk: string): Promise<PotOverviewDto> {
+    return this.potService.getPotOverview(potPk);
   }
 
   @Get(":potPk/events")

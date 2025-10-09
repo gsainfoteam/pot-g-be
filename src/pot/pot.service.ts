@@ -44,6 +44,7 @@ import {
 } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
+import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 
 @Injectable()
 export class PotService {
@@ -195,14 +196,24 @@ export class PotService {
     return await this.potRoomEntityToPotInfoDto(potRoomEntity, userCtx);
   }
 
-  private async potRoomEntityToPotInfoDto(
-    potRoomEntity: PotRoomEntity,
-    userCtx: UserContext,
-  ): Promise<PotInfoDto> {
+  async getPotOverview(potPk: string): Promise<PotOverviewDto> {
+    const potRoomEntity = await this.potRoomRepository.getPotRoomInfoByPk(
+      potPk,
+      "chat_v1",
+    );
+
+    // 팟이 존재하는지 확인
     if (!potRoomEntity) {
       throw new BadRequestException("Pot not found");
     }
 
+    return await this.potRoomEntityToPotOverviewDto(potRoomEntity);
+  }
+
+  private async potRoomEntityToPotInfoDto(
+    potRoomEntity: PotRoomEntity,
+    userCtx: UserContext,
+  ): Promise<PotInfoDto> {
     const pot = potRoomEntity.pot;
 
     const userProfiles = await this.userRepository.getUserProfileByPks(
@@ -237,6 +248,40 @@ export class PotService {
         requested: pot.accountingRequestedUserPks.includes(userCtx.userId),
         requesting_user: pot.accountingRequestUserId || undefined,
         requested_users: pot.accountingRequestedUserPks,
+      },
+    };
+  }
+
+  private async potRoomEntityToPotOverviewDto(
+    potRoomEntity: PotRoomEntity,
+  ): Promise<PotOverviewDto> {
+    const pot = potRoomEntity.pot;
+
+    const userProfiles = await this.userRepository.getUserProfileByPks(
+      pot.loggedUserPks,
+    );
+
+    const route = this.routeService.getRouteById(potRoomEntity.routeFk);
+
+    return {
+      id: potRoomEntity.pk,
+      name: potRoomEntity.name,
+      route: this.routeService.routeEntityToDto(route),
+      starts_at: potRoomEntity.startsAt,
+      ends_at: potRoomEntity.endsAt,
+      users_info: {
+        current: pot.joinedUserPks.length,
+        total: potRoomEntity.maxCapacity,
+        users: userProfiles
+          .filter((up) => pot.joinedUserPks.includes(up.pk))
+          .map((u) => {
+            return {
+              id: u.pk,
+              name: u.name,
+              is_host: pot.hostUserPk == u.pk,
+              is_in_pot: true,
+            };
+          }),
       },
     };
   }
