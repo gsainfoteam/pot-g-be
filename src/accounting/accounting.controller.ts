@@ -8,6 +8,7 @@ import { UserContext } from "@src/auth/user-context.entity";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { RequestAccountingRequestDto } from "@src/accounting/dto/request-accounting.dto";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
+import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-accounting.dto";
 
 @Controller("/api/v1/accounting")
 export class AccountingController {
@@ -42,8 +43,9 @@ export class AccountingController {
   @UseGuards(UserGuard)
   async confirmAccounting(
     @Param("potPk") potPk: string,
+    @Body() req: ConfirmAccountingRequestDto,
     @GetUser() userCtx: UserContext,
   ): Promise<BaseResultDto> {
-    return this.accountingService.confirmAccounting(potPk, userCtx);
+    return this.accountingService.confirmAccounting(potPk, req, userCtx);
   }
 }

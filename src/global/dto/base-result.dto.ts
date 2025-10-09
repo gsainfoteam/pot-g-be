@@ -25,6 +25,16 @@ export class BaseResultDto {
     result: "PotFull",
   };
 
+  static NotAccountingRequester: BaseResultDto = {
+    // 결제자 본인이 아닌 경우
+    result: "NotAccountingRequester",
+  };
+
+  static NotYetRequested: BaseResultDto = {
+    // 정산 요청이 오지 않은 경우
+    result: "NotYetRequested",
+  };
+
   static UserNotInPot: BaseResultDto = {
     // 팟에 참여하지 않은 사용자인 경우
     result: "UserNotInPot",

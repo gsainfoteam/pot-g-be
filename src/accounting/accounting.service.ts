@@ -24,8 +24,9 @@ import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PotAccountingConfirmEventV1 } from "@src/pot/event/v1/pot-accounting-confirm-event";
 import { Pot } from "@src/pot/model/pot";
-import { getUnixTime } from "date-fns";
+import { addMinutes, getUnixTime } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
+import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-accounting.dto";
 
 @Injectable()
 export class AccountingService implements OnModuleInit {
@@ -210,9 +211,14 @@ export class AccountingService implements OnModuleInit {
 
     // total cost 가 0원인 경우 바로 정산 확정 처리
     if (req.total_cost === 0) {
-      for (const userPk of req.requested_user) {
-        await this.processConfirmAccounting(pot, userCtx.userId, userPk);
-      }
+      await this.processConfirmAccounting(pot, {
+        accounting_results: req.requested_user.map((userPk) => {
+          return {
+            user_pk: userPk,
+            accounting_done: true,
+          };
+        }),
+      });
     } else {
       // 아닌 경우 포포 정산 안내 메세지 즉시 발송
       const popoChatMsg = this.popoService.getPopoChatMsgByType(
@@ -236,6 +242,7 @@ export class AccountingService implements OnModuleInit {
 
   async confirmAccounting(
     potPk: string,
+    req: ConfirmAccountingRequestDto,
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
     const pot = await this.potService.getPot(potPk);
@@ -243,17 +250,23 @@ export class AccountingService implements OnModuleInit {
       return BaseResultDto.PotNotExist;
     }
 
-    return this.processConfirmAccounting(
-      pot,
-      pot.accountingRequestUserId,
-      userCtx.userId,
-    );
+    // 정산 요청자인지 확인
+    // 정산 요청이 들어온 상태인지 확인
+    if (!pot.accountingRequestUserId) {
+      return BaseResultDto.NotYetRequested;
+    }
+
+    // 정산 요청자인지 확인
+    if (pot.accountingRequestUserId !== userCtx.userId) {
+      return BaseResultDto.NotAccountingRequester;
+    }
+
+    return this.processConfirmAccounting(pot, req);
   }
 
   private async processConfirmAccounting(
     pot: Pot,
-    receiverPk: string,
-    senderPk: string,
+    req: ConfirmAccountingRequestDto,
   ): Promise<BaseResultDto> {
     const now = new Date();
 
@@ -262,9 +275,13 @@ export class AccountingService implements OnModuleInit {
         pot.pk,
         now,
         {
-          userPk: receiverPk,
           potRoomPk: pot.pk,
-          sentUserId: senderPk,
+          results: req.accounting_results.map((r) => {
+            return {
+              userPk: r.user_pk,
+              accountingDone: r.accounting_done,
+            };
+          }),
         },
       );
 
@@ -290,6 +307,30 @@ export class AccountingService implements OnModuleInit {
       },
       pot.joinedUserPks,
     );
+
+    // 정산 처리가 모두 완료된 경우 포포 메세지 전송
+    if (pot.accountingRequestedUserPks.length === 0) {
+      const popoAutoArchiveAccountingFinMsg =
+        this.popoService.getPopoChatMsgByType(
+          "popo-auto-archive-accounting-fin-v1",
+        );
+      this.popoService.asyncSendPopoChatMsgToPotRoom(
+        popoAutoArchiveAccountingFinMsg,
+        null,
+        pot,
+      );
+
+      // 10분 후 팟 자동 해산 예약
+      const popoAutoArchiveMsg = this.popoService.getPopoChatMsgByType(
+        "popo-auto-archive-v1",
+      );
+      this.popoService.asyncReservePopoChatMsg(
+        popoAutoArchiveMsg,
+        addMinutes(now, 10),
+        null,
+        pot,
+      );
+    }
 
     return BaseResultDto.OK;
   }

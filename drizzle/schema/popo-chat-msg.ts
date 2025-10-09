@@ -7,6 +7,8 @@ export const popoChatType = pgEnum("popo_chat_type", [
   "popo-accounting-reminder-v1",
   "popo-accounting-request-v1",
   "popo-auto-archive-no-departure-confirm-v1",
+  "popo-auto-archive-accounting-fin-v1",
+  "popo-auto-archive-v1",
 ]);
 
 export const popoActionBtnType = pgEnum("popo_action_btn_type", [

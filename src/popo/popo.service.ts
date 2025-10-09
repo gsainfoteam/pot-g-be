@@ -72,6 +72,9 @@ export class PopoService implements OnModuleInit {
           case "popo-auto-archive-no-departure-confirm-v1":
             await this.processAutoArchiveNoDepartureConfirm(reservation);
             break;
+          case "popo-auto-archive-v1":
+            await this.processAutoArchive(reservation);
+            break;
           default:
             // Do nothing for other types
             break;
@@ -176,6 +179,29 @@ export class PopoService implements OnModuleInit {
 
     this.asyncSendPopoChatMsgToPotRoom(
       autoArchiveNoDeparturePopoChatMsg,
+      reservation.potFk,
+      pot,
+      reservation.formatArguments,
+    );
+
+    // 팟 아카이브 진행
+    await this.potService.archivePot(pot);
+  }
+
+  private async processAutoArchive(reservation: PopoChatReservationEntity) {
+    const pot = await this.potService.getPot(reservation.potFk);
+
+    // 이미 아카이브 된 경우 무시
+    if (pot.isArchived) {
+      return;
+    }
+
+    const autoArchivePopoChatMsg = this.getPopoChatMsgByType(
+      "popo-auto-archive-v1",
+    );
+
+    this.asyncSendPopoChatMsgToPotRoom(
+      autoArchivePopoChatMsg,
       reservation.potFk,
       pot,
       reservation.formatArguments,
