@@ -2,18 +2,21 @@ import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
 import {
-  AssertIfAccountingRequestedUser,
+  AssertIfAccountingRequested,
   AssertIfDeparted,
   AssertIfDepartureTimeSet,
-  AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
 import { PotEventAccountingConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.accounting-confirm.v1.dto";
 
+export type PotAccountingConfirmResultSchema = {
+  userPk: string;
+  accountingDone: boolean;
+};
+
 export type PotAccountingConfirmEventV1Schema = {
-  userPk: string; // 송금 받을 유저의 ID
   potRoomPk: string; // 송금 받을 방의 ID
-  sentUserId: string; // 송금 보낸 유저의 ID
+  results: PotAccountingConfirmResultSchema[];
 };
 
 // 송금 확인 이벤트
@@ -41,13 +44,35 @@ export class PotAccountingConfirmEventV1
   }
 
   dispatcher(pot: Pot, data: PotAccountingConfirmEventV1Schema): Pot {
-    // 송금 보낼 유저 제거
-    pot.accountingRequestedUserPks = pot.accountingRequestedUserPks.filter(
-      (userId) => userId !== data.sentUserId,
+    const joinedConfirmResults = data.results.filter(({ userPk }) =>
+      pot.joinedUserPks.includes(userPk),
     );
 
-    // 송금 보낸 유저 추가
-    pot.accountingConfirmedUserPks.push(data.sentUserId);
+    const sentUserPks = joinedConfirmResults
+      .filter(({ accountingDone }) => accountingDone)
+      .map(({ userPk }) => userPk);
+
+    const notSentUserPks = joinedConfirmResults
+      .filter(({ accountingDone }) => !accountingDone)
+      .map(({ userPk }) => userPk);
+
+    sentUserPks.forEach((userPk) => {
+      if (pot.accountingRequestedUserPks.includes(userPk)) {
+        pot.accountingRequestedUserPks.filter((userId) => userId !== userPk);
+      }
+      if (!pot.accountingConfirmedUserPks.includes(userPk)) {
+        pot.accountingConfirmedUserPks.push(userPk);
+      }
+    });
+
+    notSentUserPks.forEach((userPk) => {
+      if (!pot.accountingRequestedUserPks.includes(userPk)) {
+        pot.accountingRequestedUserPks.push(userPk);
+      }
+      if (pot.accountingConfirmedUserPks.includes(userPk)) {
+        pot.accountingConfirmedUserPks.filter((userId) => userId !== userPk);
+      }
+    });
 
     return pot;
   }
@@ -56,21 +81,16 @@ export class PotAccountingConfirmEventV1
     // 방 존재 여부 확인
     AssertIfValidPot(pot, data.potRoomPk);
 
-    // 송금 받을 유저가 방에 존재하는지 확인
-    AssertIfUserInPot(pot, data.userPk);
+    // 정산 요청이 왔는지 확인
+    AssertIfAccountingRequested(pot);
 
     // 출발 시간이 정해지지 않았거나 출발 시간+30분이 아직 지나지 않은 경우 예외 발생
     AssertIfDepartureTimeSet(pot);
     AssertIfDeparted(pot);
-
-    // 해당 유저가 송금 받을 유저인지 확인
-    AssertIfAccountingRequestedUser(pot, data.userPk);
   }
 
   toDto(): PotEventAccountingConfirmV1Dto {
-    return {
-      confirm_user_pk: this.data.sentUserId,
-    };
+    return {};
   }
 
   readonly potRoomPk: string;
