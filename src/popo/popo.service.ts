@@ -69,6 +69,9 @@ export class PopoService implements OnModuleInit {
           case "popo-accounting-reminder-v1":
             await this.processAccountingReminder(reservation);
             break;
+          case "popo-auto-archive-no-departure-confirm-v1":
+            await this.processAutoArchiveNoDepartureConfirm(reservation);
+            break;
           default:
             // Do nothing for other types
             break;
@@ -148,6 +151,33 @@ export class PopoService implements OnModuleInit {
       pot,
       reservation.formatArguments,
     );
+  }
+
+  private async processAutoArchiveNoDepartureConfirm(
+    reservation: PopoChatReservationEntity,
+  ) {
+    // 출발 시간이 확정된 경우 무시
+    const pot = await this.potService.getPot(reservation.potFk);
+
+    if (pot.departureTime) {
+      // 출발 시간 확정됨 -> 무시
+      return;
+    }
+
+    // 출발 시간이 확정되지 않은 경우 팟 자동 아카이브
+    const autoArchiveNoDepaturePopoChatMsg = this.getPopoChatMsgByType(
+      "popo-auto-archive-no-departure-confirm-v1",
+    );
+
+    this.asyncSendPopoChatMsgToPotRoom(
+      autoArchiveNoDepaturePopoChatMsg,
+      reservation.potFk,
+      pot,
+      reservation.formatArguments,
+    );
+
+    // 팟 아카이브 진행
+    await this.potService.archivePot(pot);
   }
 
   asyncReservePopoChatMsg(
