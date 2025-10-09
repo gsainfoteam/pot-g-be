@@ -1,17 +1,17 @@
 export class UserContext {
   private readonly _userId: string;
-  private readonly _deviceId: string;
+  private readonly _devicePk: string;
 
   get userId(): string {
     return this._userId;
   }
 
-  get deviceId(): string {
-    return this._deviceId;
+  get devicePk(): string {
+    return this._devicePk;
   }
 
-  constructor(userId: string, deviceId: string) {
+  constructor(userId: string, devicePk: string) {
     this._userId = userId;
-    this._deviceId = deviceId;
+    this._devicePk = devicePk;
   }
 }

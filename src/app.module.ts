@@ -3,9 +3,12 @@ import { DatabaseModule } from "./database/database.module";
 import { ConfigModule } from "./config/config.module";
 import { UserModule } from "@src/user/user.module";
 import { AuthModule } from "@src/auth/auth.module";
-import { RedisModule } from "@src/redis/redis.module";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { DiscoveryModule } from "@src/discovery/discovery.module";
+import { AccountingModule } from "@src/accounting/accounting.module";
+import { PotModule } from "@src/pot/pot.module";
+import { WebsocketModule } from "@src/websocket/websocket.module";
+import { ScheduleModule } from "@nestjs/schedule";
 import { FcmModule } from "@src/fcm/fcm.module";
 
 @Module({
@@ -14,9 +17,13 @@ import { FcmModule } from "@src/fcm/fcm.module";
     DatabaseModule,
     UserModule,
     AuthModule,
-    RedisModule,
+    // RedisModule,
     KeyPairModule,
     DiscoveryModule,
+    AccountingModule,
+    PotModule,
+    WebsocketModule,
+    ScheduleModule.forRoot(),
     FcmModule,
   ],
   controllers: [],
