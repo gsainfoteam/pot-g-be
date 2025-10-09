@@ -4,10 +4,18 @@ import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { randomUUID } from "node:crypto";
 import { asyncScheduler, scheduled } from "rxjs";
+import { DeviceRepository } from "@src/database/repository/device.repository";
+import { FcmService } from "@src/fcm/fcm.service";
+import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
+import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
 
 @Injectable()
 export class BroadcastingService {
-  constructor(private websocketService: WebsocketService) {}
+  constructor(
+    private readonly websocketService: WebsocketService,
+    private readonly fcmService: FcmService,
+    private readonly deviceRepository: DeviceRepository,
+  ) {}
 
   asyncBroadcastPotEvent(
     potEventDto: PotEventDto<any>,
@@ -58,5 +66,26 @@ export class BroadcastingService {
     // TODO: 푸시 알람 발송 (rxjs)
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
+    const targetFcmTokens = await this.deviceRepository.findFcmTokensByUserFks(
+      pushAlarmTargetUserPks,
+    );
+
+    // 채팅 관련 이벤트인 경우에만 푸시 알람 발송
+    if (potEventDto.event_type === "chat_v1") {
+      const potEventChatV1Dto = potEventDto.data as PotEventChatV1Dto;
+      await this.fcmService.sendBulkPushNotification({
+        fcmTokens: targetFcmTokens,
+        title: "새 메세지 도착",
+        body: potEventChatV1Dto.content,
+      });
+    }
+    if (potEventDto.event_type === "popo_chat_v1") {
+      const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
+      await this.fcmService.sendBulkPushNotification({
+        fcmTokens: targetFcmTokens,
+        title: "새 메세지 도착",
+        body: potEventPopoChatV1Dto.content,
+      });
+    }
   }
 }

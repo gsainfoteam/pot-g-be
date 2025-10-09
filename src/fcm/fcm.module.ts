@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { FcmService } from './fcm.service';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { FcmService } from "./fcm.service";
 
 @Module({
   imports: [ConfigModule],
