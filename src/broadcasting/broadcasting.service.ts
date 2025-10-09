@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
@@ -11,6 +11,8 @@ import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat
 
 @Injectable()
 export class BroadcastingService {
+  private readonly logger = new Logger(BroadcastingService.name);
+
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly fcmService: FcmService,
@@ -66,26 +68,41 @@ export class BroadcastingService {
     // TODO: 푸시 알람 발송 (rxjs)
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
-    const targetFcmTokens = await this.deviceRepository.findFcmTokensByUserFks(
-      pushAlarmTargetUserPks,
-    );
+    const targetFcmTokens = (
+      await this.deviceRepository.findFcmTokensByUserFks(pushAlarmTargetUserPks)
+    ).filter((token) => token !== null && token !== "");
+
+    if (targetFcmTokens.length === 0) {
+      return;
+    }
 
     // 채팅 관련 이벤트인 경우에만 푸시 알람 발송
     if (potEventDto.event_type === "chat_v1") {
       const potEventChatV1Dto = potEventDto.data as PotEventChatV1Dto;
-      await this.fcmService.sendBulkPushNotification({
-        fcmTokens: targetFcmTokens,
-        title: "새 메세지 도착",
-        body: potEventChatV1Dto.content,
-      });
+      try {
+        await this.fcmService.sendBulkPushNotification({
+          fcmTokens: targetFcmTokens,
+          title: "새 메세지 도착",
+          body: potEventChatV1Dto.content,
+        });
+      } catch (e) {
+        this.logger.error("Failed to send FCM notification for chat_v1:", e);
+      }
     }
     if (potEventDto.event_type === "popo_chat_v1") {
       const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
-      await this.fcmService.sendBulkPushNotification({
-        fcmTokens: targetFcmTokens,
-        title: "새 메세지 도착",
-        body: potEventPopoChatV1Dto.content,
-      });
+      try {
+        await this.fcmService.sendBulkPushNotification({
+          fcmTokens: targetFcmTokens,
+          title: "새 메세지 도착",
+          body: potEventPopoChatV1Dto.content,
+        });
+      } catch (e) {
+        this.logger.error(
+          "Failed to send FCM notification for popo_chat_v1:",
+          e,
+        );
+      }
     }
   }
 }

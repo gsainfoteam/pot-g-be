@@ -40,13 +40,17 @@ export class FcmService implements OnModuleInit {
 
       const formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
 
-      this.firebaseApp = admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId,
-          privateKey: formattedPrivateKey,
-          clientEmail,
-        }),
-      });
+      if (!admin.apps.length) {
+        this.firebaseApp = admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId,
+            privateKey: formattedPrivateKey,
+            clientEmail,
+          }),
+        });
+      } else {
+        this.firebaseApp = admin.app();
+      }
 
       this.logger.log("Firebase Admin SDK initialized successfully");
     } catch (error) {
