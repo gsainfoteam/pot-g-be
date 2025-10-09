@@ -24,7 +24,7 @@ import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PotAccountingConfirmEventV1 } from "@src/pot/event/v1/pot-accounting-confirm-event";
 import { Pot } from "@src/pot/model/pot";
-import { getUnixTime } from "date-fns";
+import { addMinutes, getUnixTime } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
 import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-accounting.dto";
 
@@ -302,7 +302,29 @@ export class AccountingService implements OnModuleInit {
       pot.joinedUserPks,
     );
 
-    // TODO: 정산 처리가 모두 완료된 경우 포포 메세지 전송
+    // 정산 처리가 모두 완료된 경우 포포 메세지 전송
+    if (pot.accountingRequestedUserPks.length === 0) {
+      const popoAutoArchiveAccountingFinMsg =
+        this.popoService.getPopoChatMsgByType(
+          "popo-auto-archive-accounting-fin-v1",
+        );
+      this.popoService.asyncSendPopoChatMsgToPotRoom(
+        popoAutoArchiveAccountingFinMsg,
+        null,
+        pot,
+      );
+
+      // 10분 후 팟 자동 해산 예약
+      const popoAutoArchiveMsg = this.popoService.getPopoChatMsgByType(
+        "popo-auto-archive-v1",
+      );
+      this.popoService.asyncReservePopoChatMsg(
+        popoAutoArchiveMsg,
+        addMinutes(now, 10),
+        null,
+        pot,
+      );
+    }
 
     return BaseResultDto.OK;
   }

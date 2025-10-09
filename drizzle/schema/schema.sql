@@ -126,7 +126,9 @@ CREATE TYPE "popo_chat_type" AS ENUM (
     'popo-reminder-taxi-call-v1',
     'popo-accounting-reminder-v1',
     'popo-accounting-request-v1',
-    'popo-auto-archive-no-departure-confirm-v1'
+    'popo-auto-archive-no-departure-confirm-v1',
+    'popo-auto-archive-accounting-fin-v1',
+    'popo-auto-archive-v1'
 );
 
 CREATE TYPE "popo_action_btn_type" AS ENUM (
