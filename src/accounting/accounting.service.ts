@@ -251,6 +251,12 @@ export class AccountingService implements OnModuleInit {
     }
 
     // 정산 요청자인지 확인
+    // 정산 요청이 들어온 상태인지 확인
+    if (!pot.accountingRequestUserId) {
+      return BaseResultDto.NotYetRequested;
+    }
+
+    // 정산 요청자인지 확인
     if (pot.accountingRequestUserId !== userCtx.userId) {
       return BaseResultDto.NotAccountingRequester;
     }
