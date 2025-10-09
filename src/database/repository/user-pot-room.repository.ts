@@ -51,6 +51,41 @@ export class UserPotRoomRepository {
   }
 
   /*
+  UPDATE user_pot_room
+  SET is_archived = true
+  WHERE pot_room_fk = ?1;
+   */
+  async archiveByPotRoomFk(potRoomFk: string, tx: TxType): Promise<void> {
+    await tx
+      .update(userPotRoom)
+      .set({ isArchived: true })
+      .where(eq(userPotRoom.potRoomFk, potRoomFk));
+  }
+
+  /*
+  UPDATE user_pot_room
+  SET is_host = ?3
+  WHERE pot_room_fk = ?1
+    AND user_fk = ?2;
+   */
+  async updateHostStatus(
+    potRoomFk: string,
+    userFk: string,
+    isHost: boolean,
+    tx: TxType,
+  ): Promise<void> {
+    await tx
+      .update(userPotRoom)
+      .set({ isHost: isHost })
+      .where(
+        and(
+          eq(userPotRoom.potRoomFk, potRoomFk),
+          eq(userPotRoom.userFk, userFk),
+        ),
+      );
+  }
+
+  /*
   SELECT count(*) as count
   FROM user_pot_room
   WHERE pot_room_fk = ?1

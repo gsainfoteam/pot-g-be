@@ -39,10 +39,11 @@ import {
   addHours,
   fromUnixTime,
   getUnixTime,
-  subDays,
+  subHours,
   subMinutes,
 } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
+import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 
 @Injectable()
 export class PotService {
@@ -92,19 +93,31 @@ export class PotService {
       await this.userPotRoomRepository.insert(userPotRoomEntity, tx);
     });
 
-    const popoChatMsg = this.popoService.getPopoChatMsgByType(
+    const popoDepartureConfirmChatMsg = this.popoService.getPopoChatMsgByType(
       "popo-departure-confirm-request-v1",
     );
 
-    // starts_at 시간 24시간 전 메세지 발송 예약
+    // starts_at 시간 6시간 전 메세지 발송 예약
     this.popoService.asyncReservePopoChatMsg(
-      popoChatMsg,
-      subDays(req.starts_at, 1),
+      popoDepartureConfirmChatMsg,
+      subHours(req.starts_at, 6),
       null,
       pot,
       {
         departureTimeEndsAt: pot.departureAvailableEndTime,
       },
+    );
+
+    // ends_at 시간에 팟 자동 해산 예약
+    const popoAutoArchiveChatMsg = this.popoService.getPopoChatMsgByType(
+      "popo-auto-archive-no-departure-confirm-v1",
+    );
+
+    this.popoService.asyncReservePopoChatMsg(
+      popoAutoArchiveChatMsg,
+      req.ends_at,
+      null,
+      pot,
     );
 
     return {
@@ -339,6 +352,8 @@ export class PotService {
       return BaseResultDto.PotNotExist;
     }
 
+    const previousHostUserPk = pot.hostUserPk;
+
     const potUserLeaveEvent: PotUserLeaveEventV1 =
       PotUserLeaveEventV1.generatePotUserLeaveEvent(potPk, new Date(), {
         potRoomPk: potPk,
@@ -361,6 +376,24 @@ export class PotService {
         userCtx.userId,
         tx,
       );
+      // 방장이 바뀐 경우 user_pot_room 테이블의 is_host 업데이트
+      if (
+        pot.joinedUserPks.length > 0 &&
+        previousHostUserPk !== pot.hostUserPk
+      ) {
+        await this.userPotRoomRepository.updateHostStatus(
+          pot.pk,
+          previousHostUserPk,
+          false,
+          tx,
+        );
+        await this.userPotRoomRepository.updateHostStatus(
+          pot.pk,
+          pot.hostUserPk,
+          true,
+          tx,
+        );
+      }
     });
 
     this.broadcastingService.asyncBroadcastPotEvent(
@@ -373,7 +406,10 @@ export class PotService {
       [...pot.joinedUserPks, userCtx.userId],
     );
 
-    // TODO 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
+    // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
+    if (pot.joinedUserPks.length === 0) {
+      await this.archivePot(pot);
+    }
 
     return BaseResultDto.OK;
   }
@@ -514,6 +550,12 @@ export class PotService {
       pot.pk,
     );
 
+    // 팟 자동 해산 메세지 삭제
+    this.popoService.asyncDeletePopoChatReservation(
+      "popo-auto-archive-no-departure-confirm-v1",
+      pot.pk,
+    );
+
     const taxiCallPopoChatMsg = this.popoService.getPopoChatMsgByType(
       "popo-reminder-taxi-call-v1",
     );
@@ -599,6 +641,45 @@ export class PotService {
       },
       pot.joinedUserPks,
     );
+
+    return BaseResultDto.OK;
+  }
+
+  async archivePot(pot: Pot): Promise<BaseResultDto> {
+    const now = new Date();
+
+    const potArchiveEvent: PotArchiveEventV1 =
+      PotArchiveEventV1.generatePotArchiveEvent(pot.pk, now, {
+        potRoomPk: pot.pk,
+      });
+
+    try {
+      PotEventReducer.reduce(pot, potArchiveEvent, true);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return error.baseResultDto;
+      }
+      throw error;
+    }
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.potRoomRepository.archivePotRoom(pot.pk, tx);
+      await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
+      await this.potEventRepository.saveEvent(potArchiveEvent, tx);
+    });
+
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potArchiveEvent.timestamp),
+        event_type: potArchiveEvent.eventType,
+        data: potArchiveEvent.toDto(),
+      },
+      pot.joinedUserPks,
+    );
+
+    // 포포 예약 모두 삭제
+    await this.popoService.deleteAllPopoChatReservation(pot.pk);
 
     return BaseResultDto.OK;
   }

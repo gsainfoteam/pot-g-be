@@ -112,11 +112,33 @@ export class PotRoomRepository {
     );
   }
 
+  /*
+  UPDATE pot_room
+  SET is_departure_confirmed = true,
+      updated_at = NOW()
+  WHERE pk = ?1;
+   */
   async setDepartureTime(potRoomPk: string, tx: TxType): Promise<void> {
     await tx
       .update(potRoom)
       .set({
         isDepartureConfirmed: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(potRoom.pk, potRoomPk));
+  }
+
+  /*
+  UPDATE pot_room
+  SET is_archived = true,
+      updated_at = NOW()
+  WHERE pk = ?1;
+   */
+  async archivePotRoom(potRoomPk: string, tx: TxType): Promise<void> {
+    await tx
+      .update(potRoom)
+      .set({
+        isArchived: true,
         updatedAt: new Date(),
       })
       .where(eq(potRoom.pk, potRoomPk));

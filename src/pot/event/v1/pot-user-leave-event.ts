@@ -1,7 +1,5 @@
 import { Pot } from "../../model/pot";
-import { PotArchiveEventV1 } from "./pot-archive-event";
 import type { PotEvent } from "../pot-event";
-import { PotEventReducer } from "../pot-event-reducer";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
 import {
   AssertIfDepartureTimeNotSet,
@@ -45,21 +43,8 @@ export class PotUserLeaveEventV1
       (userId) => userId !== data.userPk,
     );
 
-    // 방에 남은 유저가 없는 경우 방 삭제 TODO
-    if (pot.joinedUserPks.length === 0) {
-      const roomArchiveEvent = PotArchiveEventV1.generatePotArchiveEvent(
-        pot.pk,
-        new Date(),
-        {
-          potRoomPk: pot.pk,
-        },
-      );
-      pot = PotEventReducer.reduce(pot, roomArchiveEvent);
-      return pot;
-    }
-
     // 퇴장한 유저가 방장인 경우 방장 선출
-    if (pot.hostUserPk === data.userPk) {
+    if (pot.hostUserPk === data.userPk && pot.joinedUserPks.length > 0) {
       pot.hostUserPk = pot.joinedUserPks[0];
     }
 
