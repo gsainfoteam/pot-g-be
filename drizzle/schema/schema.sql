@@ -85,15 +85,15 @@ CREATE TABLE "route"
     "updated_at"   timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "device"
-(
-    "pk"         uuid                     NOT NULL,
-    "user_fk"    uuid                     NOT NULL,
-    "fcm_token"  varchar(64)              NOT NULL,
-    "os"         varchar(4)               NOT NULL,
-    "version"    varchar(8)               NOT NULL,
-    "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
-    "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
+CREATE TABLE "device" (
+     "pk"         uuid                     NOT NULL,
+     "user_fk"    uuid                     NOT NULL,
+     "os"         varchar(4)               NOT NULL,
+     "version"    varchar(8)               NOT NULL,
+     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
+     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW(),
+     "device_id"  varchar(64)              NOT NULL,
+     "fcm_token"  text                     NOT NULL
 );
 
 CREATE TABLE "bank"
