@@ -667,6 +667,21 @@ export class PotService {
       await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
       await this.potEventRepository.saveEvent(potArchiveEvent, tx);
     });
+
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potArchiveEvent.timestamp),
+        event_type: potArchiveEvent.eventType,
+        data: potArchiveEvent.toDto(),
+      },
+      pot.joinedUserPks,
+    );
+
+    // 포포 예약 모두 삭제
+    await this.popoService.deleteAllPopoChatReservation(pot.pk);
+
+    return BaseResultDto.OK;
   }
 
   async getPot(potRoomPk: string): Promise<Pot | null> {

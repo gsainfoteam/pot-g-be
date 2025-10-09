@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  Logger,
-  OnModuleInit,
-} from "@nestjs/common";
+import { forwardRef, Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
 import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
 import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
@@ -159,18 +153,23 @@ export class PopoService implements OnModuleInit {
     // 출발 시간이 확정된 경우 무시
     const pot = await this.potService.getPot(reservation.potFk);
 
+    // 이미 아카이브 된 경우 무시
+    if (pot.isArchived) {
+      return;
+    }
+
     if (pot.departureTime) {
       // 출발 시간 확정됨 -> 무시
       return;
     }
 
     // 출발 시간이 확정되지 않은 경우 팟 자동 아카이브
-    const autoArchiveNoDepaturePopoChatMsg = this.getPopoChatMsgByType(
+    const autoArchiveNoDeparturePopoChatMsg = this.getPopoChatMsgByType(
       "popo-auto-archive-no-departure-confirm-v1",
     );
 
     this.asyncSendPopoChatMsgToPotRoom(
-      autoArchiveNoDepaturePopoChatMsg,
+      autoArchiveNoDeparturePopoChatMsg,
       reservation.potFk,
       pot,
       reservation.formatArguments,
@@ -312,6 +311,12 @@ export class PopoService implements OnModuleInit {
         popoChatMsgType,
         tx,
       );
+    });
+  }
+
+  async deleteAllPopoChatReservation(potPk: string) {
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.popoChatReservationRepository.deleteByPotFk(potPk, tx);
     });
   }
 
