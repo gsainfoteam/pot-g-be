@@ -160,23 +160,23 @@ export class UserService {
     }
 
     let updated = false;
-    if (!!req.any_push && userAlarmSetting.anyPush !== req.any_push) {
+    if (req.any_push != null && userAlarmSetting.anyPush !== req.any_push) {
       userAlarmSetting.anyPush = req.any_push;
       updated = true;
     }
-    if (!!req.chat_push && userAlarmSetting.chatPush !== req.chat_push) {
+    if (req.chat_push != null && userAlarmSetting.chatPush !== req.chat_push) {
       userAlarmSetting.chatPush = req.chat_push;
       updated = true;
     }
     if (
-      !!req.marketing_push &&
+      req.marketing_push != null &&
       userAlarmSetting.marketingPush !== req.marketing_push
     ) {
       userAlarmSetting.marketingPush = req.marketing_push;
       updated = true;
     }
     if (
-      !!req.pot_in_out_push &&
+      req.pot_in_out_push != null &&
       userAlarmSetting.potInOutPush !== req.pot_in_out_push
     ) {
       userAlarmSetting.potInOutPush = req.pot_in_out_push;
