@@ -52,10 +52,13 @@ export class UserBankRepository {
   }
 
   async update(userBankEntity: UserBankEntity, tx: TxType) {
-    await tx.update(userBank).set({
-      bankFk: userBankEntity.bankFk,
-      account: userBankEntity.account,
-    });
+    await tx
+      .update(userBank)
+      .set({
+        bankFk: userBankEntity.bankFk,
+        account: userBankEntity.account,
+      })
+      .where(eq(userBank.userFk, userBankEntity.userFk));
   }
 
   private resultToUserBankEntity(result: any): UserBankEntity {
