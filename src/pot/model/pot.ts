@@ -70,10 +70,18 @@ export class Pot {
     if (this.departureTime > now) {
       return "CONFIRMED";
     }
-    // 정해진 출발 시간이 지났고, 정산이 완료되지 않은 상태 -> "WAIT_ACCOUNTING"
+    // 정산이 완료되지 않은 상태 -> "WAIT_ACCOUNTING"
     if (
-      this.departureTime <= now &&
-      !this.accountingConfirmedUserPks.includes(userPk) // 정산자가 정산 요청을 하지 않았더라도 정산 전으로 표시합니다.
+      this.accountingRequestedUserPks.includes(userPk) // 정산자가 정산 요청을 하지 않았더라도 정산 전으로 표시합니다.
+    ) {
+      return "WAIT_ACCOUNTING";
+    }
+
+    // 내가 정산 요청을 했고, 정산이 완료되지 않은 상태 -> "WAIT_ACCOUNTING"
+    if (
+      this.accountingRequestUserId &&
+      this.accountingRequestUserId === userPk &&
+      this.accountingRequestedUserPks.length > 0
     ) {
       return "WAIT_ACCOUNTING";
     }
