@@ -47,8 +47,13 @@ export class PotAccountingRequestEventV1
   dispatcher(pot: Pot, data: PotAccountingRequestEventV1Schema): Pot {
     // 송금 받을 유저와 송금 금액 설정
     pot.accountingRequestUserId = data.userPk;
-    pot.recipientAmount = data.total_cost;
+    pot.totalCost = data.total_cost;
+    pot.costPerUser = data.cost_per_user;
     pot.accountingRequestedUserPks = data.senderUserId;
+
+    pot.bankPk = data.bankPk;
+    pot.bankName = data.bankName;
+    pot.bankAccount = data.bankAccount;
 
     return pot;
   }

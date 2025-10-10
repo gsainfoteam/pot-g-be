@@ -42,7 +42,13 @@ export class Pot {
   isDeleted: boolean; // 방 완전 삭제 여부
 
   accountingRequestUserId: string | null; // 송금 받을 유저의 ID
-  recipientAmount: number | null; // 송금 받을 금액 (원)
+  totalCost: number | null; // 송금 받을 금액 (원)
+  costPerUser: number | null; // 1인당 송금 금액 (원)
+
+  bankPk: string | null;
+  bankName: string | null; // 은행 이름 (추후 사용자에게 보여주기 위함이므로 이름 저장)
+  bankAccount: string | null; // 은행 계좌
+
   accountingRequestedUserPks: string[] = []; // 송금 보낼 유저의 ID 리스트
   accountingConfirmedUserPks: string[] = []; // 송금 보낸 유저의 ID 리스트
 

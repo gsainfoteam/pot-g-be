@@ -173,7 +173,7 @@ export class PotService {
       current: pot.joinedUserPks.length,
       total: potRoomEntity.maxCapacity,
       status: pot.getStatus(userCtx.userId),
-      accounting_requested: pot.recipientAmount,
+      accounting_requested: pot.totalCost,
     };
   }
 
@@ -248,6 +248,10 @@ export class PotService {
         requested: pot.accountingRequestedUserPks.includes(userCtx.userId),
         requesting_user: pot.accountingRequestUserId || undefined,
         requested_users: pot.accountingRequestedUserPks,
+        total_cost: pot.totalCost || undefined,
+        cost_per_user: pot.costPerUser || undefined,
+        bank_name: pot.bankName || undefined,
+        bank_account: pot.bankAccount || undefined,
       },
     };
   }
