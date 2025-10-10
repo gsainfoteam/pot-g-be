@@ -45,6 +45,7 @@ import {
 import { PopoService } from "@src/popo/popo.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
+import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
 
 @Injectable()
 export class PotService {
@@ -222,6 +223,21 @@ export class PotService {
 
     const route = this.routeService.getRouteById(potRoomEntity.routeFk);
 
+    const accountingResults: AccountingResultDto[] = [
+      ...pot.accountingRequestedUserPks.map((userPk) => {
+        return {
+          user_pk: userPk,
+          accounting_done: false,
+        };
+      }),
+      ...pot.accountingConfirmedUserPks.map((userPk) => {
+        return {
+          user_pk: userPk,
+          accounting_done: true,
+        };
+      }),
+    ];
+
     return {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
@@ -245,9 +261,8 @@ export class PotService {
         }),
       },
       accounting_info: {
-        requested: pot.accountingRequestedUserPks.includes(userCtx.userId),
         requesting_user: pot.accountingRequestUserId || undefined,
-        requested_users: pot.accountingRequestedUserPks,
+        accountingResults: accountingResults,
         total_cost: pot.totalCost || undefined,
         cost_per_user: pot.costPerUser || undefined,
         bank_name: pot.bankName || undefined,

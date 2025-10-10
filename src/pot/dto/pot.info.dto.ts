@@ -1,4 +1,5 @@
 import { RouteDto } from "@src/discovery/dto/route.dto";
+import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
 
 export class PotUserDto {
   id: string;
@@ -14,9 +15,8 @@ export class PotUsersInfoDto {
 }
 
 export class PotAccountingInfoDto {
-  requested: boolean;
   requesting_user?: string;
-  requested_users: string[];
+  accountingResults: AccountingResultDto[];
   total_cost?: number;
   cost_per_user?: number;
   bank_name?: string;
