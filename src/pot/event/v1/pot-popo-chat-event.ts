@@ -7,7 +7,7 @@ import {
   PopoChatStringType,
 } from "../../../../drizzle/schema/popo-chat-msg";
 import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
-import Format from "string-format";
+import format from "string-format";
 
 export type PotPopoChatEventV1Schema = {
   popoChatType: PopoChatStringType;
@@ -51,7 +51,7 @@ export class PotPopoChatEventV1
   toDto(): PotEventPopoChatV1Dto {
     return {
       popo_chat_type: this.data.popoChatType,
-      content: Format(this.data.message, this.data.formatArguments),
+      content: format(this.data.message, ...this.data.formatArguments),
       action_btns: this.data.actionBtns,
     };
   }
