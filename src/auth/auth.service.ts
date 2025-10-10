@@ -8,12 +8,13 @@ import { RefreshTokenRepository } from "@src/database/repository/refresh-token.r
 import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { createHash, getRandomValues } from "node:crypto";
+import { StringValue } from "ms";
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly accessTokenExpiresIn: string = "6h";
-  private readonly refreshTokenExpiresIn: string = "30d";
+  private readonly accessTokenExpiresIn: StringValue = "6h";
+  private readonly refreshTokenExpiresIn: StringValue = "30d";
 
   constructor(
     private readonly jwtService: JwtService,
