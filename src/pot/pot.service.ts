@@ -262,7 +262,7 @@ export class PotService {
       },
       accounting_info: {
         requesting_user: pot.accountingRequestUserId || undefined,
-        accountingResults: accountingResults,
+        accounting_results: accountingResults,
         total_cost: pot.totalCost || undefined,
         cost_per_user: pot.costPerUser || undefined,
         bank_name: pot.bankName || undefined,

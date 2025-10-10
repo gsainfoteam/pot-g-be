@@ -16,7 +16,7 @@ export class PotUsersInfoDto {
 
 export class PotAccountingInfoDto {
   requesting_user?: string;
-  accountingResults: AccountingResultDto[];
+  accounting_results: AccountingResultDto[];
   total_cost?: number;
   cost_per_user?: number;
   bank_name?: string;
