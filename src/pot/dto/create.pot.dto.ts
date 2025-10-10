@@ -1,11 +1,11 @@
 import { Transform } from "class-transformer";
-import { parseISO } from "date-fns";
+import { parseSeoulDate } from "@src/global/utils/convertDate";
 
 export class CreatePotReqDto {
   route_id: string;
-  @Transform(({ value }) => parseISO(value))
+  @Transform(({ value }) => parseSeoulDate(value))
   starts_at: Date;
-  @Transform(({ value }) => parseISO(value))
+  @Transform(({ value }) => parseSeoulDate(value))
   ends_at: Date;
   max_count: number;
 }

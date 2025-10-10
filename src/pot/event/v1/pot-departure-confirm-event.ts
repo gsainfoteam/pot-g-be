@@ -7,7 +7,7 @@ import {
   AssertIfValidDepartureTime,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
-import { parseDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convertDate";
 import { PotEventDepartureConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.departure-confirm.v1.dto";
 
 export type PotDepartureConfirmEventV1Schema = {
@@ -29,7 +29,7 @@ export class PotDepartureConfirmEventV1
     this.eventType = "departure_confirm_v1";
     this.timestamp = timestamp;
     this.data = data;
-    this.data.departureTime = parseDate(data.departureTime);
+    this.data.departureTime = parseSeoulDate(data.departureTime);
   }
 
   static generatePotDepartureConfirmEvent(

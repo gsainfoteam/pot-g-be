@@ -7,6 +7,7 @@ import { PotDto } from "@src/discovery/dto/pot.dto";
 import { PotSearchDto } from "@src/discovery/dto/pot-search.dto";
 import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
+import { toSeoulDateFormat } from "@src/global/utils/convertDate";
 
 @Injectable()
 export class PotGDiscoveryService {
@@ -61,8 +62,8 @@ export class PotGDiscoveryService {
       id: potRoom.pk,
       name: potRoom.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: potRoom.startsAt,
-      ends_at: potRoom.endsAt,
+      starts_at: toSeoulDateFormat(potRoom.startsAt),
+      ends_at: toSeoulDateFormat(potRoom.endsAt),
       current: potRoom.currentUserCount || 1,
       total: potRoom.maxCapacity,
     };

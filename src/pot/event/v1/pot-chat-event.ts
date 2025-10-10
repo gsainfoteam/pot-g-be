@@ -5,7 +5,7 @@ import {
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
-import { parseDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convertDate";
 import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 
 export type PotChatEventV1Schema = {
@@ -27,7 +27,7 @@ export class PotChatEventV1
     this.eventType = "chat_v1";
     this.timestamp = timestamp;
     this.data = data;
-    this.data.timestamp = parseDate(this.timestamp);
+    this.data.timestamp = parseSeoulDate(this.timestamp);
   }
 
   static generatePotChatEvent(

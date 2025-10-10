@@ -46,6 +46,7 @@ import { PopoService } from "@src/popo/popo.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
+import { toSeoulDateFormat } from "@src/global/utils/convertDate";
 
 @Injectable()
 export class PotService {
@@ -99,16 +100,18 @@ export class PotService {
       "popo-departure-confirm-request-v1",
     );
 
-    // starts_at 시간 6시간 전 메세지 발송 예약
-    this.popoService.asyncReservePopoChatMsg(
-      popoDepartureConfirmChatMsg,
-      subHours(req.starts_at, 6),
-      null,
-      pot,
-      {
-        departureTimeEndsAt: pot.departureAvailableEndTime,
-      },
-    );
+    if (subHours(req.starts_at, 6) > new Date()) {
+      // starts_at 시간 6시간 전 메세지 발송 예약
+      this.popoService.asyncReservePopoChatMsg(
+        popoDepartureConfirmChatMsg,
+        subHours(req.starts_at, 6),
+        null,
+        pot,
+        {
+          departureTimeEndsAt: pot.departureAvailableEndTime,
+        },
+      );
+    }
 
     // ends_at 시간에 팟 자동 해산 예약
     const popoAutoArchiveChatMsg = this.popoService.getPopoChatMsgByType(
@@ -166,10 +169,10 @@ export class PotService {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: potRoomEntity.startsAt,
-      ends_at: potRoomEntity.endsAt,
+      starts_at: toSeoulDateFormat(potRoomEntity.startsAt),
+      ends_at: toSeoulDateFormat(potRoomEntity.endsAt),
       departure_time: potRoomEntity.isDepartureConfirmed
-        ? pot.departureTime
+        ? toSeoulDateFormat(pot.departureTime)
         : undefined,
       current: pot.joinedUserPks.length,
       total: potRoomEntity.maxCapacity,
@@ -242,10 +245,10 @@ export class PotService {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: potRoomEntity.startsAt,
-      ends_at: potRoomEntity.endsAt,
+      starts_at: toSeoulDateFormat(potRoomEntity.startsAt),
+      ends_at: toSeoulDateFormat(potRoomEntity.endsAt),
       departure_time: potRoomEntity.isDepartureConfirmed
-        ? pot.departureTime
+        ? toSeoulDateFormat(pot.departureTime)
         : undefined,
       status: pot.getStatus(userCtx.userId),
       users_info: {
@@ -286,8 +289,8 @@ export class PotService {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: potRoomEntity.startsAt,
-      ends_at: potRoomEntity.endsAt,
+      starts_at: toSeoulDateFormat(potRoomEntity.startsAt),
+      ends_at: toSeoulDateFormat(potRoomEntity.endsAt),
       users_info: {
         current: pot.joinedUserPks.length,
         total: potRoomEntity.maxCapacity,

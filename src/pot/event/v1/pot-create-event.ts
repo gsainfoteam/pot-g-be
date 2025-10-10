@@ -5,7 +5,7 @@ import {
   AssertIfValidCapacity,
   AssertIfValidDepartureAvailableTime,
 } from "@src/pot/validator/common-pot-validator";
-import { parseDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convertDate";
 import { PotEventCreateV1Dto } from "@src/pot/event/v1/dto/pot-event.create.v1.dto";
 
 export type PotCreateEventV1Schema = {
@@ -32,14 +32,14 @@ export class PotCreateEventV1
     this.eventType = "create_v1";
     this.timestamp = timestamp;
     this.data = data;
-    this.data.departureAvailableStartTime = parseDate(
+    this.data.departureAvailableStartTime = parseSeoulDate(
       data.departureAvailableStartTime,
     );
-    this.data.departureAvailableEndTime = parseDate(
+    this.data.departureAvailableEndTime = parseSeoulDate(
       data.departureAvailableEndTime,
     );
-    this.data.createAt = parseDate(data.createAt);
-    this.data.updateAt = parseDate(data.updateAt);
+    this.data.createAt = parseSeoulDate(data.createAt);
+    this.data.updateAt = parseSeoulDate(data.updateAt);
   }
 
   static generatePotCreateEvent(

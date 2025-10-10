@@ -1,7 +1,7 @@
 import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
-import { parseDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convertDate";
 import {
   PopoActionBtnStringType,
   PopoChatStringType,
@@ -29,7 +29,7 @@ export class PotPopoChatEventV1
     this.eventType = "popo_chat_v1";
     this.timestamp = timestamp;
     this.data = data;
-    this.data.timestamp = parseDate(this.timestamp);
+    this.data.timestamp = parseSeoulDate(this.timestamp);
   }
 
   static generateEvent(

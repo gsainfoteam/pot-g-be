@@ -6,8 +6,8 @@ import {
   Max,
   Min,
 } from "class-validator";
-import { parseISO } from "date-fns";
 import { Transform, Type } from "class-transformer";
+import { parseSeoulDate } from "@src/global/utils/convertDate";
 
 export class PotSearchDto {
   @IsOptional()
@@ -16,12 +16,12 @@ export class PotSearchDto {
 
   @IsOptional()
   @IsDate()
-  @Transform(({ value }) => parseISO(value))
+  @Transform(({ value }) => parseSeoulDate(value))
   starts_at?: Date;
 
   @IsOptional()
   @IsDate()
-  @Transform(({ value }) => parseISO(value))
+  @Transform(({ value }) => parseSeoulDate(value))
   ends_at?: Date;
 
   @Type(() => Number)

@@ -27,9 +27,9 @@ export class PotInfoDto {
   id: string;
   name: string;
   route: RouteDto;
-  starts_at: Date;
-  ends_at: Date;
-  departure_time?: Date;
+  starts_at: string;
+  ends_at: string;
+  departure_time?: string;
   status: string;
   users_info: PotUsersInfoDto;
   accounting_info: PotAccountingInfoDto;
