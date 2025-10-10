@@ -1,9 +1,10 @@
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { formatInTimeZone } from "date-fns-tz";
+import { parseISO } from "date-fns";
 
 export const parseSeoulDate = (date: string | Date): Date => {
-  return date instanceof Date ? date : toZonedTime(date, "Asia/Seoul");
+  return date instanceof Date ? date : parseISO(date);
 };
 
-export const toSeoulDateFormat = (date: Date): string => {
-  return formatInTimeZone(date, "Asia/Seoul", "yyyy-MM-dd'T'HH:mm:ss");
+export const toDateFormatWithTimezone = (date: Date): string => {
+  return formatInTimeZone(date, "Asia/Seoul", "yyyy-MM-dd'T'HH:mm:ssXXX");
 };

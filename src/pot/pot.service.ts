@@ -46,7 +46,7 @@ import { PopoService } from "@src/popo/popo.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
-import { toSeoulDateFormat } from "@src/global/utils/convertDate";
+import { toDateFormatWithTimezone } from "@src/global/utils/convertDate";
 
 @Injectable()
 export class PotService {
@@ -169,10 +169,10 @@ export class PotService {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: toSeoulDateFormat(potRoomEntity.startsAt),
-      ends_at: toSeoulDateFormat(potRoomEntity.endsAt),
+      starts_at: toDateFormatWithTimezone(potRoomEntity.startsAt),
+      ends_at: toDateFormatWithTimezone(potRoomEntity.endsAt),
       departure_time: potRoomEntity.isDepartureConfirmed
-        ? toSeoulDateFormat(pot.departureTime)
+        ? toDateFormatWithTimezone(pot.departureTime)
         : undefined,
       current: pot.joinedUserPks.length,
       total: potRoomEntity.maxCapacity,
@@ -245,10 +245,10 @@ export class PotService {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: toSeoulDateFormat(potRoomEntity.startsAt),
-      ends_at: toSeoulDateFormat(potRoomEntity.endsAt),
+      starts_at: toDateFormatWithTimezone(potRoomEntity.startsAt),
+      ends_at: toDateFormatWithTimezone(potRoomEntity.endsAt),
       departure_time: potRoomEntity.isDepartureConfirmed
-        ? toSeoulDateFormat(pot.departureTime)
+        ? toDateFormatWithTimezone(pot.departureTime)
         : undefined,
       status: pot.getStatus(userCtx.userId),
       users_info: {
@@ -289,8 +289,8 @@ export class PotService {
       id: potRoomEntity.pk,
       name: potRoomEntity.name,
       route: this.routeService.routeEntityToDto(route),
-      starts_at: toSeoulDateFormat(potRoomEntity.startsAt),
-      ends_at: toSeoulDateFormat(potRoomEntity.endsAt),
+      starts_at: toDateFormatWithTimezone(potRoomEntity.startsAt),
+      ends_at: toDateFormatWithTimezone(potRoomEntity.endsAt),
       users_info: {
         current: pot.joinedUserPks.length,
         total: potRoomEntity.maxCapacity,
