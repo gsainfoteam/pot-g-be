@@ -30,6 +30,11 @@ export class BaseResultDto {
     result: "NotAccountingRequester",
   };
 
+  static AlreadyRequested: BaseResultDto = {
+    // 이미 정산 요청이 된 경우
+    result: "AlreadyRequested",
+  };
+
   static NotYetRequested: BaseResultDto = {
     // 정산 요청이 오지 않은 경우
     result: "NotYetRequested",

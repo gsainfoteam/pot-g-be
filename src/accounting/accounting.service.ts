@@ -119,6 +119,16 @@ export class AccountingService implements OnModuleInit {
       return BaseResultDto.CostCannotBeNegative;
     }
 
+    const pot = await this.potService.getPot(potPk);
+    if (!pot) {
+      return BaseResultDto.PotNotExist;
+    }
+
+    // 이미 정산 요청이 들어온 상태인지 확인
+    if (pot.accountingRequestUserId) {
+      return BaseResultDto.AlreadyRequested;
+    }
+
     // 사용자 정산 계좌 설정 여부 확인
     let userBank: UserBankEntity = await this.userBankRepository.findByUserPk(
       userCtx.userId,
@@ -158,11 +168,6 @@ export class AccountingService implements OnModuleInit {
         );
       }
       userBank.bankEntity = bankEntity;
-    }
-
-    const pot = await this.potService.getPot(potPk);
-    if (!pot) {
-      return BaseResultDto.PotNotExist;
     }
 
     const now = new Date();
