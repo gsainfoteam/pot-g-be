@@ -331,7 +331,9 @@ export class PotService {
 
     // 팟이 존재하는지 확인
     if (potEvents.length === 0) {
-      throw new BadRequestException("Pot not found");
+      return {
+        events: [],
+      };
     }
 
     return {

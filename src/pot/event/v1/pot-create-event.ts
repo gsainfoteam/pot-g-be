@@ -84,7 +84,9 @@ export class PotCreateEventV1
   }
 
   toDto(): PotEventCreateV1Dto {
-    return {};
+    return {
+      created_by: this.data.createUserId,
+    };
   }
 
   readonly potRoomPk: string;

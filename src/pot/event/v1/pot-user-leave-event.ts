@@ -46,6 +46,7 @@ export class PotUserLeaveEventV1
     // 퇴장한 유저가 방장인 경우 방장 선출
     if (pot.hostUserPk === data.userPk && pot.joinedUserPks.length > 0) {
       pot.hostUserPk = pot.joinedUserPks[0];
+      this.host_changed_to = pot.hostUserPk;
     }
 
     return pot;
@@ -71,8 +72,11 @@ export class PotUserLeaveEventV1
   toDto(): PotEventUserLeaveV1Dto {
     return {
       user_pk: this.data.userPk,
+      host_changed_to: this.host_changed_to || undefined,
     };
   }
+
+  private host_changed_to?: string;
 
   readonly potRoomPk: string;
   readonly eventType: PotEventStringType;
