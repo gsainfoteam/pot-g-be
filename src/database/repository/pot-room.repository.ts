@@ -53,8 +53,8 @@ export class PotRoomRepository {
   WHERE pr.route_fk = ?1       // optional
     AND pr.is_archived = false
     AND pr.is_deleted = false
-    AND pr.starts_at >= ?2     // optional
-    AND pr.ends_at <= ?3       // optional
+    AND pr.ends_at >= ?2       // optional
+    AND pr.starts_at <= ?3     // optional
   GROUP BY pr.pk               // for count()
   ORDER BY pr.created_at ASC
   OFFSET ?4 LIMIT ?5;
@@ -98,8 +98,8 @@ export class PotRoomRepository {
   WHERE route_fk = ?1      // optional
     AND is_archived = false
     AND is_deleted = false
-    AND starts_at >= ?2    // optional
-    AND ends_at <= ?3;     // optional
+    AND ends_at >= ?2       // optional
+    AND starts_at <= ?3     // optional
    */
   async countPotList(
     route_id?: string,
@@ -285,8 +285,8 @@ export class PotRoomRepository {
       route_id ? eq(potRoom.routeFk, route_id) : undefined,
       eq(potRoom.isArchived, false),
       eq(potRoom.isDeleted, false),
-      starts_at ? gte(potRoom.startsAt, starts_at) : undefined,
-      ends_at ? lte(potRoom.endsAt, ends_at) : undefined,
+      starts_at ? gte(potRoom.endsAt, starts_at) : undefined,
+      ends_at ? lte(potRoom.startsAt, ends_at) : undefined,
     );
   }
 
