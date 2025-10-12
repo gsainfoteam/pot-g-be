@@ -193,7 +193,7 @@ export class PotRoomRepository {
           not(eq(potEvent.type, chatEventType)),
         ),
       )
-      .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp)
+      .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp, potEvent.id)
       .orderBy(asc(potEvent.timestamp));
 
     // 타입 체크를 위해 따로 함수로 분리하지 않습니다. (분리할 경우 타입 명시 해줘야 해서 코드가 더러워짐)
@@ -260,7 +260,7 @@ export class PotRoomRepository {
           not(eq(potEvent.type, chatEventType)),
         ),
       )
-      .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp)
+      .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp, potEvent.id)
       .orderBy(asc(potEvent.timestamp));
 
     if (results.length === 0) {
