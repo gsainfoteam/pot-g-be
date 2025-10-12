@@ -3,6 +3,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { ConfigService } from "@nestjs/config";
+import { DefaultLogger } from "drizzle-orm";
+import { QueryLogWriter } from "@src/database/query.log.writer";
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -14,7 +16,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.pool = new Pool({
       connectionString: this.configService.get<string>("DATABASE_URL"),
     });
-    this.db = drizzle({ client: this.pool, logger: true });
+    this.db = drizzle(this.pool, {
+      logger: new DefaultLogger({
+        writer: new QueryLogWriter(),
+      }),
+    });
   }
 
   async onModuleInit() {

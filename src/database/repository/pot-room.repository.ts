@@ -177,6 +177,7 @@ export class PotRoomRepository {
         // PotEvent fields
         potFk: potEvent.potFk,
         timestamp: potEvent.timestamp,
+        id: potEvent.id,
         type: potEvent.type,
         data: potEvent.data,
       })
@@ -245,6 +246,7 @@ export class PotRoomRepository {
         // PotEvent fields
         potFk: potEvent.potFk,
         timestamp: potEvent.timestamp,
+        id: potEvent.id,
         type: potEvent.type,
         data: potEvent.data,
       })

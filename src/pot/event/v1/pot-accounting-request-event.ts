@@ -29,19 +29,22 @@ export class PotAccountingRequestEventV1
     potPk: string,
     timestamp: Date,
     data: PotAccountingRequestEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "accounting_request_v1";
     this.timestamp = timestamp;
     this.data = data;
+    this.id = id;
   }
 
   static generatePotAccountingRequestEvent(
     potPk: string,
     timestamp: Date,
     data: PotAccountingRequestEventV1Schema,
+    id?: number,
   ) {
-    return new PotAccountingRequestEventV1(potPk, timestamp, data);
+    return new PotAccountingRequestEventV1(potPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotAccountingRequestEventV1Schema): Pot {
@@ -93,4 +96,5 @@ export class PotAccountingRequestEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotAccountingRequestEventV1Schema;
+  readonly id?: number;
 }

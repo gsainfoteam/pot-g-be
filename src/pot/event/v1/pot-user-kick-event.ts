@@ -24,19 +24,22 @@ export class PotUserKickEventV1
     potPk: string,
     timestamp: Date,
     data: PotUserKickEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "user_kick_v1";
     this.timestamp = timestamp;
     this.data = data;
+    this.id = id;
   }
 
   static generatePotUserKickEvent(
     potPk: string,
     timestamp: Date,
     data: PotUserKickEventV1Schema,
+    id?: number,
   ) {
-    return new PotUserKickEventV1(potPk, timestamp, data);
+    return new PotUserKickEventV1(potPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotUserKickEventV1Schema): Pot {
@@ -78,4 +81,5 @@ export class PotUserKickEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotUserKickEventV1Schema;
+  readonly id?: number;
 }

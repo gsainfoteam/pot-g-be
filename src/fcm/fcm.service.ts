@@ -222,9 +222,20 @@ export class FcmService implements OnModuleInit {
       fcmToken: fcmTokens[index],
     }));
 
-    this.logger.log(
+    this.logger.debug(
       `Bulk push notification completed. Sent: ${response.successCount}, Failed: ${response.failureCount}`,
     );
+
+    if (response.failureCount !== 0) {
+      this.logger.error(
+        `FCM messages failed to send (Success: ${response.successCount}, Failed: ${response.failureCount}). Details:`,
+      );
+      results.forEach((res) => {
+        if (!res.success) {
+          this.logger.error(`FCM Token: ${res.fcmToken}, Error: ${res.error}`);
+        }
+      });
+    }
 
     return {
       success: response.failureCount === 0,

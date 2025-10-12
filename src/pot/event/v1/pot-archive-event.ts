@@ -15,19 +15,22 @@ export class PotArchiveEventV1
     potPk: string,
     timestamp: Date,
     data: PotArchiveEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "archive_v1";
     this.timestamp = timestamp;
     this.data = data;
+    this.id = id;
   }
 
   static generatePotArchiveEvent(
     potPk: string,
     timestamp: Date,
     data: PotArchiveEventV1Schema,
+    id?: number,
   ) {
-    return new PotArchiveEventV1(potPk, timestamp, data);
+    return new PotArchiveEventV1(potPk, timestamp, data, id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,4 +53,5 @@ export class PotArchiveEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotArchiveEventV1Schema;
+  readonly id?: number;
 }

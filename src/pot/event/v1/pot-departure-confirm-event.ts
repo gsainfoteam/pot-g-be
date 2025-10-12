@@ -24,20 +24,23 @@ export class PotDepartureConfirmEventV1
     potPk: string,
     timestamp: Date,
     data: PotDepartureConfirmEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "departure_confirm_v1";
     this.timestamp = timestamp;
     this.data = data;
     this.data.departureTime = parseSeoulDate(data.departureTime);
+    this.id = id;
   }
 
   static generatePotDepartureConfirmEvent(
     potPk: string,
     timestamp: Date,
     data: PotDepartureConfirmEventV1Schema,
+    id?: number,
   ) {
-    return new PotDepartureConfirmEventV1(potPk, timestamp, data);
+    return new PotDepartureConfirmEventV1(potPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotDepartureConfirmEventV1Schema): Pot {
@@ -72,4 +75,5 @@ export class PotDepartureConfirmEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotDepartureConfirmEventV1Schema;
+  readonly id?: number;
 }

@@ -13,6 +13,11 @@ export class PotEventListReqDto {
   @IsNumber()
   @Min(0)
   starts_from: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  except: number;
 }
 
 export class PotEventListResDto {
