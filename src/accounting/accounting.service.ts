@@ -208,6 +208,7 @@ export class AccountingService implements OnModuleInit {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potAccountingRequestEvent.timestamp),
+        id: potAccountingRequestEvent.id,
         event_type: potAccountingRequestEvent.eventType,
         data: potAccountingRequestEvent.toDto(),
       },
@@ -307,6 +308,7 @@ export class AccountingService implements OnModuleInit {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potAccountingConfirmEvent.timestamp),
+        id: potAccountingConfirmEvent.id,
         event_type: potAccountingConfirmEvent.eventType,
         data: potAccountingConfirmEvent.toDto(),
       },

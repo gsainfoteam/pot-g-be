@@ -336,11 +336,20 @@ export class PotService {
       };
     }
 
+    // 클라이언트는 본인이 가지고 있는 가장 마지막 이벤트의 timestamp 를 starts_from 으로 주기 때문에
+    // 쿼리 시에도 같은 timestamp 를 가진 이벤트가 포함되어 오게 됩니다.
+    // 이 경우 중복된 이벤트가 반환되지 않도록 제거합니다.
+    if (req.except && potEvents[0].id === req.except) {
+      potEvents.shift();
+    }
+
     return {
+      // timestamp DESC 로 정렬되어서 오기 때문에 (가장 최신이 맨 위) 다시 순서를 뒤집습니다. (가장 오래된 것이 맨 위)
       events: potEvents.reverse().map((pe) => {
         return {
           pot_pk: pe.potRoomPk,
           timestamp: getUnixTime(pe.timestamp),
+          id: pe.id,
           event_type: pe.eventType,
           data: pe.toDto(),
         };
@@ -395,6 +404,7 @@ export class PotService {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potUserInEvent.timestamp),
+        id: potUserInEvent.id,
         event_type: potUserInEvent.eventType,
         data: potUserInEvent.toDto(),
       },
@@ -469,6 +479,7 @@ export class PotService {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potUserLeaveEvent.timestamp),
+        id: potUserLeaveEvent.id,
         event_type: potUserLeaveEvent.eventType,
         data: potUserLeaveEvent.toDto(),
       },
@@ -534,6 +545,7 @@ export class PotService {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potUserKickEvent.timestamp),
+        id: potUserKickEvent.id,
         event_type: potUserKickEvent.eventType,
         data: potUserKickEvent.toDto(),
       },
@@ -593,6 +605,7 @@ export class PotService {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potDepartureConfirmEvent.timestamp),
+        id: potDepartureConfirmEvent.id,
         event_type: potDepartureConfirmEvent.eventType,
         data: potDepartureConfirmEvent.toDto(),
       },
@@ -705,6 +718,7 @@ export class PotService {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potChatEvent.timestamp),
+        id: potChatEvent.id,
         event_type: potChatEvent.eventType,
         data: potChatEvent.toDto(),
       },
@@ -741,6 +755,7 @@ export class PotService {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potArchiveEvent.timestamp),
+        id: potArchiveEvent.id,
         event_type: potArchiveEvent.eventType,
         data: potArchiveEvent.toDto(),
       },

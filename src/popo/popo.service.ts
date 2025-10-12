@@ -314,6 +314,7 @@ export class PopoService implements OnModuleInit {
       {
         pot_pk: pot.pk,
         timestamp: getUnixTime(potPopoChatMsgEvent.timestamp),
+        id: potPopoChatMsgEvent.id,
         event_type: potPopoChatMsgEvent.eventType,
         data: potPopoChatMsgEvent.toDto(),
       },

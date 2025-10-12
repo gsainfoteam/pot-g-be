@@ -28,19 +28,22 @@ export class PotAccountingConfirmEventV1
     potPk: string,
     timestamp: Date,
     data: PotAccountingConfirmEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "accounting_confirm_v1";
     this.timestamp = timestamp;
     this.data = data;
+    this.id = id;
   }
 
   static generatePotAccountingConfirmEvent(
     potPk: string,
     timestamp: Date,
     data: PotAccountingConfirmEventV1Schema,
+    id?: number,
   ) {
-    return new PotAccountingConfirmEventV1(potPk, timestamp, data);
+    return new PotAccountingConfirmEventV1(potPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotAccountingConfirmEventV1Schema): Pot {
@@ -101,4 +104,5 @@ export class PotAccountingConfirmEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotAccountingConfirmEventV1Schema;
+  readonly id?: number;
 }

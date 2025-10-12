@@ -27,6 +27,7 @@ export class PotCreateEventV1
     potRoomPk: string,
     timestamp: Date,
     data: PotCreateEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potRoomPk;
     this.eventType = "create_v1";
@@ -40,14 +41,16 @@ export class PotCreateEventV1
     );
     this.data.createAt = parseSeoulDate(data.createAt);
     this.data.updateAt = parseSeoulDate(data.updateAt);
+    this.id = id;
   }
 
   static generatePotCreateEvent(
     potRoomPk: string,
     timestamp: Date,
     data: PotCreateEventV1Schema,
+    id?: number,
   ) {
-    return new PotCreateEventV1(potRoomPk, timestamp, data);
+    return new PotCreateEventV1(potRoomPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotCreateEventV1Schema): Pot {
@@ -93,4 +96,5 @@ export class PotCreateEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotCreateEventV1Schema;
+  readonly id?: number; // DB 에서 자동 생성됨.
 }

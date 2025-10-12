@@ -14,16 +14,16 @@ type DataCondition = { eventType: string; data: Record<string, any> };
 export class PotEventRepository {
   constructor(private readonly db: DatabaseService) {}
 
-  async saveEvent<S, D>(
-    event: PotEvent<S, D>,
-    tx: TxType,
-  ): Promise<PotEvent<S, D>> {
+  async saveEvent<S, D>(event: PotEvent<S, D>, tx: TxType) {
     const result = await tx
       .insert(potEvent)
       .values(PotEventFactory.toEntity(event))
       .returning();
 
-    return PotEventFactory.toModel(result[0]);
+    if (result.length === 0) {
+      throw new Error("Failed to insert pot event"); // TODO
+    }
+    event.id = result[0].id;
   }
 
   /*

@@ -23,19 +23,22 @@ export class PotUserLeaveEventV1
     potPk: string,
     timestamp: Date,
     data: PotUserLeaveEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "user_leave_v1";
     this.timestamp = timestamp;
     this.data = data;
+    this.id = id;
   }
 
   static generatePotUserLeaveEvent(
     potPk: string,
     timestamp: Date,
     data: PotUserLeaveEventV1Schema,
+    id?: number,
   ) {
-    return new PotUserLeaveEventV1(potPk, timestamp, data);
+    return new PotUserLeaveEventV1(potPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotUserLeaveEventV1Schema): Pot {
@@ -81,4 +84,5 @@ export class PotUserLeaveEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotUserLeaveEventV1Schema;
+  readonly id?: number;
 }

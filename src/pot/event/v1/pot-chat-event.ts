@@ -22,20 +22,23 @@ export class PotChatEventV1
     potPk: string,
     timestamp: Date,
     data: PotChatEventV1Schema,
+    id?: number,
   ) {
     this.potRoomPk = potPk;
     this.eventType = "chat_v1";
     this.timestamp = timestamp;
     this.data = data;
     this.data.timestamp = parseSeoulDate(this.timestamp);
+    this.id = id;
   }
 
   static generatePotChatEvent(
     potPk: string,
     timestamp: Date,
     data: PotChatEventV1Schema,
+    id?: number,
   ) {
-    return new PotChatEventV1(potPk, timestamp, data);
+    return new PotChatEventV1(potPk, timestamp, data, id);
   }
 
   dispatcher(pot: Pot, data: PotChatEventV1Schema): Pot {
@@ -70,4 +73,5 @@ export class PotChatEventV1
   readonly eventType: PotEventStringType;
   readonly timestamp: Date;
   readonly data: PotChatEventV1Schema;
+  readonly id?: number; // DB 에서 자동 생성됨.
 }

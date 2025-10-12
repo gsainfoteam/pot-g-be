@@ -46,6 +46,7 @@ export interface PotEvent<S, D> {
   potRoomPk: string;
   eventType: PotEventStringType;
   timestamp: Date;
+  id?: number; // DB 에서 자동 생성됨.
 
   //RealData of Event
   data: S;
@@ -59,6 +60,7 @@ export type PotEventEntitySelect = typeof potEvent.$inferSelect;
 
 export class PotEventFactory {
   static toEntity(event: PotEvent<any, any>): PotEventEntityInsert {
+    // insert 시에는 id 가 없어야 합니다. (db 에서 자동생성 되도록)
     return {
       potFk: event.potRoomPk,
       timestamp: event.timestamp,
@@ -74,6 +76,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotCreateEventV1Schema,
+          entity.id,
         );
       }
       case "chat_v1": {
@@ -81,6 +84,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotChatEventV1Schema,
+          entity.id,
         );
       }
       case "user_in_v1": {
@@ -88,6 +92,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotUserInEventV1Schema,
+          entity.id,
         );
       }
       case "departure_confirm_v1": {
@@ -95,6 +100,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotDepartureConfirmEventV1Schema,
+          entity.id,
         );
       }
       case "user_kick_v1": {
@@ -102,6 +108,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotUserKickEventV1Schema,
+          entity.id,
         );
       }
       case "archive_v1": {
@@ -109,6 +116,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotArchiveEventV1Schema,
+          entity.id,
         );
       }
       case "user_leave_v1": {
@@ -116,6 +124,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotUserLeaveEventV1Schema,
+          entity.id,
         );
       }
       case "accounting_confirm_v1": {
@@ -123,6 +132,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotAccountingConfirmEventV1Schema,
+          entity.id,
         );
       }
       case "accounting_request_v1": {
@@ -130,6 +140,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotAccountingRequestEventV1Schema,
+          entity.id,
         );
       }
       case "popo_chat_v1": {
@@ -137,6 +148,7 @@ export class PotEventFactory {
           entity.potFk,
           entity.timestamp,
           entity.data as PotPopoChatEventV1Schema,
+          entity.id,
         );
       }
     }
