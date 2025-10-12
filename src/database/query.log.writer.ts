@@ -4,7 +4,7 @@ import { entityKind } from "drizzle-orm";
 
 export class QueryLogWriter implements LogWriter {
   private readonly logger = new Logger(QueryLogWriter.name);
-  static [entityKind] = "ConsoleLogWriter";
+  static [entityKind] = "QueryLogWriter";
 
   write(message: string): void {
     this.logger.debug(`[DB QUERY]: ${message}`);

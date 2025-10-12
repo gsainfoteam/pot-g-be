@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { ConfigService } from "@nestjs/config";
 import { DefaultLogger } from "drizzle-orm";
-import { QueryLogWriter } from "@src/database/query.logger";
+import { QueryLogWriter } from "@src/database/query.log.writer";
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {

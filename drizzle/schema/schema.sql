@@ -45,12 +45,20 @@ CREATE TYPE "pot_event_type" AS ENUM (
     'archive_v1'
 );
 
-CREATE TABLE "pot_event"
-(
-    "pot_fk"    uuid                     NOT NULL,
-    "timestamp" timestamp with time zone NOT NULL,
-    "type"      pot_event_type           NOT NULL,
-    "data"      jsonb                    NOT NULL
+CREATE SEQUENCE "pot_event_id"
+    START WITH 0
+    MINVALUE 0
+    MAXVALUE 10000
+    CYCLE
+    CACHE 10;
+
+CREATE TABLE "pot_event" (
+    "pot_fk"        uuid                     NOT NULL,
+    "timestamp"     timestamp with time zone NOT NULL,
+    "id"            smallint                 NOT NULL DEFAULT nextval('pot_event_id'),
+    "type"          pot_event_type           NOT NULL,
+    "data"          jsonb                    NOT NULL,
+    PRIMARY KEY ("pot_fk", "timestamp", "id")
 );
 
 CREATE INDEX "idx_pot_event_pot_fk_type" ON "pot_event" ("pot_fk", "type");

@@ -228,7 +228,7 @@ export class FcmService implements OnModuleInit {
 
     if (response.failureCount !== 0) {
       this.logger.error(
-        `FCM messages failed to send (Success: ${response.successCount}, Failed: ${response.failureCount}. Details:`,
+        `FCM messages failed to send (Success: ${response.successCount}, Failed: ${response.failureCount}). Details:`,
       );
       results.forEach((res) => {
         if (!res.success) {
