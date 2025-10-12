@@ -1,5 +1,5 @@
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
-import { IsNumber, Max, Min } from "class-validator";
+import { IsNumber, IsOptional, Max, Min } from "class-validator";
 import { Type } from "class-transformer";
 
 export class PotEventListReqDto {
@@ -14,10 +14,11 @@ export class PotEventListReqDto {
   @Min(0)
   starts_from: number;
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  except: number;
+  except?: number;
 }
 
 export class PotEventListResDto {
