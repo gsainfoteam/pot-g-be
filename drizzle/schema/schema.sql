@@ -50,7 +50,7 @@ CREATE SEQUENCE "pot_event_id"
     MINVALUE 0
     MAXVALUE 10000
     CYCLE
-    CACHE 10;
+    CACHE 1;
 
 CREATE TABLE "pot_event" (
     "pot_fk"        uuid                     NOT NULL,

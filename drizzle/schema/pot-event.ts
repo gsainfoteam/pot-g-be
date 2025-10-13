@@ -32,14 +32,14 @@ CREATE SEQUENCE "pot_event_id"
   MINVALUE 0
   MAXVALUE 10000
   CYCLE
-  CACHE 10;
+  CACHE 1;
  */
 export const potEventIdSequence = pgSequence("pot_event_id", {
   startWith: 0,
   maxValue: 10000,
   minValue: 0,
   cycle: true,
-  cache: 10,
+  cache: 1,
 });
 
 export type PotEventStringType = (typeof potEventType.enumValues)[number];
