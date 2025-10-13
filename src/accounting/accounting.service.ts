@@ -94,6 +94,7 @@ export class AccountingService implements OnModuleInit {
     return this.cachedBanks.map((bankEntity) => {
       return {
         id: bankEntity.pk,
+        is_securities: bankEntity.isSecurities,
         bank_full_name: bankEntity.bankFullName,
         logo: bankEntity.logo,
       };
