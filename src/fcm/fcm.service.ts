@@ -207,6 +207,7 @@ export class FcmService implements OnModuleInit {
       },
       data: {
         deepLink: deepLink || "",
+        path: deepLink || "",
         actionButtonText: actionButtonText || "",
       },
     };
