@@ -682,7 +682,11 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
-  async saveChat(req: SendChatReqDto, userPk: string): Promise<BaseResultDto> {
+  async saveChat(
+    req: SendChatReqDto,
+    senderUserPk: string,
+    senderUserName: string,
+  ): Promise<BaseResultDto> {
     const pot = await this.getPot(req.potRoomPk);
     if (!pot) {
       return BaseResultDto.PotNotExist;
@@ -695,7 +699,7 @@ export class PotService {
       now,
       {
         potRoomPk: req.potRoomPk,
-        userPk: userPk,
+        userPk: senderUserPk,
         message: req.message,
         timestamp: now,
       },
@@ -723,6 +727,8 @@ export class PotService {
         data: potChatEvent.toDto(),
       },
       pot.joinedUserPks,
+      pot.name,
+      senderUserName,
     );
 
     return BaseResultDto.OK;

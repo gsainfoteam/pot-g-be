@@ -319,6 +319,7 @@ export class PopoService implements OnModuleInit {
         data: potPopoChatMsgEvent.toDto(),
       },
       pot.joinedUserPks,
+      pot.name,
     );
   }
 

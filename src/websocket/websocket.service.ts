@@ -17,6 +17,7 @@ import { WsException } from "@nestjs/websockets";
 import { WsSendChatReqDto } from "@src/websocket/dto/ws.send-chat.dto";
 import { PotService } from "@src/pot/pot.service";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
+import { UserRepository } from "@src/database/repository/user.repository";
 
 @Injectable()
 export class WebsocketService implements OnModuleDestroy {
@@ -27,6 +28,7 @@ export class WebsocketService implements OnModuleDestroy {
     private readonly authService: AuthService,
     @Inject(forwardRef(() => PotService))
     private readonly potService: PotService,
+    private readonly usersRepository: UserRepository,
   ) {}
 
   onModuleDestroy() {
@@ -113,12 +115,20 @@ export class WebsocketService implements OnModuleDestroy {
   }
 
   async sendChat(client: PotgWsClient, payload: WsBaseDto<WsSendChatReqDto>) {
+    if (!client.getUserName()) {
+      const { name } = await this.usersRepository.getUserProfileByPk(
+        client.getUserId(),
+      );
+      client.setUserName(name);
+    }
+
     const saveChatRes = await this.potService.saveChat(
       {
         potRoomPk: payload.body.pot_pk,
         message: payload.body.message,
       },
       client.getUserId(),
+      client.getUserName(),
     );
 
     if (saveChatRes !== BaseResultDto.OK) {

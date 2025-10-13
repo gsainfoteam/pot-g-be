@@ -177,4 +177,28 @@ export class UserRepository {
       name: user.name,
     }));
   }
+
+  /*
+  SELECT u.pk, u.name
+  FROM user as u
+  WHERE u.pk = ?1;
+   */
+  async getUserProfileByPk(userPk: string) {
+    const result = await this.dbService.db
+      .select({
+        pk: users.pk,
+        name: users.name,
+      })
+      .from(users)
+      .where(eq(users.pk, userPk));
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    return {
+      pk: result[0].pk,
+      name: result[0].name,
+    };
+  }
 }
