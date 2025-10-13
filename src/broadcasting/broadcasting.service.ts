@@ -65,7 +65,6 @@ export class BroadcastingService {
       });
     });
 
-    // TODO: 푸시 알람 발송 (rxjs)
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
     const targetFcmTokens = (
@@ -84,18 +83,19 @@ export class BroadcastingService {
           fcmTokens: targetFcmTokens,
           title: "새 메세지 도착",
           body: potEventChatV1Dto.content,
+          deepLink: this.createDeeplink(potEventDto.pot_pk),
         });
       } catch (e) {
         this.logger.error("Failed to send FCM notification for chat_v1:", e);
       }
-    }
-    if (potEventDto.event_type === "popo_chat_v1") {
+    } else if (potEventDto.event_type === "popo_chat_v1") {
       const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
       try {
         await this.fcmService.sendBulkPushNotification({
           fcmTokens: targetFcmTokens,
           title: "새 메세지 도착",
           body: potEventPopoChatV1Dto.content,
+          deepLink: this.createDeeplink(potEventDto.pot_pk),
         });
       } catch (e) {
         this.logger.error(
@@ -104,5 +104,9 @@ export class BroadcastingService {
         );
       }
     }
+  }
+
+  private createDeeplink(potPk: string): string {
+    return `/pot/${potPk}`;
   }
 }
