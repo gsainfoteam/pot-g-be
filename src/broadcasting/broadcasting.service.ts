@@ -107,6 +107,6 @@ export class BroadcastingService {
   }
 
   private createDeeplink(potPk: string): string {
-    return `/pot/${potPk}`;
+    return `/chat/${potPk}`;
   }
 }
