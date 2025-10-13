@@ -14,6 +14,7 @@ export class BankRepository {
     const results = await this.dbService.db
       .select({
         pk: bank.pk,
+        isSecurities: bank.isSecurities,
         bankFullName: bank.bankFullName,
         bankShortName: bank.bankShortName,
         logo: bank.logo,
@@ -26,6 +27,7 @@ export class BankRepository {
   private resultToBankEntity(result: any): BankEntity {
     return {
       pk: result.pk,
+      isSecurities: result.isSecurities,
       bankFullName: result.bankFullName,
       bankShortName: result.bankShortName,
       logo: result.logo,

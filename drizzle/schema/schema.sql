@@ -107,6 +107,7 @@ CREATE TABLE "device" (
 CREATE TABLE "bank"
 (
     "pk"              uuid        NOT NULL,
+    "is_securities"   boolean     NOT NULL,
     "bank_short_name" varchar(64) NOT NULL,
     "bank_full_name"  varchar(64) NOT NULL,
     "logo"            text        NOT NULL DEFAULT 'https://png.pngtree.com/template/20190308/ourmid/pngtree-banking-logo-image_63077.jpg'
