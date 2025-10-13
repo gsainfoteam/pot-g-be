@@ -22,9 +22,11 @@ export class BroadcastingService {
   asyncBroadcastPotEvent(
     potEventDto: PotEventDto<any>,
     userPks: string[] = [],
+    potName?: string,
+    senderName?: string,
   ) {
     scheduled(
-      this.broadcastPotEvent(potEventDto, userPks),
+      this.broadcastPotEvent(potEventDto, userPks, potName, senderName),
       asyncScheduler,
     ).subscribe({
       error: (err) => console.error("Broadcast failed:", err),
@@ -34,6 +36,8 @@ export class BroadcastingService {
   async broadcastPotEvent(
     potEventDto: PotEventDto<any>,
     userPks: string[] = [],
+    potName?: string,
+    senderName?: string,
   ) {
     const potEventReceiveDto: WsBaseDto<PotEventDto<any>> = {
       type: "pot_event_receive",
@@ -81,7 +85,7 @@ export class BroadcastingService {
       try {
         await this.fcmService.sendBulkPushNotification({
           fcmTokens: targetFcmTokens,
-          title: "새 메세지 도착",
+          title: `${potName}: ${senderName}`,
           body: potEventChatV1Dto.content,
           deepLink: this.createDeeplink(potEventDto.pot_pk),
         });
@@ -93,7 +97,7 @@ export class BroadcastingService {
       try {
         await this.fcmService.sendBulkPushNotification({
           fcmTokens: targetFcmTokens,
-          title: "새 메세지 도착",
+          title: `${potName}: 포포`,
           body: potEventPopoChatV1Dto.content,
           deepLink: this.createDeeplink(potEventDto.pot_pk),
         });

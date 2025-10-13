@@ -8,6 +8,7 @@ export class PotgWsClient {
   private isAuthorized: boolean;
   private needAuthorizationUntil: Date | null;
   private userId: string | null;
+  private userName: string | null;
   private devicePk: string | null;
   private accessToken: string | null;
   private validUntil: Date | null;
@@ -20,6 +21,7 @@ export class PotgWsClient {
     this.isAuthorized = false;
     this.needAuthorizationUntil = null;
     this.userId = null;
+    this.userName = null;
     this.accessToken = null;
     this.devicePk = null;
     this.validUntil = null;
@@ -38,6 +40,10 @@ export class PotgWsClient {
 
   getUserId() {
     return this.userId;
+  }
+
+  getUserName() {
+    return this.userName;
   }
 
   getDeviceId() {
@@ -96,6 +102,10 @@ export class PotgWsClient {
     this.validUntil = null;
     this.isAuthorized = false;
     this.needAuthorizationUntil = needAuthorizationUntil;
+  }
+
+  setUserName(userName: string) {
+    this.userName = userName;
   }
 
   private addSentMessageToQueue(message: WsBaseDto<any>) {
