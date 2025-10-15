@@ -135,11 +135,12 @@ export class UserService {
   }
 
   async getUserInfo(userCtx: UserContext): Promise<UserInfoDto> {
-    // 사용자 정보를 조회합니다.
-    const userInfo = await this.userRepository.getUserInfoByPk(
-      userCtx.userId,
-      userCtx.devicePk,
-    );
+    // 사용자 정보와 이용약관 동의 여부를 조회합니다.
+    const [userInfo, userConsents] = await Promise.all([
+      this.userRepository.getUserInfoByPk(userCtx.userId, userCtx.devicePk),
+      this.userConsentRepository.findByUserFk(userCtx.userId),
+    ]);
+
     if (!userInfo) {
       throw new Error("User not found"); // TODO
     }
@@ -150,6 +151,7 @@ export class UserService {
       email: userInfo.email,
       push_setting: userInfo.pushSetting,
       accounting: userInfo.accounting,
+      terms: userConsents.map((consent) => consent.term),
     };
   }
 
