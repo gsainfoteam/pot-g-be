@@ -10,7 +10,7 @@ export class AppVersionRepository {
   /*
   SELECT * from app_version;
    */
-  async findOne(): Promise<AppVersionEntity[]> {
+  async findOne(): Promise<AppVersionEntity> {
     const results = await this.dbService.db
       .select({
         iosMinVersion: appVersion.iosMinVersion,
@@ -25,7 +25,7 @@ export class AppVersionRepository {
     }
 
     const firstResult = results[0];
-    return [this.resultToAppVersionEntity(firstResult)];
+    return this.resultToAppVersionEntity(firstResult);
   }
 
   private resultToAppVersionEntity(result: any): AppVersionEntity {
