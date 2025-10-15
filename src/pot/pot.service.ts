@@ -372,6 +372,11 @@ export class PotService {
       return BaseResultDto.PotNotExist;
     }
 
+    // 이미 참여한 유저인 경우 참여 불가
+    if (pot.joinedUserPks.includes(userCtx.userId)) {
+      return BaseResultDto.OK;
+    }
+
     const potUserInEvent: PotUserInEventV1 =
       PotUserInEventV1.generatePotUserInEvent(potPk, new Date(), {
         potRoomPk: potPk,

@@ -53,6 +53,7 @@ export class PotRoomRepository {
   WHERE pr.route_fk = ?1       // optional
     AND pr.is_archived = false
     AND pr.is_deleted = false
+    AND pr.is_departure_confirmed = false
     AND pr.ends_at >= ?2       // optional
     AND pr.starts_at <= ?3     // optional
   GROUP BY pr.pk               // for count()
@@ -98,6 +99,7 @@ export class PotRoomRepository {
   WHERE route_fk = ?1      // optional
     AND is_archived = false
     AND is_deleted = false
+    AND pr.is_departure_confirmed = false
     AND ends_at >= ?2       // optional
     AND starts_at <= ?3     // optional
    */
@@ -287,6 +289,7 @@ export class PotRoomRepository {
       route_id ? eq(potRoom.routeFk, route_id) : undefined,
       eq(potRoom.isArchived, false),
       eq(potRoom.isDeleted, false),
+      eq(potRoom.isDepartureConfirmed, false),
       starts_at ? gte(potRoom.endsAt, starts_at) : undefined,
       ends_at ? lte(potRoom.startsAt, ends_at) : undefined,
     );

@@ -1,8 +1,6 @@
 import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
-import { PotEventError } from "@src/global/exceptions/pot-event.error";
-import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import {
   AssertIfDepartureTimeNotSet,
   AssertIfPotFull,
@@ -49,11 +47,6 @@ export class PotUserInEventV1
   validate(pot: Pot, data: PotUserInEventV1Schema) {
     // 방 존재 여부 확인
     AssertIfValidPot(pot, data.potRoomPk);
-
-    // 이미 참여한 유저인 경우 참여 불가
-    if (pot.joinedUserPks.includes(data.userPk)) {
-      throw new PotEventError(BaseResultDto.OK);
-    }
 
     // 방 인원 초과인 경우 참여 불가
     AssertIfPotFull(pot);

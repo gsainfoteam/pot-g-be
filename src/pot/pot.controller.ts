@@ -50,6 +50,7 @@ export class PotController {
   }
 
   @Get("/:potPk/overview")
+  @UseGuards(UserGuard)
   async getPotOverview(@Param("potPk") potPk: string): Promise<PotOverviewDto> {
     return this.potService.getPotOverview(potPk);
   }
