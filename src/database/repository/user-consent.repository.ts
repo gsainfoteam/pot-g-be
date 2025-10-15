@@ -36,7 +36,31 @@ export class UserConsentRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert device"); // TODO
+      throw new Error("Failed to insert user consent"); // TODO
+    }
+
+    const insertedUserConsent = result[0];
+    return this.resultToUserConsentEntity(insertedUserConsent);
+  }
+
+  async bulkInsert(
+    userConsentEntities: UserConsentEntity[],
+    tx: TxType,
+  ): Promise<UserConsentEntity | null> {
+    const result = await tx
+      .insert(userConsent)
+      .values(
+        userConsentEntities.map((entity) => ({
+          userFk: entity.userFk,
+          term: entity.term,
+          createdAt: entity.createdAt || new Date(),
+          updatedAt: entity.updatedAt || new Date(),
+        })),
+      )
+      .returning();
+
+    if (result.length === 0) {
+      throw new Error("Failed to insert user consent"); // TODO
     }
 
     const insertedUserConsent = result[0];

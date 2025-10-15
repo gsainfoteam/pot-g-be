@@ -18,6 +18,9 @@ import {
 } from "@src/user/dto/refresh.dto";
 import { DeviceEntity } from "@src/database/entity/device.entity";
 import { UserEntity } from "@src/database/entity/user.entity";
+import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
+import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
+import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
 
 @Injectable()
 export class UserService {
@@ -28,6 +31,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly deviceRepository: DeviceRepository,
     private readonly userAlarmSettingRepository: UserAlarmSettingRepository,
+    private readonly userConsentRepository: UserConsentRepository,
   ) {}
 
   async login(
@@ -204,6 +208,39 @@ export class UserService {
 
     await this.dbService.db.transaction(async (tx: TxType) => {
       await this.userRepository.withdraw(userCtx.userId, tx);
+    });
+
+    return BaseResultDto.OK;
+  }
+
+  async consent(
+    req: UpdateConsentDto,
+    userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    const userConsents = await this.userConsentRepository.findByUserFk(
+      userCtx.userId,
+    );
+
+    const termsToInsert = [
+      ...req.required_terms.filter(
+        (term) => !userConsents.some((uc) => uc.term === term),
+      ),
+      ...req.optional_terms.filter(
+        (term) => !userConsents.some((uc) => uc.term === term),
+      ),
+    ];
+
+    if (termsToInsert.length === 0) {
+      return BaseResultDto.OK; // 추가할 동의 항목이 없으면 바로 반환
+    }
+
+    const newUserConsents: UserConsentEntity[] = termsToInsert.map((term) => ({
+      userFk: userCtx.userId,
+      term,
+    }));
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.userConsentRepository.bulkInsert(newUserConsents, tx);
     });
 
     return BaseResultDto.OK;
