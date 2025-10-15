@@ -223,19 +223,20 @@ export class UserService {
       userCtx.userId,
     );
 
-    const termsToInsert = [
     // Normalize inputs and dedupe against existing consents
     const requiredTerms = req.required_terms ?? [];
     const optionalTerms = req.optional_terms ?? [];
     const existingTerms = new Set(userConsents.map((uc) => uc.term));
 
-    const termsToInsert = [...requiredTerms, ...optionalTerms].filter((term) => {
-      if (existingTerms.has(term)) {
-        return false;
-      }
-      existingTerms.add(term);
-      return true;
-    });
+    const termsToInsert = [...requiredTerms, ...optionalTerms].filter(
+      (term) => {
+        if (existingTerms.has(term)) {
+          return false;
+        }
+        existingTerms.add(term);
+        return true;
+      },
+    );
 
     if (termsToInsert.length === 0) {
       return BaseResultDto.OK; // 추가할 동의 항목이 없으면 바로 반환
