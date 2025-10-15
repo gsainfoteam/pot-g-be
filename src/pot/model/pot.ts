@@ -70,11 +70,12 @@ export class Pot {
     if (this.departureTime > now) {
       return "CONFIRMED";
     }
+    // 택시를 탔고, 정산 요청을 하지 않은 상태 -> "CONFIRMED"
+    if (this.accountingRequestUserId == null) {
+      return "CONFIRMED";
+    }
     // 정산이 완료되지 않은 상태 -> "WAIT_ACCOUNTING"
-    if (
-      this.accountingRequestUserId == null ||
-      this.accountingRequestedUserPks.includes(userPk) // 정산자가 정산 요청을 하지 않았더라도 정산 전으로 표시합니다.
-    ) {
+    if (this.accountingRequestedUserPks.includes(userPk)) {
       return "WAIT_ACCOUNTING";
     }
 

@@ -633,11 +633,9 @@ export class PotService {
       null,
       pot,
       {
-        departureTimeEndsAt: format(
-          pot.departureAvailableEndTime,
-          "M월 d일 a h시 m분",
-          { locale: ko },
-        ),
+        departureTimeEndsAt: format(pot.departureTime, "M월 d일 a h시 m분", {
+          locale: ko,
+        }),
       },
     );
 
