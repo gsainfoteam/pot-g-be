@@ -37,6 +37,7 @@ import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
 import {
   addHours,
+  format,
   fromUnixTime,
   getUnixTime,
   subHours,
@@ -47,6 +48,7 @@ import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
 import { toDateFormatWithTimezone } from "@src/global/utils/convertDate";
+import { ko } from "date-fns/locale";
 
 @Injectable()
 export class PotService {
@@ -108,7 +110,11 @@ export class PotService {
         null,
         pot,
         {
-          departureTimeEndsAt: pot.departureAvailableEndTime,
+          departureTimeEndsAt: format(
+            pot.departureAvailableEndTime,
+            "M월 d일 a h시 m분",
+            { locale: ko },
+          ),
         },
       );
     }
@@ -627,7 +633,11 @@ export class PotService {
       null,
       pot,
       {
-        departureTimeEndsAt: pot.departureAvailableEndTime,
+        departureTimeEndsAt: format(
+          pot.departureAvailableEndTime,
+          "M월 d일 a h시 m분",
+          { locale: ko },
+        ),
       },
     );
 
