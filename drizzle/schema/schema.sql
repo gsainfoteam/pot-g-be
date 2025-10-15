@@ -172,6 +172,13 @@ CREATE TABLE "refresh_token" (
     "updated_at"    timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE "user_consent" (
+    "user_fk"     uuid         NOT NULL,
+    "term"        varchar(255) NOT NULL,
+    "created_at"  timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"  timestamp with time zone NOT NULL DEFAULT NOW()
+);
+
 ALTER TABLE "users"
     ADD CONSTRAINT "PK_USERS" PRIMARY KEY ("pk");
 
@@ -214,6 +221,9 @@ ALTER TABLE "popo_chat_reservation"
 ALTER TABLE "refresh_token"
     ADD CONSTRAINT "PK_REFRESH_TOKEN" PRIMARY KEY ("opaque_hash");
 
+ALTER TABLE "user_consent"
+    ADD CONSTRAINT "PK_USER_CONSENT" PRIMARY KEY ("user_fk", "term");
+
 ALTER TABLE "user_pot_room"
     ADD CONSTRAINT "FK_users_TO_user_pot_room_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
 
@@ -249,6 +259,9 @@ ALTER TABLE "popo_chat_reservation"
 
 ALTER TABLE "popo_chat_reservation"
     ADD CONSTRAINT "FK_pot_room_TO_popo_chat_reservation_1" FOREIGN KEY ("pot_fk") REFERENCES "pot_room" ("pk");
+
+ALTER TABLE "user_consent"
+    ADD CONSTRAINT "FK_users_TO_user_consent_1" FOREIGN KEY ("user_fk") REFERENCES "users" ("pk");
 
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
     ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");

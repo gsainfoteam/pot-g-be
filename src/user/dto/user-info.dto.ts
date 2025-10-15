@@ -7,4 +7,5 @@ export class UserInfoDto {
   email: string;
   push_setting: PushSettingDto;
   accounting: AccountingDto;
+  terms: string[];
 }
