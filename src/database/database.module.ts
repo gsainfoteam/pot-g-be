@@ -15,6 +15,7 @@ import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.re
 import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
 import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
+import { AppVersionRepository } from "@src/database/repository/app-version.repository";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 
 @Module({
@@ -35,6 +36,7 @@ import { UserConsentRepository } from "@src/database/repository/user-consent.rep
     PopoChatMsgRepository,
     PopoChatReservationRepository,
     RefreshTokenRepository,
+    AppVersionRepository,
     UserConsentRepository,
   ],
   exports: [
@@ -53,6 +55,7 @@ import { UserConsentRepository } from "@src/database/repository/user-consent.rep
     PopoChatMsgRepository,
     PopoChatReservationRepository,
     RefreshTokenRepository,
+    AppVersionRepository,
     UserConsentRepository,
   ],
 })

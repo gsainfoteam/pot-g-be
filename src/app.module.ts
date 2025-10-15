@@ -10,6 +10,7 @@ import { PotModule } from "@src/pot/pot.module";
 import { WebsocketModule } from "@src/websocket/websocket.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { FcmModule } from "@src/fcm/fcm.module";
+import { AppVersionModule } from "@src/app-version/app-version.module";
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FcmModule } from "@src/fcm/fcm.module";
     WebsocketModule,
     ScheduleModule.forRoot(),
     FcmModule,
+    AppVersionModule,
   ],
   controllers: [],
   providers: [],

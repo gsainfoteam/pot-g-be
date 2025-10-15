@@ -179,6 +179,13 @@ CREATE TABLE "user_consent" (
     "updated_at"  timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE "app_version" (
+    "ios_min_version"    VARCHAR(32) NOT NULL,
+    "ios_latest_version" VARCHAR(32) NOT NULL,
+    "aos_min_version"    VARCHAR(32) NOT NULL,
+    "aos_latest_version" VARCHAR(32) NOT NULL
+);
+
 ALTER TABLE "users"
     ADD CONSTRAINT "PK_USERS" PRIMARY KEY ("pk");
 
