@@ -63,12 +63,14 @@ jobs:
         if [[ ${{ github.ref_name }} == dev-* ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-dev.yml" >> $GITHUB_ENV
+          echo "NGINX_FILE=nginx-dev.conf" >> $GITHUB_ENV
           echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-prod.yml" >> $GITHUB_ENV
+          echo "NGINX_FILE=nginx-prod.conf" >> $GITHUB_ENV
           echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
@@ -83,6 +85,15 @@ jobs:
         source: "deploy/${{ env.COMPOSE_FILE }}"
         target: ${{ env.DEPLOY_PATH }}
 
+    - name: Copy nginx.conf file to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        source: "deploy/${{ env.NGINX_FILE }}"
+        target: ${{ env.DEPLOY_PATH }}
+
     - name: Rename docker-compose file on server
       uses: appleboy/ssh-action@v1.2.2
       with:
@@ -92,7 +103,16 @@ jobs:
         script: |
           cd ${{ env.DEPLOY_PATH }}
           mv deploy/${{ env.COMPOSE_FILE }} ./docker-compose.yml
-          rm -rf deploy
+
+    - name: Rename nginx.conf file on server
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
+          cd ${{ env.DEPLOY_PATH }}
+          mv deploy/${{ env.NGINX_FILE }} ./nginx.conf
 
     - name: Output server status
       id: server-info
