@@ -63,14 +63,14 @@ jobs:
         if [[ ${{ github.ref_name }} == dev-* ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-dev.yml" >> $GITHUB_ENV
-          echo "NGINX_FILE=nginx-dev.yml" >> $GITHUB_ENV
+          echo "NGINX_FILE=nginx-dev.conf" >> $GITHUB_ENV
           echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-prod.yml" >> $GITHUB_ENV
-          echo "NGINX_FILE=nginx-prod.yml" >> $GITHUB_ENV
+          echo "NGINX_FILE=nginx-prod.conf" >> $GITHUB_ENV
           echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
