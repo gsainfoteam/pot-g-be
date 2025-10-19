@@ -37,7 +37,6 @@ import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
 import {
   addHours,
-  format,
   fromUnixTime,
   getUnixTime,
   subHours,
@@ -49,6 +48,7 @@ import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
 import { toDateFormatWithTimezone } from "@src/global/utils/convertDate";
 import { ko } from "date-fns/locale";
+import { formatInTimeZone } from "date-fns-tz/dist/esm";
 
 @Injectable()
 export class PotService {
@@ -98,20 +98,22 @@ export class PotService {
       await this.userPotRoomRepository.insert(userPotRoomEntity, tx);
     });
 
-    const popoDepartureConfirmChatMsg = this.popoService.getPopoChatMsgByType(
-      "popo-departure-confirm-request-v1",
-    );
+    const popoDepartureConfirmRequestChatMsg =
+      this.popoService.getPopoChatMsgByType(
+        "popo-departure-confirm-request-v1",
+      );
 
     if (subHours(req.starts_at, 6) > new Date()) {
       // starts_at 시간 6시간 전 메세지 발송 예약
       this.popoService.asyncReservePopoChatMsg(
-        popoDepartureConfirmChatMsg,
+        popoDepartureConfirmRequestChatMsg,
         subHours(req.starts_at, 6),
         null,
         pot,
         {
-          departureTimeEndsAt: format(
+          departureTimeEndsAt: formatInTimeZone(
             pot.departureAvailableEndTime,
+            "Asia/Seoul",
             "M월 d일 a h시 m분",
             { locale: ko },
           ),
@@ -633,9 +635,12 @@ export class PotService {
       null,
       pot,
       {
-        departureTimeEndsAt: format(pot.departureTime, "M월 d일 a h시 m분", {
-          locale: ko,
-        }),
+        departureTimeEndsAt: formatInTimeZone(
+          pot.departureAvailableEndTime,
+          "Asia/Seoul",
+          "M월 d일 a h시 m분",
+          { locale: ko },
+        ),
       },
     );
 

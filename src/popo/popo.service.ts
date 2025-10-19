@@ -105,12 +105,12 @@ export class PopoService implements OnModuleInit {
       return;
     }
 
-    const departureConfirmedPopoChatMsg = this.getPopoChatMsgByType(
-      "popo-departure-confirmed-v1",
+    const departureConfirmRequestPopoChatMsg = this.getPopoChatMsgByType(
+      "popo-departure-confirm-request-v1",
     );
 
     this.asyncSendPopoChatMsgToPotRoom(
-      departureConfirmedPopoChatMsg,
+      departureConfirmRequestPopoChatMsg,
       reservation.potFk,
       pot,
       reservation.formatArguments,
