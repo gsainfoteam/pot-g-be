@@ -636,7 +636,7 @@ export class PotService {
       pot,
       {
         departureTimeEndsAt: formatInTimeZone(
-          pot.departureAvailableEndTime,
+          pot.departureTime,
           "Asia/Seoul",
           "M월 d일 a h시 m분",
           { locale: ko },
