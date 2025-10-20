@@ -1,5 +1,6 @@
 import { Transform } from "class-transformer";
 import { parseSeoulDate } from "@src/global/utils/convertDate";
+import { BaseResultDto } from "@src/global/dto/base-result.dto";
 
 export class CreatePotReqDto {
   route_id: string;
@@ -10,6 +11,6 @@ export class CreatePotReqDto {
   max_count: number;
 }
 
-export class CreatePotResDto {
-  id: string;
+export class CreatePotResDto extends BaseResultDto {
+  id?: string;
 }
