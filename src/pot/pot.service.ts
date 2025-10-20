@@ -836,10 +836,6 @@ export class PotService {
   }
 
   private createPotRoomName(route: RouteEntity, potRoomPk: string): string {
-    return (
-      route.fromStop.nameKor[0] +
-      route.toStop.nameKor[0] +
-      potRoomPk.slice(0, 4)
-    );
+    return route.shortNameKor + potRoomPk.slice(0, 4);
   }
 }

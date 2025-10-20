@@ -14,7 +14,7 @@ export class RouteRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
-  SELECT r.pk,
+  SELECT r.pk, r.short_name_kor, r.short_name_eng,
          fs.pk, fs.name_kor, fs.name_eng,
          ts.pk, ts.name_kor, ts.name_eng
   FROM route as r
@@ -25,6 +25,8 @@ export class RouteRepository {
     const results = await this.dbService.db
       .select({
         routePk: route.pk,
+        shortNameKor: route.shortNameKor,
+        shortNameEng: route.shortNameEng,
         fromStopFk: fromStop.pk,
         fromStopNameKor: fromStop.nameKor,
         fromStopNameEng: fromStop.nameEng,
@@ -42,6 +44,8 @@ export class RouteRepository {
   private resultToRouteEntity(result: any): RouteEntity {
     return {
       pk: result.routePk,
+      shortNameKor: result.shortNameKor,
+      shortNameEng: result.shortNameEng,
       fromStopFk: result.fromStopFk,
       fromStop: {
         pk: result.fromStopFk,

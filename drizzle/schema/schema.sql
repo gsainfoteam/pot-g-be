@@ -86,11 +86,13 @@ CREATE TABLE "stops"
 
 CREATE TABLE "route"
 (
-    "pk"           uuid                     NOT NULL,
-    "from_stop_fk" uuid                     NOT NULL,
-    "to_stop_fk"   uuid                     NOT NULL,
-    "created_at"   timestamp with time zone NOT NULL DEFAULT NOW(),
-    "updated_at"   timestamp with time zone NOT NULL DEFAULT NOW()
+    "pk"             uuid                     NOT NULL,
+    "from_stop_fk"   uuid                     NOT NULL,
+    "to_stop_fk"     uuid                     NOT NULL,
+    "short_name_kor" varchar(64)              NOT NULL,
+    "short_name_eng" varchar(64)              NOT NULL,
+    "created_at"     timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"     timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "device" (
