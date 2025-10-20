@@ -97,7 +97,7 @@ export const AssertIfNotHost = (pot: Pot, userId: string) => {
 };
 
 export const AssertIfValidCapacity = (maxCapacity: number) => {
-  // 최대 인원 수는 1명 이상 4명 이하여야 한다.
+  // 최대 인원 수는 2명 이상 4명 이하여야 한다.
   if (maxCapacity < 2 || maxCapacity > POT_MAX_CAPACITY) {
     throw new PotEventError(BaseResultDto.InvalidCapacity);
   }
