@@ -1,6 +1,7 @@
 import { Pot } from "@src/pot/model/pot";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
+import { addWeeks } from "date-fns";
 
 const POT_MAX_CAPACITY = 4;
 
@@ -133,11 +134,8 @@ export const AssertIfValidDepartureAvailableTime = (
     throw new PotEventError(BaseResultDto.InvalidDepartureAvailableTime);
   }
 
-  // 출발 가능 종료 시간은 현재 시간 이후 30일 이내여야 한다.
-  if (
-    departureAvailableEndTime >
-    new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-  ) {
+  // 출발 가능 종료 시간은 현재 시간 이후 2주 이내여야 한다.
+  if (departureAvailableEndTime > addWeeks(now, 2)) {
     throw new PotEventError(BaseResultDto.TooFarDepartureAvailableTime);
   }
 };
