@@ -6,6 +6,8 @@ export class RouteEntity {
   fromStop?: StopsEntity;
   toStopFk?: string;
   toStop?: StopsEntity;
+  shortNameKor: string;
+  shortNameEng: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
