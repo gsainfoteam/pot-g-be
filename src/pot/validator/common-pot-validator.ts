@@ -95,13 +95,10 @@ export const AssertIfNotHost = (pot: Pot, userId: string) => {
   }
 };
 
-export const AssertIfValidCapacity = (
-  maxCapacity: number,
-  message?: string,
-) => {
+export const AssertIfValidCapacity = (maxCapacity: number) => {
   // 최대 인원 수는 1명 이상 4명 이하여야 한다.
   if (maxCapacity < 2 || maxCapacity > POT_MAX_CAPACITY) {
-    throw new Error(message || "Max capacity must be between 1 and 5");
+    throw new PotEventError(BaseResultDto.InvalidCapacity);
   }
 };
 
@@ -114,20 +111,17 @@ export const AssertIfPotFull = (pot: Pot) => {
 export const AssertIfValidDepartureAvailableTime = (
   departureAvailableStartTime: Date,
   departureAvailableEndTime: Date,
-  message?: string,
 ) => {
   // TODO: 귀찮아서 깨끗하게 안만듦
   const now = new Date();
   // 출발 가능 시간의 범위는 현재 시간 이후여야 한다.
   if (departureAvailableStartTime < now || departureAvailableEndTime < now) {
-    throw new Error(
-      message || "Departure start time or end time must be in the future",
-    );
+    throw new PotEventError(BaseResultDto.DepartureAvailableBeforeNow);
   }
 
   // 출발 가능 시작 시간은 출발 가능 종료 시간 이전이어야 한다.
   if (departureAvailableStartTime > departureAvailableEndTime) {
-    throw new Error(message || "Departure start time must be before end time");
+    throw new PotEventError(BaseResultDto.InvalidDepartureAvailableTime);
   }
 
   // 출발 가능 시작 시간과 출발 종료시간은 24시간 이상 차이날 수 없다
@@ -136,9 +130,7 @@ export const AssertIfValidDepartureAvailableTime = (
       departureAvailableStartTime.getTime() >
     24 * 60 * 60 * 1000
   ) {
-    throw new Error(
-      message || "Departure start time and end time must be within 24 hours",
-    );
+    throw new PotEventError(BaseResultDto.InvalidDepartureAvailableTime);
   }
 
   // 출발 가능 종료 시간은 현재 시간 이후 30일 이내여야 한다.
@@ -146,7 +138,7 @@ export const AssertIfValidDepartureAvailableTime = (
     departureAvailableEndTime >
     new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
   ) {
-    throw new Error(message || "Departure end time must be within one month");
+    throw new PotEventError(BaseResultDto.TooFarDepartureAvailableTime);
   }
 };
 

@@ -81,7 +81,15 @@ export class PotService {
       userCtx.userId,
     );
 
-    const pot = PotEventReducer.reduceFromInitial([potCreateEvent], true);
+    let pot: Pot;
+    try {
+      pot = PotEventReducer.reduceFromInitial([potCreateEvent], true);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return error.baseResultDto;
+      }
+      throw error; // 알 수 없는 오류는 다시 던짐
+    }
     const potRoomEntity: PotRoomEntity = pot.toPotRoomEntity();
 
     // userPotRoom Entity 생성
@@ -135,6 +143,7 @@ export class PotService {
 
     return {
       id: potRoomEntity.pk,
+      result: BaseResultDto.OK.result,
     };
   }
 

@@ -94,4 +94,24 @@ export class BaseResultDto {
     // 금액이 음수인 경우
     result: "CostCannotBeNegative",
   };
+
+  static InvalidCapacity: BaseResultDto = {
+    // 최대 인원수가 2보다 작거나 4보다 큰 경우
+    result: "InvalidCapacity",
+  };
+
+  static DepartureAvailableBeforeNow: BaseResultDto = {
+    // 출발 가능 시간의 범위는 현재 시간 이후여야 함
+    result: "DepartureAvailableBeforeNow",
+  };
+
+  static InvalidDepartureAvailableTime: BaseResultDto = {
+    // 출발 가능 시작 시간이 종료시간보다 늦거나 24시간 이상 차이나는 경우
+    result: "InvalidDepartureAvailableTime",
+  };
+
+  static TooFarDepartureAvailableTime: BaseResultDto = {
+    // 출발 가능 시간의 날짜가 지금으로부터 2주보다 뒤인 경우
+    result: "TooFarDepartureAvailableTime",
+  };
 }
