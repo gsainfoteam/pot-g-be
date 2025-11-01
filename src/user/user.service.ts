@@ -162,14 +162,24 @@ export class UserService {
     const userAlarmSetting =
       await this.userAlarmSettingRepository.findByDeviceFk(userCtx.devicePk);
     if (!userAlarmSetting) {
-      throw new Error("User alarm setting not found"); // TODO
+      const newUserAlarmSetting = {
+        deviceFk: userCtx.devicePk,
+        chatPush: req.chat_push ? req.chat_push : false,
+        marketingPush: req.marketing_push ? req.marketing_push : false,
+        potInOutPush: req.pot_in_out_push ? req.pot_in_out_push : false,
+      };
+
+      await this.dbService.db.transaction(async (tx: TxType) => {
+        await this.userAlarmSettingRepository.insert(newUserAlarmSetting, tx);
+      });
+      return {
+        chat_push: newUserAlarmSetting.chatPush,
+        marketing_push: newUserAlarmSetting.marketingPush,
+        pot_in_out_push: newUserAlarmSetting.potInOutPush,
+      };
     }
 
     let updated = false;
-    if (req.any_push != null && userAlarmSetting.anyPush !== req.any_push) {
-      userAlarmSetting.anyPush = req.any_push;
-      updated = true;
-    }
     if (req.chat_push != null && userAlarmSetting.chatPush !== req.chat_push) {
       userAlarmSetting.chatPush = req.chat_push;
       updated = true;
@@ -195,7 +205,6 @@ export class UserService {
     }
 
     return {
-      any_push: userAlarmSetting.anyPush,
       chat_push: userAlarmSetting.chatPush,
       marketing_push: userAlarmSetting.marketingPush,
       pot_in_out_push: userAlarmSetting.potInOutPush,
@@ -298,7 +307,6 @@ export class UserService {
     await this.userAlarmSettingRepository.insert(
       {
         deviceFk: device.pk,
-        anyPush: true, // 기본값은 true로 설정
         chatPush: true,
         marketingPush: true,
         potInOutPush: true,
