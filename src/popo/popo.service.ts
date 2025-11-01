@@ -20,7 +20,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
 import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
-import { asyncScheduler, scheduled } from "rxjs";
+import { asyncScheduler, catchError, defer, EMPTY, subscribeOn } from "rxjs";
 
 @Injectable()
 export class PopoService implements OnModuleInit {
@@ -218,7 +218,7 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
-    scheduled(
+    defer(() =>
       this.reservePopoChatMsg(
         popoChatMsg,
         sendAfter,
@@ -226,10 +226,15 @@ export class PopoService implements OnModuleInit {
         pot,
         formatArguments,
       ),
-      asyncScheduler,
-    ).subscribe({
-      error: (err) => console.error("Reserve PopoChatMsg failed:", err),
-    });
+    )
+      .pipe(
+        subscribeOn(asyncScheduler),
+        catchError((err) => {
+          this.logger.error("Reserve Popo Chat Msg Failed: ", err);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   async reservePopoChatMsg(
@@ -270,12 +275,17 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
-    scheduled(
+    defer(() =>
       this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot, formatArguments),
-      asyncScheduler,
-    ).subscribe({
-      error: (err) => console.error("Send PopoChatMsg failed:", err),
-    });
+    )
+      .pipe(
+        subscribeOn(asyncScheduler),
+        catchError((err) => {
+          this.logger.error("Send Popo Chat Msg Failed: ", err);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   async sendPopoChatMsgToPotRoom(
@@ -327,12 +337,15 @@ export class PopoService implements OnModuleInit {
     popoChatMsgType: PopoChatStringType,
     potPk: string,
   ) {
-    scheduled(
-      this.deletePopoChatReservation(popoChatMsgType, potPk),
-      asyncScheduler,
-    ).subscribe({
-      error: (err) => console.error("Send PopoChatMsg failed:", err),
-    });
+    defer(() => this.deletePopoChatReservation(popoChatMsgType, potPk))
+      .pipe(
+        subscribeOn(asyncScheduler),
+        catchError((err) => {
+          this.logger.error("Delete Popo Chat Reservation Failed: ", err);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   async deletePopoChatReservation(

@@ -3,7 +3,7 @@ import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { randomUUID } from "node:crypto";
-import { asyncScheduler, scheduled } from "rxjs";
+import { asyncScheduler, catchError, defer, EMPTY, subscribeOn } from "rxjs";
 import { DeviceRepository } from "@src/database/repository/device.repository";
 import { FcmService } from "@src/fcm/fcm.service";
 import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
@@ -30,17 +30,20 @@ export class BroadcastingService {
     if (userPks.length === 0) {
       return;
     }
-    scheduled(
+    defer(() =>
       this.broadcastPotEvent(potEventDto, userPks, potName, senderName),
-      asyncScheduler,
-    ).subscribe({
-      error: (err) => {
-        this.logger.error(
-          `Broadcast failed for event type ${potEventDto.event_type}:`,
-          err,
-        );
-      },
-    });
+    )
+      .pipe(
+        subscribeOn(asyncScheduler),
+        catchError((err) => {
+          this.logger.error(
+            `Broadcast failed for event type ${potEventDto.event_type}:`,
+            err,
+          );
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   async broadcastPotEvent(
