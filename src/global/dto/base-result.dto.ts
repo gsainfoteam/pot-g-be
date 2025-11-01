@@ -75,6 +75,11 @@ export class BaseResultDto {
     result: "BeforeNow",
   };
 
+  static BeforeDeparture: BaseResultDto = {
+    // 출발 확정 시간이 지나지 않은 경우
+    result: "BeforeDeparture",
+  };
+
   static NotInAvailableTimeRange: BaseResultDto = {
     // 출발 가능 시작 시간과 출발 가능 종료 시간 사이가 아닌 시간으로 시간을 확정하는 경우
     result: "NotInAvailableTimeRange",
