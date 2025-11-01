@@ -67,7 +67,6 @@ export class UserRepository {
 
   /*
   SELECT u.pk, u.name, u.email,
-         uas.any_push,
          uas.chat_push,
          uas.marketing_push,
          uas.pot_in_out_push,
@@ -85,7 +84,6 @@ export class UserRepository {
         pk: users.pk,
         name: users.name,
         email: users.email,
-        anyPush: userAlarmSetting.anyPush,
         chatPush: userAlarmSetting.chatPush,
         marketingPush: userAlarmSetting.marketingPush,
         potInOutPush: userAlarmSetting.potInOutPush,
@@ -109,7 +107,6 @@ export class UserRepository {
       name: userInfo.name,
       email: userInfo.email,
       pushSetting: {
-        any_push: userInfo.anyPush,
         chat_push: userInfo.chatPush,
         marketing_push: userInfo.marketingPush,
         pot_in_out_push: userInfo.potInOutPush,
