@@ -430,7 +430,7 @@ export class PotService {
         event_type: potUserInEvent.eventType,
         data: potUserInEvent.toDto(),
       },
-      pot.joinedUserPks,
+      pot.joinedUserPks.filter((userId) => userId !== userCtx.userId),
       pot.name,
     );
 
@@ -506,7 +506,7 @@ export class PotService {
         event_type: potUserLeaveEvent.eventType,
         data: potUserLeaveEvent.toDto(),
       },
-      [...pot.joinedUserPks, userCtx.userId],
+      pot.joinedUserPks,
     );
 
     // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
