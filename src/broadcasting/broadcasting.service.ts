@@ -71,6 +71,7 @@ export class BroadcastingService {
 
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
+    // TODO: 알람 설정도 같이 쿼리 필요
     const targetFcmTokens = (
       await this.deviceRepository.findFcmTokensByUserFks(pushAlarmTargetUserPks)
     ).filter((token) => token !== null && token !== "");
@@ -78,6 +79,9 @@ export class BroadcastingService {
     if (targetFcmTokens.length === 0) {
       return;
     }
+
+    // TODO: 추후 PotEvent 클래스쪽으로 아래 기능이 포함되어야 할듯
+    // PotEvent 클래스가 푸시알림을 보낼지 말지 알려주고, title 과 body 도 알려주도록
 
     // 채팅 관련 이벤트인 경우에만 푸시 알람 발송
     if (potEventDto.event_type === "chat_v1") {
@@ -104,6 +108,36 @@ export class BroadcastingService {
       } catch (e) {
         this.logger.error(
           "Failed to send FCM notification for popo_chat_v1:",
+          e,
+        );
+      }
+    } else if (potEventDto.event_type === "user_in_v1") {
+      // const potEventUserInV1Dto = potEventDto.data as PotEventUserInV1Dto;
+      try {
+        await this.fcmService.sendBulkPushNotification({
+          fcmTokens: targetFcmTokens,
+          title: `${potName}: 입퇴장 알림`,
+          body: "사용자가 채팅방에 입장했습니다.",
+          deepLink: this.createDeeplink(potEventDto.pot_pk),
+        });
+      } catch (e) {
+        this.logger.error("Failed to send FCM notification for user_in_v1:", e);
+      }
+    } else if (
+      potEventDto.event_type === "user_leave_v1" ||
+      potEventDto.event_type === "user_kick_v1"
+    ) {
+      // const potEventUserLeaveV1Dto = potEventDto.data as PotEventUserLeaveV1Dto;
+      try {
+        await this.fcmService.sendBulkPushNotification({
+          fcmTokens: targetFcmTokens,
+          title: `${potName}: 입퇴장 알림`,
+          body: "사용자가 채팅방에서 퇴장했습니다.",
+          deepLink: this.createDeeplink(potEventDto.pot_pk),
+        });
+      } catch (e) {
+        this.logger.error(
+          `Failed to send FCM notification for ${potEventDto.event_type}:`,
           e,
         );
       }

@@ -431,6 +431,7 @@ export class PotService {
         data: potUserInEvent.toDto(),
       },
       pot.joinedUserPks,
+      pot.name,
     );
 
     return BaseResultDto.OK;
