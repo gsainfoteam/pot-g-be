@@ -7,7 +7,7 @@ import {
   AssertIfValidDepartureTime,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
-import { parseSeoulDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convert-date";
 import { PotEventDepartureConfirmV1Dto } from "@src/pot/event/v1/dto/pot-event.departure-confirm.v1.dto";
 
 export type PotDepartureConfirmEventV1Schema = {

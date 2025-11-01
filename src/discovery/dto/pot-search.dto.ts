@@ -7,7 +7,7 @@ import {
   Min,
 } from "class-validator";
 import { Transform, Type } from "class-transformer";
-import { parseSeoulDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convert-date";
 
 export class PotSearchDto {
   @IsOptional()

@@ -46,7 +46,7 @@ import { PopoService } from "@src/popo/popo.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
-import { toDateFormatWithTimezone } from "@src/global/utils/convertDate";
+import { toDateFormatWithTimezone } from "@src/global/utils/convert-date";
 import { ko } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
 

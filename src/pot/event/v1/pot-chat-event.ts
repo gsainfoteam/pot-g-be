@@ -5,7 +5,7 @@ import {
   AssertIfUserInPot,
   AssertIfValidPot,
 } from "@src/pot/validator/common-pot-validator";
-import { parseSeoulDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convert-date";
 import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 
 export type PotChatEventV1Schema = {
