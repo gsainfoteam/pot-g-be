@@ -5,6 +5,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { device } from "../../../drizzle/schema/device";
 import { and, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
+import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 
 @Injectable()
 export class DeviceRepository {
@@ -51,15 +52,23 @@ export class DeviceRepository {
   }
 
   /*
-  SELECT fcm_token FROM device WHERE user_fk in (?1);
+  // TODO: LEFT OUTER JOIN + in array 조합이라 마음에 들지 않음
+  SELECT d.fcm_token, uas.chat_push, uas.marketing_push, uas.pot_in_out_push
+  FROM device AS d
+    LEFT OUTER JOIN user_alarm_setting AS uas ON d.pk = uas.device_fk
+  WHERE d.user_fk in (?1);
    */
-  async findFcmTokensByUserFks(userFks: string[]): Promise<string[]> {
-    const results = await this.dbService.db
-      .select({ fcmToken: device.fcmToken })
+  async findFcmTokensByUserFks(userFks: string[]) {
+    return await this.dbService.db
+      .select({
+        fcmToken: device.fcmToken,
+        chatPush: userAlarmSetting.chatPush,
+        marketingPush: userAlarmSetting.marketingPush,
+        potInOutPush: userAlarmSetting.potInOutPush,
+      })
       .from(device)
+      .leftJoin(userAlarmSetting, eq(device.pk, userAlarmSetting.deviceFk))
       .where(inArray(device.userFk, userFks));
-
-    return results.map((result) => result.fcmToken);
   }
 
   async insert(

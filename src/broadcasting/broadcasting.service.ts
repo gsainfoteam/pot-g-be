@@ -119,7 +119,9 @@ export class BroadcastingService {
     const potEventChatV1Dto = potEventDto.data as PotEventChatV1Dto;
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens,
+      targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.chatPush)
+        .map((tokenInfo) => tokenInfo.fcmToken),
       `${potName}: ${senderName}`,
       potEventChatV1Dto.content,
     );
@@ -141,7 +143,9 @@ export class BroadcastingService {
     const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens,
+      targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.chatPush)
+        .map((tokenInfo) => tokenInfo.fcmToken),
       `${potName}: 포포`,
       potEventPopoChatV1Dto.content,
     );
@@ -162,7 +166,9 @@ export class BroadcastingService {
 
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens,
+      targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
+        .map((tokenInfo) => tokenInfo.fcmToken),
       `${potName}: 입퇴장 알림`,
       "사용자가 채팅방에 입장했습니다.",
     );
@@ -188,7 +194,9 @@ export class BroadcastingService {
 
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens,
+      targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
+        .map((tokenInfo) => tokenInfo.fcmToken),
       `${potName}: 입퇴장 알림`,
       "사용자가 채팅방에서 퇴장했습니다.",
     );
@@ -212,28 +220,40 @@ export class BroadcastingService {
 
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens,
+      targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
+        .map((tokenInfo) => tokenInfo.fcmToken),
       `${potName}: 입퇴장 알림`,
       "사용자가 채팅방에서 퇴장했습니다.",
     );
 
     await this.sendPushToUser(
       potEventDto,
-      kickedUserFcmTokens,
+      kickedUserFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
+        .map((tokenInfo) => tokenInfo.fcmToken),
       `${potName}: 강퇴 알림`,
       "사용자가 채팅방에서 강퇴되었습니다.",
     );
   }
 
-  private async getFcmTokensForUsers(userPks: string[]): Promise<string[]> {
+  private async getFcmTokensForUsers(userPks: string[]) {
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
-    // TODO: 알람 설정도 같이 쿼리 필요
-    const targetFcmTokens = (
-      await this.deviceRepository.findFcmTokensByUserFks(userPks)
-    ).filter((token) => token !== null && token !== "");
-
-    return targetFcmTokens;
+    return (await this.deviceRepository.findFcmTokensByUserFks(userPks)).filter(
+      (tokenInfo) => {
+        if (tokenInfo.fcmToken !== null && tokenInfo.fcmToken !== "") {
+          return true;
+        }
+        if (
+          tokenInfo.chatPush ||
+          tokenInfo.marketingPush ||
+          tokenInfo.potInOutPush
+        ) {
+          return true;
+        }
+      },
+    );
   }
 
   private async sendPushToUser(
