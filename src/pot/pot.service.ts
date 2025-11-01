@@ -507,6 +507,7 @@ export class PotService {
         data: potUserLeaveEvent.toDto(),
       },
       pot.joinedUserPks,
+      pot.name,
     );
 
     // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
@@ -573,6 +574,7 @@ export class PotService {
         data: potUserKickEvent.toDto(),
       },
       [...pot.joinedUserPks, targetUserId],
+      pot.name,
     );
 
     return BaseResultDto.OK;
