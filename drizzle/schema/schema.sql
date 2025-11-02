@@ -80,6 +80,8 @@ CREATE TABLE "stops"
     "pk"         uuid                     NOT NULL,
     "name_kor"   varchar(127)             NOT NULL,
     "name_eng"   varchar(127)             NOT NULL,
+    "lat"        double precision         NOT NULL,
+    "lng"        double precision         NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
