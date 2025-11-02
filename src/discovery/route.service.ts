@@ -40,8 +40,18 @@ export class RouteService implements OnModuleInit {
   routeEntityToDto(route: RouteEntity): RouteDto {
     return {
       id: route.pk,
-      from: this.stopEntityToDto(route.fromStop),
-      to: this.stopEntityToDto(route.toStop),
+      from: {
+        id: route.fromStopFk,
+        name: route.fromStop.nameKor,
+        lat: route.fromStop.lat,
+        lng: route.fromStop.lng,
+      },
+      to: {
+        id: route.toStopFk,
+        name: route.toStop.nameKor,
+        lat: route.toStop.lat,
+        lng: route.toStop.lng,
+      },
     };
   }
 
