@@ -10,4 +10,5 @@ export class DeviceEntity {
   version: string;
   createdAt?: Date;
   updatedAt?: Date;
+  loggedIn: boolean;
 }

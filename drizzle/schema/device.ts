@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 import { userAlarmSetting } from "./user-alarm-setting";
@@ -12,7 +19,8 @@ CREATE TABLE "device" (
     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "device_id"  varchar(64)              NOT NULL,
-    "fcm_token"  text                     NOT NULL
+    "fcm_token"  text                     NOT NULL,
+    "logged_in " boolean                  NOT NULL DEFAULT FALSE
 );
 */
 export const device = pgTable("device", {
@@ -28,6 +36,7 @@ export const device = pgTable("device", {
     .defaultNow(),
   deviceId: varchar("device_id", { length: 64 }).notNull(),
   fcmToken: text("fcm_token").notNull(),
+  loggedIn: boolean("logged_in").notNull().default(false),
 });
 
 export const deviceRelations = relations(device, ({ one, many }) => ({

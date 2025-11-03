@@ -84,6 +84,7 @@ export class DeviceRepository {
         fcmToken: deviceEntity.fcmToken,
         os: deviceEntity.os,
         version: deviceEntity.version,
+        loggedIn: deviceEntity.loggedIn,
       })
       .returning();
 
@@ -103,6 +104,7 @@ export class DeviceRepository {
         os: deviceEntity.os,
         version: deviceEntity.version,
         updatedAt: new Date(),
+        loggedIn: deviceEntity.loggedIn,
       })
       .where(eq(device.pk, deviceEntity.pk));
   }
@@ -117,6 +119,7 @@ export class DeviceRepository {
       version: result.version,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      loggedIn: result.loggedIn,
     };
   }
 }
