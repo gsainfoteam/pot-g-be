@@ -25,6 +25,8 @@ import { UserEntity } from "@src/database/entity/user.entity";
 import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
+import { LogoutRequestDto } from "@src/user/dto/logout.dto";
+import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 
 @Injectable()
 export class UserService {
@@ -36,6 +38,7 @@ export class UserService {
     private readonly deviceRepository: DeviceRepository,
     private readonly userAlarmSettingRepository: UserAlarmSettingRepository,
     private readonly userConsentRepository: UserConsentRepository,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async login(
@@ -255,6 +258,32 @@ export class UserService {
 
     await this.dbService.db.transaction(async (tx: TxType) => {
       await this.userConsentRepository.bulkInsert(newUserConsents, tx);
+    });
+
+    return BaseResultDto.OK;
+  }
+
+  async logout(
+    req: LogoutRequestDto,
+    userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    const device = await this.deviceRepository.findByPkAndUserFk(
+      userCtx.devicePk,
+      userCtx.userId,
+    );
+
+    if (!device) {
+      return BaseResultDto.OK;
+    }
+
+    device.loggedIn = false;
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.refreshTokenRepository.deleteByOpaqueHash(
+        req.refresh_token,
+        tx,
+      );
+      await this.deviceRepository.update(device, tx);
     });
 
     return BaseResultDto.OK;

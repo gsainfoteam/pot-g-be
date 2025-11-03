@@ -13,6 +13,7 @@ import { UserGuard } from "@src/auth/guard/user.guard";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
 import { UserContext } from "@src/auth/user-context.entity";
 import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
+import { LogoutRequestDto } from "@src/user/dto/logout.dto";
 
 @Controller("/api/v1/user")
 export class UserController {
@@ -64,5 +65,14 @@ export class UserController {
     @GetUser() userCtx: UserContext,
   ): Promise<BaseResultDto> {
     return this.userService.consent(req, userCtx);
+  }
+
+  @Post("/logout")
+  @UseGuards(UserGuard)
+  async logout(
+    @Body() req: LogoutRequestDto,
+    @GetUser() userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    return this.userService.logout(req, userCtx);
   }
 }

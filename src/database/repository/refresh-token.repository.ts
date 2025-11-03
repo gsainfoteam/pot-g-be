@@ -50,6 +50,12 @@ export class RefreshTokenRepository {
     return this.resultToRefreshTokenEntity(insertedRefreshToken);
   }
 
+  async deleteByOpaqueHash(opaqueHash: string, tx: TxType): Promise<void> {
+    await tx
+      .delete(refreshToken)
+      .where(eq(refreshToken.opaqueHash, opaqueHash));
+  }
+
   private resultToRefreshTokenEntity(result: any): RefreshTokenEntity {
     return {
       opaqueHash: result.opaqueHash,
