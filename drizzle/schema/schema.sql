@@ -274,3 +274,5 @@ ALTER TABLE "user_consent"
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
     ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
 
+ALTER TABLE "device"
+    ADD COLUMN "logged_in" boolean NOT NULL DEFAULT FALSE;

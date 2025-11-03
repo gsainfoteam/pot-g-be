@@ -56,7 +56,7 @@ export class DeviceRepository {
   SELECT d.fcm_token, uas.chat_push, uas.marketing_push, uas.pot_in_out_push
   FROM device AS d
     LEFT OUTER JOIN user_alarm_setting AS uas ON d.pk = uas.device_fk
-  WHERE d.user_fk in (?1);
+  WHERE d.user_fk in (?1) AND d.logged_in = true;
    */
   async findFcmTokensByUserFks(userFks: string[]) {
     return await this.dbService.db
@@ -68,7 +68,7 @@ export class DeviceRepository {
       })
       .from(device)
       .leftJoin(userAlarmSetting, eq(device.pk, userAlarmSetting.deviceFk))
-      .where(inArray(device.userFk, userFks));
+      .where(and(inArray(device.userFk, userFks), eq(device.loggedIn, true)));
   }
 
   async insert(
@@ -84,6 +84,7 @@ export class DeviceRepository {
         fcmToken: deviceEntity.fcmToken,
         os: deviceEntity.os,
         version: deviceEntity.version,
+        loggedIn: deviceEntity.loggedIn,
       })
       .returning();
 
@@ -103,6 +104,7 @@ export class DeviceRepository {
         os: deviceEntity.os,
         version: deviceEntity.version,
         updatedAt: new Date(),
+        loggedIn: deviceEntity.loggedIn,
       })
       .where(eq(device.pk, deviceEntity.pk));
   }
@@ -117,6 +119,7 @@ export class DeviceRepository {
       version: result.version,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      loggedIn: result.loggedIn,
     };
   }
 }
