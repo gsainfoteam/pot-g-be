@@ -20,7 +20,7 @@ CREATE TABLE "device" (
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "device_id"  varchar(64)              NOT NULL,
     "fcm_token"  text                     NOT NULL,
-    "logged_in " boolean                  NOT NULL DEFAULT FALSE
+    "logged_in" boolean                  NOT NULL DEFAULT FALSE
 );
 */
 export const device = pgTable("device", {
