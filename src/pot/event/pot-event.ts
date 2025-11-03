@@ -1,126 +1,154 @@
 import type { Pot } from "@src/pot/model/pot";
 import { potEvent, PotEventStringType } from "drizzle/schema/pot-event";
-import { PotCreateEventV1, PotCreateEventV1Dto } from "./pot-create-event";
-import { PotUserInEventV1, PotUserInEventV1Dto } from "./pot-user-in-event";
+import {
+  PotCreateEventV1,
+  PotCreateEventV1Schema,
+} from "./v1/pot-create-event";
+import {
+  PotUserInEventV1,
+  PotUserInEventV1Schema,
+} from "./v1/pot-user-in-event";
 import {
   PotDepartureConfirmEventV1,
-  PotDepartureConfirmEventV1Dto,
-} from "./pot-departure-confirm-event";
+  PotDepartureConfirmEventV1Schema,
+} from "./v1/pot-departure-confirm-event";
 import {
   PotUserKickEventV1,
-  PotUserKickEventV1Dto,
-} from "./pot-user-kick-event";
-import { PotArchiveEventV1, PotArchiveEventV1Dto } from "./pot-archive-event";
-import { PotUserLeaveEventV1, PotUserLeaveEventV1Dto } from "./pot-leave-event";
+  PotUserKickEventV1Schema,
+} from "./v1/pot-user-kick-event";
+import {
+  PotArchiveEventV1,
+  PotArchiveEventV1Schema,
+} from "./v1/pot-archive-event";
+import {
+  PotUserLeaveEventV1,
+  PotUserLeaveEventV1Schema,
+} from "./v1/pot-user-leave-event";
 import {
   PotAccountingConfirmEventV1,
-  PotAccountingConfirmEventV1Dto,
-} from "./pot-accounting-confirm-event";
+  PotAccountingConfirmEventV1Schema,
+} from "./v1/pot-accounting-confirm-event";
 import {
   PotAccountingRequestEventV1,
-  PotAccountingRequestEventV1Dto,
-} from "./pot-accounting-request-event";
+  PotAccountingRequestEventV1Schema,
+} from "./v1/pot-accounting-request-event";
 import {
   PotChatEventV1,
-  PotChatEventV1Dto,
-} from "@src/pot/event/pot-chat-event";
+  PotChatEventV1Schema,
+} from "@src/pot/event/v1/pot-chat-event";
+import {
+  PotPopoChatEventV1,
+  PotPopoChatEventV1Schema,
+} from "@src/pot/event/v1/pot-popo-chat-event";
 
-export interface PotEvent<T> {
+export interface PotEvent<S, D> {
   //Metadata of event
-  potPk: string;
+  potRoomPk: string;
   eventType: PotEventStringType;
   timestamp: Date;
+  id?: number; // DB 에서 자동 생성됨.
 
   //RealData of Event
-  data: T;
-  dispatcher: (room: Pot, data: T) => Pot;
+  data: S;
+  dispatcher(pot: Pot, data: S): Pot;
+  validate(pot: Pot, data: S): void;
+  toDto(): D;
 }
 
 export type PotEventEntityInsert = typeof potEvent.$inferInsert;
 export type PotEventEntitySelect = typeof potEvent.$inferSelect;
 
 export class PotEventFactory {
-  static toEntity(event: PotEvent<any>): PotEventEntityInsert {
+  static toEntity(event: PotEvent<any, any>): PotEventEntityInsert {
+    // insert 시에는 id 가 없어야 합니다. (db 에서 자동생성 되도록)
     return {
-      potFk: event.potPk,
+      potFk: event.potRoomPk,
       timestamp: event.timestamp,
       type: event.eventType,
       data: event.data,
     };
   }
 
-  static toModel(entity: PotEventEntitySelect): PotEvent<any> {
+  static toModel(entity: PotEventEntitySelect): PotEvent<any, any> {
     switch (entity.type) {
       case "create_v1": {
-        const data = entity.data as PotCreateEventV1Dto;
         return PotCreateEventV1.generatePotCreateEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotCreateEventV1Schema,
+          entity.id,
         );
       }
       case "chat_v1": {
-        const data = entity.data as PotChatEventV1Dto;
         return PotChatEventV1.generatePotChatEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotChatEventV1Schema,
+          entity.id,
         );
       }
       case "user_in_v1": {
-        const data = entity.data as PotUserInEventV1Dto;
         return PotUserInEventV1.generatePotUserInEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotUserInEventV1Schema,
+          entity.id,
         );
       }
       case "departure_confirm_v1": {
-        const data = entity.data as PotDepartureConfirmEventV1Dto;
         return PotDepartureConfirmEventV1.generatePotDepartureConfirmEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotDepartureConfirmEventV1Schema,
+          entity.id,
         );
       }
       case "user_kick_v1": {
-        const data = entity.data as PotUserKickEventV1Dto;
         return PotUserKickEventV1.generatePotUserKickEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotUserKickEventV1Schema,
+          entity.id,
         );
       }
       case "archive_v1": {
-        const data = entity.data as PotArchiveEventV1Dto;
         return PotArchiveEventV1.generatePotArchiveEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotArchiveEventV1Schema,
+          entity.id,
         );
       }
       case "user_leave_v1": {
-        const data = entity.data as PotUserLeaveEventV1Dto;
-        return PotUserLeaveEventV1.generatePotUserOutEvent(
+        return PotUserLeaveEventV1.generatePotUserLeaveEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotUserLeaveEventV1Schema,
+          entity.id,
         );
       }
       case "accounting_confirm_v1": {
-        const data = entity.data as PotAccountingConfirmEventV1Dto;
         return PotAccountingConfirmEventV1.generatePotAccountingConfirmEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotAccountingConfirmEventV1Schema,
+          entity.id,
         );
       }
       case "accounting_request_v1": {
-        const data = entity.data as PotAccountingRequestEventV1Dto;
         return PotAccountingRequestEventV1.generatePotAccountingRequestEvent(
           entity.potFk,
           entity.timestamp,
-          data,
+          entity.data as PotAccountingRequestEventV1Schema,
+          entity.id,
+        );
+      }
+      case "popo_chat_v1": {
+        return PotPopoChatEventV1.generateEvent(
+          entity.potFk,
+          entity.timestamp,
+          entity.data as PotPopoChatEventV1Schema,
+          entity.id,
         );
       }
     }

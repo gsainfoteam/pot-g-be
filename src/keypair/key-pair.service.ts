@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { JwtKeyPairRepository } from "@src/keypair/jwt-key-pair.repository";
+import { JwtKeyPairRepository } from "@src/database/repository/jwt-key-pair.repository";
 
 @Injectable()
 export class KeyPairService {

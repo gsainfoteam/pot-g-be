@@ -2,18 +2,21 @@ import {
   index,
   jsonb,
   pgEnum,
+  pgSequence,
   pgTable,
   primaryKey,
+  smallint,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { potRoom } from "./pot-room";
 
 // potEventType 의 추가는 반드시 맨 아래에 추가 되어야 합니다.
 export const potEventType = pgEnum("pot_event_type", [
   "create_v1",
   "chat_v1",
+  "popo_chat_v1",
   "user_in_v1",
   "user_leave_v1",
   "user_kick_v1",
@@ -23,15 +26,32 @@ export const potEventType = pgEnum("pot_event_type", [
   "archive_v1",
 ]);
 
+/*
+CREATE SEQUENCE "pot_event_id"
+  START WITH 0
+  MINVALUE 0
+  MAXVALUE 10000
+  CYCLE
+  CACHE 1;
+ */
+export const potEventIdSequence = pgSequence("pot_event_id", {
+  startWith: 0,
+  maxValue: 10000,
+  minValue: 0,
+  cycle: true,
+  cache: 1,
+});
+
 export type PotEventStringType = (typeof potEventType.enumValues)[number];
 
 /*
 CREATE TABLE "pot_event" (
     "pot_fk"        uuid                     NOT NULL,
     "timestamp"     timestamp with time zone NOT NULL,
+    "id"            smallint                 NOT NULL DEFAULT nextval('pot_event_id'),
     "type"          pot_event_type           NOT NULL,
     "data"          jsonb                    NOT NULL,
-    PRIMARY KEY ("pot_fk", "timestamp")
+    PRIMARY KEY ("pot_fk", "timestamp", "id")
 );
 CREATE INDEX "idx_pot_event_pot_fk_type" ON "pot_event" ("pot_fk", "type");
 
@@ -43,11 +63,14 @@ export const potEvent = pgTable(
   {
     potFk: uuid("pot_fk").notNull(),
     timestamp: timestamp("timestamp", { withTimezone: true }).notNull(),
+    id: smallint("id")
+      .default(sql`nextval('pot_event_id')`)
+      .notNull(),
     type: potEventType("type").notNull(),
     data: jsonb("data").notNull(),
   },
   (table) => [
-    primaryKey({ columns: [table.potFk, table.timestamp] }),
+    primaryKey({ columns: [table.potFk, table.timestamp, table.id] }),
     index("idx_pot_event_pot_fk_type").on(table.potFk, table.type),
   ],
 );

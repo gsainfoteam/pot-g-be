@@ -63,31 +63,56 @@ jobs:
         if [[ ${{ github.ref_name }} == dev-* ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-dev.yml" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ secrets.DEV_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ secrets.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "NGINX_FILE=nginx-dev.conf" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-prod.yml" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ secrets.PROD_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ secrets.PROD_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "NGINX_FILE=nginx-prod.conf" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
         fi
-
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        if [[ ${{ github.ref_name }} == dev-* ]]; then
-          echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        else
-          echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        fi
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
 
     - name: Copy docker-compose file to server
-      run: |
-        scp -i ~/.ssh/id_rsa deploy/$COMPOSE_FILE $SERVER_USER@$SERVER_HOST:$DEPLOY_PATH/docker-compose.yml
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        source: "deploy/${{ env.COMPOSE_FILE }}"
+        target: ${{ env.DEPLOY_PATH }}
+
+    - name: Copy nginx.conf file to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        source: "deploy/${{ env.NGINX_FILE }}"
+        target: ${{ env.DEPLOY_PATH }}
+
+    - name: Rename docker-compose file on server
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
+          cd ${{ env.DEPLOY_PATH }}
+          mv deploy/${{ env.COMPOSE_FILE }} ./docker-compose.yml
+
+    - name: Rename nginx.conf file on server
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
+          cd ${{ env.DEPLOY_PATH }}
+          mv deploy/${{ env.NGINX_FILE }} ./nginx.conf
 
     - name: Output server status
       id: server-info
@@ -103,14 +128,14 @@ jobs:
       run: |
         if [[ ${{ github.ref_name }} == dev-* ]]; then
           echo "ENVIRONMENT=dev" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ secrets.DEV_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ secrets.DEV_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ secrets.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
-          echo "SERVER_HOST=${{ secrets.PROD_SERVER_HOST }}" >> $GITHUB_ENV
-          echo "SERVER_USER=${{ secrets.PROD_SERVER_USER }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
+          echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
         fi
         echo "IMAGE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
         echo "IMAGE_URI=${{ needs.build-and-push.outputs.image-uri }}" >> $GITHUB_ENV
@@ -126,45 +151,32 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        if [[ ${{ github.ref_name }} == dev-* ]]; then
-          echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        else
-          echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        fi
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
-
     - name: Deploy to server
-      run: |
-        ssh -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST << 'EOF'
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ env.SERVER_HOST }}
+        username: ${{ env.SERVER_USER }}
+        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        script: |
           cd ${{ env.DEPLOY_PATH }}
           
           # AWS CLI 설정 (서버에 AWS CLI가 설치되어 있다고 가정)
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
           
           # 새 이미지 pull (서비스 실행 중에 미리 받아두기)
-          docker pull ${{ env.IMAGE_URI }}
+          sudo docker pull ${{ env.IMAGE_URI }}
           
           # 현재 latest 이미지를 previous로 백업
-          docker tag potg-backend:latest potg-backend:previous || true
+          sudo docker tag potg-backend:latest potg-backend:previous || true
           
           # potg-backend 서비스만 중지 (다운타임 시작)
-          docker-compose stop potg-backend
+          sudo docker compose stop potg-backend
           
           # 기존 latest 이미지 삭제
-          docker rmi potg-backend:latest || true
+          sudo docker rmi potg-backend:latest || true
           
           # 새 이미지를 latest로 태그 (로컬 이름으로)
-          docker tag ${{ env.IMAGE_URI }} potg-backend:latest
+          sudo docker tag ${{ env.IMAGE_URI }} potg-backend:latest
           
           # potg-backend 서비스만 시작 (다운타임 종료)
-          docker-compose up -d potg-backend
-        EOF
-
-    - name: Cleanup SSH key
-      if: always()
-      run: |
-        rm -f ~/.ssh/id_rsa
+          sudo docker compose up -d potg-backend

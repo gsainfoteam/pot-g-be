@@ -6,16 +6,21 @@ import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserContext } from "@src/auth/user-context.entity";
 import { InfoteamIdpService } from "@lib/infoteam-idp";
-import { UserRepository } from "@src/user/repository/user.repository";
+import { UserRepository } from "@src/database/repository/user.repository";
 import { AuthService } from "@src/auth/auth.service";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
-import { DeviceRepository } from "@src/user/repository/device.repository";
-import { UserAlarmSettingRepository } from "@src/user/repository/user-alarm-setting.repository";
+import { DeviceRepository } from "@src/database/repository/device.repository";
+import { UserAlarmSettingRepository } from "@src/database/repository/user-alarm-setting.repository";
 import {
   RefreshRequestDto,
   RefreshResponseDto,
 } from "@src/user/dto/refresh.dto";
+import { DeviceEntity } from "@src/database/entity/device.entity";
+import { UserEntity } from "@src/database/entity/user.entity";
+import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
+import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
+import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
 
 @Injectable()
 export class UserService {
@@ -26,6 +31,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly deviceRepository: DeviceRepository,
     private readonly userAlarmSettingRepository: UserAlarmSettingRepository,
+    private readonly userConsentRepository: UserConsentRepository,
   ) {}
 
   async login(
@@ -39,13 +45,27 @@ export class UserService {
     } = await this.idpService.validateAccessToken(idpToken);
 
     let user = await this.userRepository.findUserByIdpSub(sub);
-    if (!user) {
-      // 사용자가 존재하지 않는 경우, 새로 생성합니다.
-      user = await this.createNewUser(sub, name, email);
-    }
+    let device: DeviceEntity;
 
-    const { accessToken, refreshToken } =
-      await this.authService.createNewJwtToken(user);
+    const { accessToken, refreshToken } = await this.dbService.db.transaction(
+      async (tx: TxType) => {
+        if (!user) {
+          // 사용자가 존재하지 않는 경우, 새로 생성합니다.
+          user = await this.createNewUser(sub, name, email, tx);
+          device = await this.createNewDevice(user, req.device_id, tx);
+        } else {
+          device = await this.deviceRepository.findByDeviceIdAndUserFk(
+            req.device_id,
+            user.pk,
+          );
+          if (!device) {
+            device = await this.createNewDevice(user, req.device_id, tx);
+          }
+        }
+
+        return await this.authService.createNewJwtToken(user, device, tx);
+      },
+    );
 
     return {
       access_token: accessToken,
@@ -54,7 +74,7 @@ export class UserService {
   }
 
   async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
-    const { userId } = await this.authService.validateRefreshToken(
+    const { userId, devicePk } = await this.authService.validateOpaqueHash(
       req.refresh_token,
     );
     if (!userId) {
@@ -66,7 +86,10 @@ export class UserService {
       throw new Error("User not found"); // TODO
     }
 
-    const { accessToken } = await this.authService.refreshAccessToken(user);
+    const { accessToken } = await this.authService.refreshAccessToken(
+      user,
+      devicePk,
+    );
     return { access_token: accessToken };
   }
 
@@ -78,7 +101,7 @@ export class UserService {
     const { fcm_token: fcmToken, os, version } = req;
 
     const device = await this.deviceRepository.findByPkAndUserFk(
-      userCtx.deviceId,
+      userCtx.devicePk,
       userCtx.userId,
     );
     if (!device) {
@@ -112,20 +135,23 @@ export class UserService {
   }
 
   async getUserInfo(userCtx: UserContext): Promise<UserInfoDto> {
-    // 사용자 정보를 조회합니다.
-    const userInfo = await this.userRepository.getUserInfoByPk(
-      userCtx.userId,
-      userCtx.deviceId,
-    );
+    // 사용자 정보와 이용약관 동의 여부를 조회합니다.
+    const [userInfo, userConsents] = await Promise.all([
+      this.userRepository.getUserInfoByPk(userCtx.userId, userCtx.devicePk),
+      this.userConsentRepository.findByUserFk(userCtx.userId),
+    ]);
+
     if (!userInfo) {
       throw new Error("User not found"); // TODO
     }
 
     return {
+      id: userInfo.pk,
       name: userInfo.name,
       email: userInfo.email,
       push_setting: userInfo.pushSetting,
       accounting: userInfo.accounting,
+      terms: userConsents.map((consent) => consent.term),
     };
   }
 
@@ -134,29 +160,39 @@ export class UserService {
     userCtx: UserContext,
   ): Promise<PushSettingDto> {
     const userAlarmSetting =
-      await this.userAlarmSettingRepository.findByDeviceFk(userCtx.deviceId);
+      await this.userAlarmSettingRepository.findByDeviceFk(userCtx.devicePk);
     if (!userAlarmSetting) {
-      throw new Error("User alarm setting not found"); // TODO
+      const newUserAlarmSetting = {
+        deviceFk: userCtx.devicePk,
+        chatPush: req.chat_push ? req.chat_push : false,
+        marketingPush: req.marketing_push ? req.marketing_push : false,
+        potInOutPush: req.pot_in_out_push ? req.pot_in_out_push : false,
+      };
+
+      await this.dbService.db.transaction(async (tx: TxType) => {
+        await this.userAlarmSettingRepository.insert(newUserAlarmSetting, tx);
+      });
+      return {
+        chat_push: newUserAlarmSetting.chatPush,
+        marketing_push: newUserAlarmSetting.marketingPush,
+        pot_in_out_push: newUserAlarmSetting.potInOutPush,
+      };
     }
 
     let updated = false;
-    if (!!req.any_push && userAlarmSetting.anyPush !== req.any_push) {
-      userAlarmSetting.anyPush = req.any_push;
-      updated = true;
-    }
-    if (!!req.chat_push && userAlarmSetting.chatPush !== req.chat_push) {
+    if (req.chat_push != null && userAlarmSetting.chatPush !== req.chat_push) {
       userAlarmSetting.chatPush = req.chat_push;
       updated = true;
     }
     if (
-      !!req.marketing_push &&
+      req.marketing_push != null &&
       userAlarmSetting.marketingPush !== req.marketing_push
     ) {
       userAlarmSetting.marketingPush = req.marketing_push;
       updated = true;
     }
     if (
-      !!req.pot_in_out_push &&
+      req.pot_in_out_push != null &&
       userAlarmSetting.potInOutPush !== req.pot_in_out_push
     ) {
       userAlarmSetting.potInOutPush = req.pot_in_out_push;
@@ -169,7 +205,6 @@ export class UserService {
     }
 
     return {
-      any_push: userAlarmSetting.anyPush,
       chat_push: userAlarmSetting.chatPush,
       marketing_push: userAlarmSetting.marketingPush,
       pot_in_out_push: userAlarmSetting.potInOutPush,
@@ -189,46 +224,96 @@ export class UserService {
     return BaseResultDto.OK;
   }
 
-  private async createNewUser(sub: string, name: string, email: string) {
-    return await this.dbService.db.transaction(async (tx: TxType) => {
-      const user = await this.userRepository.insert(
-        {
-          isDeleted: false,
-          idpSub: sub,
-          name,
-          email,
-        },
-        tx,
-      );
+  async consent(
+    req: UpdateConsentDto,
+    userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    const userConsents = await this.userConsentRepository.findByUserFk(
+      userCtx.userId,
+    );
 
-      if (!user) {
-        throw new Error("Failed to create new user"); // TODO
-      }
+    // Normalize inputs and dedupe against existing consents
+    const requiredTerms = req.required_terms ?? [];
+    const optionalTerms = req.optional_terms ?? [];
+    const existingTerms = new Set(userConsents.map((uc) => uc.term));
 
-      // insert device
-      const device = await this.deviceRepository.insert(
-        {
-          userFk: user.pk,
-          fcmToken: "", // 초기값은 빈 문자열로 설정
-          os: "iOS", // OS 정보는 추후에 업데이트 필요
-          version: "0.0.1", // 초기 버전 정보
-        },
-        tx,
-      );
+    const termsToInsert = [...requiredTerms, ...optionalTerms].filter(
+      (term) => {
+        if (existingTerms.has(term)) {
+          return false;
+        }
+        existingTerms.add(term);
+        return true;
+      },
+    );
 
-      // insert user_alarm_setting
-      await this.userAlarmSettingRepository.insert(
-        {
-          deviceFk: device.pk,
-          anyPush: true, // 기본값은 true로 설정
-          chatPush: true,
-          marketingPush: true,
-          potInOutPush: true,
-        },
-        tx,
-      );
+    if (termsToInsert.length === 0) {
+      return BaseResultDto.OK; // 추가할 동의 항목이 없으면 바로 반환
+    }
 
-      return user;
+    const newUserConsents: UserConsentEntity[] = termsToInsert.map((term) => ({
+      userFk: userCtx.userId,
+      term,
+    }));
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.userConsentRepository.bulkInsert(newUserConsents, tx);
     });
+
+    return BaseResultDto.OK;
+  }
+
+  private async createNewUser(
+    sub: string,
+    name: string,
+    email: string,
+    tx: TxType,
+  ) {
+    const user = await this.userRepository.insert(
+      {
+        isDeleted: false,
+        idpSub: sub,
+        name,
+        email,
+      },
+      tx,
+    );
+
+    if (!user) {
+      throw new Error("Failed to create new user"); // TODO
+    }
+
+    return user;
+  }
+
+  private async createNewDevice(
+    user: UserEntity,
+    deviceId: string,
+    tx: TxType,
+  ) {
+    // insert device
+    const device = await this.deviceRepository.insert(
+      {
+        userFk: user.pk,
+        fcmToken: "", // 초기값은 빈 문자열로 설정
+        deviceId: deviceId,
+        os: "iOS", // OS 정보는 추후에 업데이트 필요
+        version: "0.0.1", // 초기 버전 정보
+      },
+      tx,
+    );
+
+    // insert user_alarm_setting
+    await this.userAlarmSettingRepository.insert(
+      {
+        deviceFk: device.pk,
+        chatPush: true,
+        marketingPush: true,
+        potInOutPush: true,
+      },
+      tx,
+    );
+
+    return device;
   }
 }

@@ -1,0 +1,36 @@
+import { RouteDto } from "@src/discovery/dto/route.dto";
+import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
+
+export class PotUserDto {
+  id: string;
+  name: string;
+  is_host: boolean;
+  is_in_pot: boolean;
+}
+
+export class PotUsersInfoDto {
+  current: number;
+  total: number;
+  users: PotUserDto[];
+}
+
+export class PotAccountingInfoDto {
+  requesting_user?: string;
+  accounting_results: AccountingResultDto[];
+  total_cost?: number;
+  cost_per_user?: number;
+  bank_name?: string;
+  bank_account?: string;
+}
+
+export class PotInfoDto {
+  id: string;
+  name: string;
+  route: RouteDto;
+  starts_at: string;
+  ends_at: string;
+  departure_time?: string;
+  status: string;
+  users_info: PotUsersInfoDto;
+  accounting_info: PotAccountingInfoDto;
+}

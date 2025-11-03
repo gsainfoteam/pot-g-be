@@ -12,6 +12,7 @@ import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
 import { UserContext } from "@src/auth/user-context.entity";
+import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
 
 @Controller("/api/v1/user")
 export class UserController {
@@ -54,5 +55,14 @@ export class UserController {
   @Post("/withdraw")
   async withdraw(@GetUser() userCtx: UserContext): Promise<BaseResultDto> {
     return this.userService.withdraw(userCtx);
+  }
+
+  @Post("/consent")
+  @UseGuards(UserGuard)
+  async consent(
+    @Body() req: UpdateConsentDto,
+    @GetUser() userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    return this.userService.consent(req, userCtx);
   }
 }
