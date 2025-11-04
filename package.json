@@ -45,12 +45,15 @@
     "drizzle-orm": "^0.43.1",
     "firebase-admin": "^13.5.0",
     "ioredis": "^5.7.0",
+    "nest-winston": "^1.10.2",
     "passport-http-bearer": "^1.0.1",
     "passport-jwt": "^4.0.1",
     "pg": "^8.15.6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "string-format": "^2.0.0",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {

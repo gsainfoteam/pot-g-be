@@ -11,6 +11,7 @@ import { WebsocketModule } from "@src/websocket/websocket.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { FcmModule } from "@src/fcm/fcm.module";
 import { AppVersionModule } from "@src/app-version/app-version.module";
+import { LoggerModule } from "@src/global/logger/logger.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AppVersionModule } from "@src/app-version/app-version.module";
     ScheduleModule.forRoot(),
     FcmModule,
     AppVersionModule,
+    LoggerModule,
   ],
   controllers: [],
   providers: [],

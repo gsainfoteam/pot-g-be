@@ -5,9 +5,14 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { customMessageParser } from "@src/websocket/websocket.utils";
 import { HttpExceptionFilter } from "./global/filters/http-exception.filter";
 import { WsExceptionFilter } from "./global/filters/ws-exception.filter";
+import { LoggerService } from "@src/global/logger/logger.service";
+import { HttpLoggingInterceptor } from "@src/global/interceptors/http-logging.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const loggerService: LoggerService = app.get(LoggerService);
+  app.useLogger(loggerService);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -18,6 +23,7 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new HttpLoggingInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter(), new WsExceptionFilter());
 
   const wsAdapter = new WsAdapter(app);
