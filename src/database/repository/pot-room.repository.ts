@@ -13,6 +13,7 @@ import {
 import { Pot } from "@src/pot/model/pot";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotEventFactory } from "@src/pot/event/pot-event";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class PotRoomRepository {
@@ -40,7 +41,7 @@ export class PotRoomRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert pot room"); // TODO
+      throw new PotgDBError("Failed to insert pot room");
     }
 
     return this.resultToPotRoomEntity(result[0]);

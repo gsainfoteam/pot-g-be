@@ -6,6 +6,7 @@ import { popoChatReservation } from "../../../drizzle/schema/popo-chat-reservati
 import { randomUUID } from "node:crypto";
 import { and, eq, lte } from "drizzle-orm";
 import { PopoChatStringType } from "../../../drizzle/schema/popo-chat-msg";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class PopoChatReservationRepository {
@@ -29,7 +30,7 @@ export class PopoChatReservationRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert popo chat reservation"); // TODO
+      throw new PotgDBError("Failed to insert popo chat reservation");
     }
 
     const insertedReservation = result[0];

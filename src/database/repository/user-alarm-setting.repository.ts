@@ -5,6 +5,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class UserAlarmSettingRepository {
@@ -45,7 +46,7 @@ export class UserAlarmSettingRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert user alarm setting"); // TODO
+      throw new PotgDBError("Failed to insert user alarm setting");
     }
 
     const inserted = result[0];

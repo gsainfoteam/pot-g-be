@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { AppVersionEntity } from "@src/database/entity/app-version.entity";
 import { appVersion } from "../../../drizzle/schema/app-version";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class AppVersionRepository {
@@ -21,7 +22,7 @@ export class AppVersionRepository {
       .from(appVersion);
 
     if (results.length === 0) {
-      throw new Error("No app version found"); // TODO
+      throw new PotgDBError("No app version found");
     }
 
     const firstResult = results[0];

@@ -4,6 +4,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { eq } from "drizzle-orm";
 import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { refreshToken } from "../../../drizzle/schema/refresh-token";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class RefreshTokenRepository {
@@ -43,7 +44,7 @@ export class RefreshTokenRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert refresh token"); // TODO
+      throw new PotgDBError("Failed to insert refresh token");
     }
 
     const insertedRefreshToken = result[0];
