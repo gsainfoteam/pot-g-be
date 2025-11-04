@@ -1,7 +1,7 @@
 import { Pot } from "@src/pot/model/pot";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
-import { addWeeks } from "date-fns";
+import { addMinutes, addWeeks } from "date-fns";
 
 const POT_MAX_CAPACITY = 4;
 
@@ -76,11 +76,9 @@ export const AssertIfDepartureTimeNotSet = (pot: Pot) => {
   }
 };
 
-export const AssertIfDeparted = (pot: Pot, message?: string) => {
-  if (new Date(pot.departureTime.getTime() + 10 * 60 * 1000) > new Date()) {
-    throw new Error(
-      message || "Departure time + 10 minutes has not passed yet",
-    );
+export const AssertIfDeparted = (pot: Pot) => {
+  if (addMinutes(pot.departureTime, 10) > new Date()) {
+    throw new PotEventError(BaseResultDto.BeforeDeparture);
   }
 };
 

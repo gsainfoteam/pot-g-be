@@ -21,6 +21,8 @@ export class StopsRepository {
       pk: result.pk,
       nameKor: result.nameKor,
       nameEng: result.nameEng,
+      lat: result.lat,
+      lng: result.lng,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };

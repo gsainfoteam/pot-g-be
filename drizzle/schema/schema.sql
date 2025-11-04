@@ -14,7 +14,7 @@ CREATE TABLE "user_pot_room"
     "pot_room_fk" uuid    NOT NULL,
     "user_fk"     uuid    NOT NULL,
     "is_host"     boolean NOT NULL DEFAULT FALSE,
-    "is_archived" boolean NOT NULL DEFAULT FALSE,
+    "is_archived" boolean NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE "pot_room"
@@ -57,7 +57,7 @@ CREATE TABLE "pot_event" (
     "timestamp"     timestamp with time zone NOT NULL,
     "id"            smallint                 NOT NULL DEFAULT nextval('pot_event_id'),
     "type"          pot_event_type           NOT NULL,
-    "data"          jsonb                    NOT NULL,
+    "data"          jsonb                    NOT NULL
     PRIMARY KEY ("pot_fk", "timestamp", "id")
 );
 
@@ -80,6 +80,8 @@ CREATE TABLE "stops"
     "pk"         uuid                     NOT NULL,
     "name_kor"   varchar(127)             NOT NULL,
     "name_eng"   varchar(127)             NOT NULL,
+    "lat"        double precision         NOT NULL,
+    "lng"        double precision         NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
@@ -164,7 +166,7 @@ CREATE TABLE "popo_chat_reservation" (
     "popo_chat_msg_type" popo_chat_type           NOT NULL,
     "send_after"         timestamp with time zone NOT NULL,
     "created_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
-    "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
+    "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "refresh_token" (
@@ -196,9 +198,6 @@ ALTER TABLE "user_pot_room"
 
 ALTER TABLE "pot_room"
     ADD CONSTRAINT "PK_POT_ROOM" PRIMARY KEY ("pk");
-
-ALTER TABLE "pot_event"
-    ADD CONSTRAINT "PK_POT_EVENT" PRIMARY KEY ("pot_fk", "timestamp");
 
 ALTER TABLE "user_alarm_setting"
     ADD CONSTRAINT "PK_USER_ALARM_SETTING" PRIMARY KEY ("pk");
@@ -275,3 +274,5 @@ ALTER TABLE "user_consent"
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
     ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
 
+ALTER TABLE "device"
+    ADD COLUMN "logged_in" boolean NOT NULL DEFAULT FALSE;

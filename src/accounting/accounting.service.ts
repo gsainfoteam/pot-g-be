@@ -30,7 +30,7 @@ import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-account
 
 @Injectable()
 export class AccountingService implements OnModuleInit {
-  private readonly ACCOUNT_REGEX = new RegExp(/^(\d+)$/);
+  private readonly ACCOUNT_REGEX = new RegExp(/^(\d{5,20})$/);
   private cachedBanks: BankEntity[] = [];
 
   constructor(

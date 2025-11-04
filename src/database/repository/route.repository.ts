@@ -15,8 +15,8 @@ export class RouteRepository {
 
   /*
   SELECT r.pk, r.short_name_kor, r.short_name_eng,
-         fs.pk, fs.name_kor, fs.name_eng,
-         ts.pk, ts.name_kor, ts.name_eng
+         fs.pk, fs.name_kor, fs.name_eng, fs.lat, fs.lng,
+         ts.pk, ts.name_kor, ts.name_eng, ts.lat, ts.lng
   FROM route as r
   INNER JOIN stops as fs ON r.from_stop_fk = fs.pk
   INNER JOIN stops as ts ON r.to_stop_fk = ts.pk;
@@ -30,9 +30,13 @@ export class RouteRepository {
         fromStopFk: fromStop.pk,
         fromStopNameKor: fromStop.nameKor,
         fromStopNameEng: fromStop.nameEng,
+        fromStopLat: fromStop.lat,
+        fromStopLng: fromStop.lng,
         toStopFk: toStop.pk,
         toStopNameKor: toStop.nameKor,
         toStopNameEng: toStop.nameEng,
+        toStopLat: toStop.lat,
+        toStopLng: toStop.lng,
       })
       .from(route)
       .innerJoin(fromStop, eq(route.fromStopFk, fromStop.pk))
@@ -51,12 +55,16 @@ export class RouteRepository {
         pk: result.fromStopFk,
         nameKor: result.fromStopNameKor,
         nameEng: result.fromStopNameEng,
+        lat: result.fromStopLat,
+        lng: result.fromStopLng,
       },
       toStopFk: result.toStopFk,
       toStop: {
         pk: result.toStopFk,
         nameKor: result.toStopNameKor,
         nameEng: result.toStopNameEng,
+        lat: result.toStopLat,
+        lng: result.toStopLng,
       },
     };
   }

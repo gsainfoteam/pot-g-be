@@ -6,7 +6,6 @@ import { device } from "./device";
 CREATE TABLE "user_alarm_setting" (
     "pk"              uuid    NOT NULL,
     "device_fk"       uuid    NOT NULL,
-    "any_push"        boolean NOT NULL DEFAULT TRUE,
     "chat_push"       boolean NOT NULL DEFAULT TRUE,
     "marketing_push"  boolean NOT NULL DEFAULT TRUE,
     "pot_in_out_push" boolean NOT NULL DEFAULT TRUE,
@@ -17,7 +16,6 @@ CREATE TABLE "user_alarm_setting" (
 export const userAlarmSetting = pgTable("user_alarm_setting", {
   pk: uuid("pk").primaryKey().notNull(),
   deviceFk: uuid("device_fk").notNull(),
-  anyPush: boolean("any_push").notNull().default(true),
   chatPush: boolean("chat_push").notNull().default(true),
   marketingPush: boolean("marketing_push").notNull().default(true),
   potInOutPush: boolean("pot_in_out_push").notNull().default(true),

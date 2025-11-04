@@ -38,7 +38,6 @@ export class UserAlarmSettingRepository {
       .values({
         pk: userAlarmSettingEntity.pk || randomUUID(),
         deviceFk: userAlarmSettingEntity.deviceFk,
-        anyPush: userAlarmSettingEntity.anyPush,
         chatPush: userAlarmSettingEntity.chatPush,
         marketingPush: userAlarmSettingEntity.marketingPush,
         potInOutPush: userAlarmSettingEntity.potInOutPush,
@@ -57,7 +56,6 @@ export class UserAlarmSettingRepository {
     await tx
       .update(userAlarmSetting)
       .set({
-        anyPush: userAlarmSettingEntity.anyPush,
         chatPush: userAlarmSettingEntity.chatPush,
         marketingPush: userAlarmSettingEntity.marketingPush,
         potInOutPush: userAlarmSettingEntity.potInOutPush,
@@ -70,7 +68,6 @@ export class UserAlarmSettingRepository {
     return {
       pk: result.pk,
       deviceFk: result.deviceFk,
-      anyPush: result.anyPush,
       chatPush: result.chatPush,
       marketingPush: result.marketingPush,
       potInOutPush: result.potInOutPush,

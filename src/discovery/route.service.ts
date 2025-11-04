@@ -43,10 +43,14 @@ export class RouteService implements OnModuleInit {
       from: {
         id: route.fromStopFk,
         name: route.fromStop.nameKor,
+        lat: route.fromStop.lat,
+        lng: route.fromStop.lng,
       },
       to: {
         id: route.toStopFk,
         name: route.toStop.nameKor,
+        lat: route.toStop.lat,
+        lng: route.toStop.lng,
       },
     };
   }
@@ -55,6 +59,8 @@ export class RouteService implements OnModuleInit {
     return {
       id: stops.pk,
       name: stops.nameKor,
+      lat: stops.lat,
+      lng: stops.lng,
     };
   }
 }
