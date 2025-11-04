@@ -3,6 +3,8 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { customMessageParser } from "@src/websocket/websocket.utils";
+import { HttpExceptionFilter } from "./global/filters/http-exception.filter";
+import { WsExceptionFilter } from "./global/filters/ws-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +17,8 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter(), new WsExceptionFilter());
 
   const wsAdapter = new WsAdapter(app);
   wsAdapter.setMessageParser(customMessageParser);
