@@ -59,7 +59,7 @@ export class HttpLoggingInterceptor implements NestInterceptor {
         this.logger.log(
           `[Response][${
             request.method
-          }][${uri}][IP: ${clientIp}] Status: ${level} (${statusCode})`,
+          }][${uri}][IP: ${clientIp}][${level}] (${statusCode})`,
         );
       }),
     );
