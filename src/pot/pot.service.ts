@@ -49,6 +49,7 @@ import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto"
 import { toDateFormatWithTimezone } from "@src/global/utils/convert-date";
 import { ko } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
+import { ConfirmDepartureTimeDto } from "@src/pot/dto/confirm-departure-time.pot.dto";
 
 @Injectable()
 export class PotService {
@@ -593,7 +594,7 @@ export class PotService {
   */
   async confirmDepartureTime(
     potPk: string,
-    departureTime: Date,
+    req: ConfirmDepartureTimeDto,
     userCtx: UserContext,
   ): Promise<BaseResultDto> {
     const pot = await this.getPot(potPk);
@@ -608,7 +609,7 @@ export class PotService {
         {
           potRoomPk: potPk,
           userPk: userCtx.userId,
-          departureTime: departureTime,
+          departureTime: req.departure_time,
         },
       );
 
@@ -673,14 +674,14 @@ export class PotService {
     );
 
     // 출발 확정을 20분 안으로 했을 경우 바로 발송
-    if (subMinutes(departureTime, 20) < new Date()) {
+    if (subMinutes(req.departure_time, 20) < new Date()) {
       this.popoService.asyncSendPopoChatMsgToPotRoom(
         taxiCallPopoChatMsg,
         null,
         pot,
         {
           remainDepartureTime: Math.floor(
-            (departureTime.getTime() - new Date().getTime()) / 60000,
+            (req.departure_time.getTime() - new Date().getTime()) / 60000,
           ),
         },
       );
@@ -688,7 +689,7 @@ export class PotService {
       // departureTime 시간 20분 전 taxi call reminder 메세지 발송 예약
       this.popoService.asyncReservePopoChatMsg(
         taxiCallPopoChatMsg,
-        subMinutes(departureTime, 20),
+        subMinutes(req.departure_time, 20),
         null,
         pot,
         {
@@ -704,7 +705,7 @@ export class PotService {
     // departureTime 시간 2시간 후 accounting reminder 메세지 발송 예약
     this.popoService.asyncReservePopoChatMsg(
       accountingPopoChatMsg,
-      addHours(departureTime, 2),
+      addHours(req.departure_time, 2),
       null,
       pot,
     );

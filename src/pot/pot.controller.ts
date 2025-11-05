@@ -20,6 +20,7 @@ import {
   PotEventListResDto,
 } from "@src/pot/dto/pot.event.dto";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
+import { ConfirmDepartureTimeDto } from "@src/pot/dto/confirm-departure-time.pot.dto";
 
 @Controller("/api/v1/pot")
 export class PotController {
@@ -98,9 +99,9 @@ export class PotController {
   @UseGuards(UserGuard)
   async confirmDepartureTime(
     @Param("potPk") potPk: string,
-    @Body("departure_time") departureTime: Date,
+    @Body() req: ConfirmDepartureTimeDto,
     @GetUser() userCtx: UserContext,
   ): Promise<BaseResultDto> {
-    return this.potService.confirmDepartureTime(potPk, departureTime, userCtx);
+    return this.potService.confirmDepartureTime(potPk, req, userCtx);
   }
 }
