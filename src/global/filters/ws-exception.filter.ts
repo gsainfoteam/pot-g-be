@@ -21,5 +21,7 @@ export class WsExceptionFilter extends BaseWsExceptionFilter {
     } else {
       this.logger.error(`[WS Response] Message: ${exception.message}`);
     }
+
+    super.catch(exception, host);
   }
 }
