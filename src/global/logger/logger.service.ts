@@ -24,7 +24,10 @@ export class LoggerService implements LS {
         errors({ stack: true }),
         timestamp({ format: "isoDateTime" }),
         ms(),
-        printf((info) => `[${info.timestamp}][${info.level}] ${info.message}`),
+        printf(
+          (info) =>
+            `[${info.timestamp}][${info.level.toUpperCase()}] ${info.message}`,
+        ),
       ),
       transports: [
         new winstonTransports.Console({
