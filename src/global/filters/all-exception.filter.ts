@@ -2,11 +2,13 @@ import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
+  HttpException,
   HttpStatus,
   Logger,
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { SlackService } from "nestjs-slack";
+import { WsException } from "@nestjs/websockets";
 
 @Catch() // 모든 예외를 캐치
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -15,6 +17,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly slackService: SlackService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
+    if (
+      exception instanceof HttpException ||
+      exception instanceof WsException
+    ) {
+      // 이미 HttpExceptionFilter 및 WsExceptionFilter에서 처리된 예외는 무시
+      return;
+    }
+
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
