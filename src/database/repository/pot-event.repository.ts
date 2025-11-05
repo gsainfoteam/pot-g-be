@@ -7,6 +7,7 @@ import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Injectable } from "@nestjs/common";
 import { TxType } from "@src/global/types/tx.types";
 import { desc } from "drizzle-orm/sql/expressions/select";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 type DataCondition = { eventType: string; data: Record<string, any> };
 
@@ -21,7 +22,7 @@ export class PotEventRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert pot event"); // TODO
+      throw new PotgDBError("Failed to insert pot event");
     }
     event.id = result[0].id;
   }

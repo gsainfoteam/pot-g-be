@@ -4,6 +4,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { eq } from "drizzle-orm";
 import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
 import { userConsent } from "../../../drizzle/schema/user-consent";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class UserConsentRepository {
@@ -36,7 +37,7 @@ export class UserConsentRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert user consent"); // TODO
+      throw new PotgDBError("Failed to insert user consent");
     }
 
     const insertedUserConsent = result[0];
@@ -60,7 +61,7 @@ export class UserConsentRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert user consent"); // TODO
+      throw new PotgDBError("Failed to insert user consent");
     }
 
     const insertedUserConsent = result[0];

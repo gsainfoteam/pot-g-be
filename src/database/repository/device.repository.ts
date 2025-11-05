@@ -6,6 +6,7 @@ import { device } from "../../../drizzle/schema/device";
 import { and, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class DeviceRepository {
@@ -89,7 +90,7 @@ export class DeviceRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert device"); // TODO
+      throw new PotgDBError("Failed to insert device");
     }
 
     const insertedDevice = result[0];

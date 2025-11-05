@@ -4,6 +4,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { UserPotRoomEntity } from "@src/database/entity/user-pot-room.entity";
 import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
 import { and, count, eq } from "drizzle-orm";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class UserPotRoomRepository {
@@ -24,7 +25,7 @@ export class UserPotRoomRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert user pot room"); // TODO
+      throw new PotgDBError("Failed to insert user pot room");
     }
 
     return this.resultToUserPotRoomEntity(result[0]);
