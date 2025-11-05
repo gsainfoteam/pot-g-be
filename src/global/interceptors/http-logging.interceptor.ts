@@ -52,7 +52,7 @@ export class HttpLoggingInterceptor implements NestInterceptor {
         const { statusCode } = context.switchToHttp().getResponse();
 
         let level = "Fail";
-        if ("200" == statusCode || "201" == statusCode) {
+        if (statusCode >= 200 && statusCode < 300) {
           level = "Success";
         }
 
