@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --legacy-peer-deps
+RUN npm install --force
 
 COPY . .
 
@@ -21,7 +21,7 @@ RUN adduser -S nestjs -u 1001
 
 COPY package*.json ./
 
-RUN npm install --omit=dev --legacy-peer-deps
+RUN npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 
