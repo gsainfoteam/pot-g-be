@@ -136,7 +136,7 @@ export class AuthService {
       };
     } catch (e) {
       this.logger.error("Invalid access token:", e);
-      throw new UnauthorizedException("Invalid refresh token", { cause: e });
+      throw new UnauthorizedException("Invalid access token", { cause: e });
     }
   }
 }
