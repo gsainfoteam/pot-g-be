@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UserEntity } from "@src/database/entity/user.entity";
 import { AccessTokenJwtPayload } from "@src/auth/jwt.payload";
@@ -77,9 +77,7 @@ export class AuthService {
         await this.refreshTokenRepository.findByOpaqueHash(opaqueHash);
 
       if (!refreshTokenEntity) {
-        // TODO
-        this.logger.error("Refresh token not found");
-        return null; // Invalid token
+        throw new UnauthorizedException("Refresh token not found");
       }
 
       return this.jwtService.verify<AccessTokenJwtPayload>(
@@ -89,9 +87,11 @@ export class AuthService {
         },
       );
     } catch (e) {
-      // TODO
-      console.error("Invalid refresh token:", e);
-      return null; // Invalid token
+      if (e instanceof UnauthorizedException) {
+        throw e;
+      }
+      this.logger.error("Invalid refresh token:", e);
+      throw new UnauthorizedException("Invalid refresh token", { cause: e });
     }
   }
 
@@ -135,9 +135,8 @@ export class AuthService {
         validUntil,
       };
     } catch (e) {
-      // TODO
-      console.error("Invalid refresh token:", e);
-      return null; // Invalid token
+      this.logger.error("Invalid access token:", e);
+      throw new UnauthorizedException("Invalid access token", { cause: e });
     }
   }
 }
