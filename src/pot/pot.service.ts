@@ -129,9 +129,10 @@ export class PotService {
         },
       );
     } else {
-      // 탑승 종료 시간이 6시간 이내로 남은 경우 바로 메세지 발송
-      this.popoService.asyncSendPopoChatMsgToPotRoom(
+      // 탑승 종료 시간이 6시간 이내로 남은 경우 1초 후 메세지 발송
+      this.popoService.asyncSendPopoChatMsgToPotRoomWithDelay(
         popoDepartureConfirmRequestChatMsg,
+        1000,
         null,
         pot,
         {
