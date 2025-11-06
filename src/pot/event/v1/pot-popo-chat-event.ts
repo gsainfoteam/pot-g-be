@@ -1,7 +1,7 @@
 import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
-import { parseSeoulDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convert-date";
 import {
   PopoActionBtnStringType,
   PopoChatStringType,

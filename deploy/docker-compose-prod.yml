@@ -36,6 +36,8 @@ services:
       - REDIS_HOST=potg-redis
       - REDIS_PORT=6379
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@potg-db:5432/${POSTGRES_DB}
+    volumes:
+      - ./logs:/app/logs
     build:
       context: .
 

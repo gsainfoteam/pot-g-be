@@ -11,6 +11,9 @@ import { WebsocketModule } from "@src/websocket/websocket.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { FcmModule } from "@src/fcm/fcm.module";
 import { AppVersionModule } from "@src/app-version/app-version.module";
+import { LoggerModule } from "@src/global/logger/logger.module";
+import { SlackModule } from "nestjs-slack";
+import { ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -27,6 +30,15 @@ import { AppVersionModule } from "@src/app-version/app-version.module";
     ScheduleModule.forRoot(),
     FcmModule,
     AppVersionModule,
+    LoggerModule,
+    SlackModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: "webhook",
+        url: configService.get<string>("SLACK_WEBHOOK_URL"),
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [],
   providers: [],

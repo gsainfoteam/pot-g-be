@@ -1,4 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { LoginRequestDto, LoginResponseDto } from "@src/user/dto/login.dto";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { SetDeviceInfoRequestDto } from "@src/user/dto/set-fcm.dto";
@@ -21,6 +25,8 @@ import { UserEntity } from "@src/database/entity/user.entity";
 import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
+import { LogoutRequestDto } from "@src/user/dto/logout.dto";
+import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 
 @Injectable()
 export class UserService {
@@ -32,6 +38,7 @@ export class UserService {
     private readonly deviceRepository: DeviceRepository,
     private readonly userAlarmSettingRepository: UserAlarmSettingRepository,
     private readonly userConsentRepository: UserConsentRepository,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async login(
@@ -105,27 +112,20 @@ export class UserService {
       userCtx.userId,
     );
     if (!device) {
-      throw new Error("Device not found"); // TODO
+      throw new ForbiddenException("Device not found");
     }
-
-    let updated = false;
 
     if (!!fcmToken) {
       device.fcmToken = fcmToken;
-      updated = true;
     }
     if (!!os) {
       device.os = os;
-      updated = true;
     }
     if (!!version) {
       device.version = version;
-      updated = true;
     }
 
-    if (!updated) {
-      return BaseResultDto.OK; // 변경된 정보가 없으면 바로 반환
-    }
+    device.loggedIn = true;
 
     await this.dbService.db.transaction(async (tx: TxType) => {
       await this.deviceRepository.update(device, tx);
@@ -263,6 +263,32 @@ export class UserService {
     return BaseResultDto.OK;
   }
 
+  async logout(
+    req: LogoutRequestDto,
+    userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    const device = await this.deviceRepository.findByPkAndUserFk(
+      userCtx.devicePk,
+      userCtx.userId,
+    );
+
+    if (!device) {
+      return BaseResultDto.OK;
+    }
+
+    device.loggedIn = false;
+
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.refreshTokenRepository.deleteByOpaqueHash(
+        req.refresh_token,
+        tx,
+      );
+      await this.deviceRepository.update(device, tx);
+    });
+
+    return BaseResultDto.OK;
+  }
+
   private async createNewUser(
     sub: string,
     name: string,
@@ -280,7 +306,7 @@ export class UserService {
     );
 
     if (!user) {
-      throw new Error("Failed to create new user"); // TODO
+      throw new InternalServerErrorException("Failed to create new user");
     }
 
     return user;
@@ -297,8 +323,9 @@ export class UserService {
         userFk: user.pk,
         fcmToken: "", // 초기값은 빈 문자열로 설정
         deviceId: deviceId,
-        os: "iOS", // OS 정보는 추후에 업데이트 필요
-        version: "0.0.1", // 초기 버전 정보
+        os: "", // OS 정보는 추후에 업데이트 필요
+        version: "", // 초기 버전 정보
+        loggedIn: false,
       },
       tx,
     );
