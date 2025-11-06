@@ -14,6 +14,9 @@ services:
       - potg-network
     env_file:
       - .env
+    environment:
+      - TZ=Asia/Seoul
+      - PGTZ=Asia/Seoul
     ports:
       - "5432:5432"
 
@@ -42,6 +45,7 @@ services:
       - REDIS_HOST=potg-redis
       - REDIS_PORT=6379
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@potg-db:5432/${POSTGRES_DB}
+      - TZ=Asia/Seoul
     volumes:
       - ./logs:/app/logs
     build:
