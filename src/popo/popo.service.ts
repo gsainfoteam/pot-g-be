@@ -214,7 +214,7 @@ export class PopoService implements OnModuleInit {
       "popo-auto-archive-v1",
     );
 
-    this.asyncSendPopoChatMsgToPotRoom(
+    await this.sendPopoChatMsgToPotRoom(
       autoArchivePopoChatMsg,
       reservation.potFk,
       pot,
