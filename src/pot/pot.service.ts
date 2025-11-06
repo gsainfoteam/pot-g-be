@@ -359,7 +359,7 @@ export class PotService {
 
     const potEvents = await this.potEventRepository.getEventsByPotPkWithLimit(
       potPk,
-      fromUnixTime(req.starts_from),
+      req.starts_from! ? fromUnixTime(req.starts_from) : null,
       req.limit,
     );
 

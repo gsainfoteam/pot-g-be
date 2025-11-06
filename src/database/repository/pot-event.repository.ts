@@ -62,15 +62,25 @@ export class PotEventRepository {
    */
   async getEventsByPotPkWithLimit(
     potPk: string,
-    before: Date,
+    before: Date | null,
     limit: number,
   ): Promise<PotEvent<any, any>[]> {
-    const result = await this.db.db
-      .select()
-      .from(potEvent)
-      .where(and(eq(potEvent.potFk, potPk), lte(potEvent.timestamp, before)))
-      .orderBy(desc(potEvent.timestamp))
-      .limit(limit);
+    let result: any[];
+    if (before) {
+      result = await this.db.db
+        .select()
+        .from(potEvent)
+        .where(and(eq(potEvent.potFk, potPk), lte(potEvent.timestamp, before)))
+        .orderBy(desc(potEvent.timestamp))
+        .limit(limit);
+    } else {
+      result = await this.db.db
+        .select()
+        .from(potEvent)
+        .where(eq(potEvent.potFk, potPk))
+        .orderBy(desc(potEvent.timestamp))
+        .limit(limit);
+    }
 
     return result.map((event) => PotEventFactory.toModel(event));
   }
