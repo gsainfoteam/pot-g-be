@@ -27,10 +27,11 @@ export class PopoSchedulerService {
           error instanceof Error ? error.message : String(error)
         }`,
       );
+      // TODO SlackErrorService 새로 추가하여 error 받아서 포맷 맞춰서 보내기
       await this.slackService.sendText(
         `:warning: Unhandled error in Popo Scheduler: ${
           error instanceof Error ? error.message : String(error)
-        }\n\nStack Trace:\n\`\`\`${error.stack}\`\`\``,
+        }\n\nStack Trace:\n\`\`\`${error instanceof Error ? error.stack : "N/A"}\`\`\``,
       );
     }
   }

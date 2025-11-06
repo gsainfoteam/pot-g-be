@@ -95,7 +95,7 @@ export class PopoService implements OnModuleInit {
         await this.slackService.sendText(
           `:warning: Error occurred while process PopoReservation: ${
             error instanceof Error ? error.message : String(error)
-          }\n\nStack Trace:\n\`\`\`${error.stack}\`\`\``,
+          }\n\nStack Trace:\n\`\`\`${error instanceof Error ? error.stack : "N/A"}\`\`\``,
         );
       }
     }
