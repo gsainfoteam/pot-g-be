@@ -33,6 +33,7 @@ import { ConfigService } from "@nestjs/config";
     LoggerModule,
     SlackModule.forRootAsync({
       imports: [ConfigModule],
+      isGlobal: true,
       useFactory: (configService: ConfigService) => ({
         type: "webhook",
         url: configService.get<string>("SLACK_WEBHOOK_URL"),
