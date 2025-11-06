@@ -24,7 +24,6 @@ export class UserGuard extends AuthGuard("jwt") {
       throw new UnauthorizedException("Authentication failed");
     }
 
-    console.log(`Authentication successful for user: ${JSON.stringify(user)}`);
     return user;
   }
 }
