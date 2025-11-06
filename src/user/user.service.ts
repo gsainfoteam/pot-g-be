@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { LoginRequestDto, LoginResponseDto } from "@src/user/dto/login.dto";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
@@ -85,12 +86,12 @@ export class UserService {
       req.refresh_token,
     );
     if (!userId) {
-      throw new Error("Invalid refresh token"); // TODO
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     const user = await this.userRepository.findUserByPk(userId);
     if (!user) {
-      throw new Error("User not found"); // TODO
+      throw new UnauthorizedException("User Not Found");
     }
 
     const { accessToken } = await this.authService.refreshAccessToken(
@@ -142,7 +143,7 @@ export class UserService {
     ]);
 
     if (!userInfo) {
-      throw new Error("User not found"); // TODO
+      throw new UnauthorizedException("User Not Found");
     }
 
     return {
