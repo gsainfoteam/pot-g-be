@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install --force
 
 COPY . .
 
@@ -21,9 +21,11 @@ RUN adduser -S nestjs -u 1001
 
 COPY package*.json ./
 
-RUN npm install --omit=dev
+RUN npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+
+RUN mkdir -p /app/logs && chown -R nestjs:nodejs /app/logs
 
 USER nestjs
 

@@ -7,7 +7,7 @@ import { PotDto } from "@src/discovery/dto/pot.dto";
 import { PotSearchDto } from "@src/discovery/dto/pot-search.dto";
 import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
-import { toDateFormatWithTimezone } from "@src/global/utils/convertDate";
+import { toDateFormatWithTimezone } from "@src/global/utils/convert-date";
 
 @Injectable()
 export class PotGDiscoveryService {

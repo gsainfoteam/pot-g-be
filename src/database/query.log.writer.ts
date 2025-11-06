@@ -1,12 +1,13 @@
 import { LogWriter } from "drizzle-orm/logger";
-import { Logger } from "@nestjs/common";
 import { entityKind } from "drizzle-orm";
+import { LoggerService } from "@src/global/logger/logger.service";
 
 export class QueryLogWriter implements LogWriter {
-  private readonly logger = new Logger(QueryLogWriter.name);
   static [entityKind] = "QueryLogWriter";
 
+  constructor(private readonly loggerService: LoggerService) {}
+
   write(message: string): void {
-    this.logger.debug(`[DB QUERY]: ${message}`);
+    this.loggerService.queryLog(message);
   }
 }

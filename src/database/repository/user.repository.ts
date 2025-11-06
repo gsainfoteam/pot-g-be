@@ -8,6 +8,7 @@ import { bank } from "../../../drizzle/schema/bank";
 import { userBank } from "../../../drizzle/schema/user-bank";
 import { TxType } from "@src/global/types/tx.types";
 import { randomUUID } from "node:crypto";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class UserRepository {
@@ -132,7 +133,7 @@ export class UserRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert user"); // TODO
+      throw new PotgDBError("Failed to insert user");
     }
 
     const inserted = result[0];
@@ -190,7 +191,7 @@ export class UserRepository {
       .where(eq(users.pk, userPk));
 
     if (result.length === 0) {
-      return null;
+      throw new PotgDBError("Failed to select user profile");
     }
 
     return {

@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { parseSeoulDate } from "@src/global/utils/convertDate";
+import { parseSeoulDate } from "@src/global/utils/convert-date";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 
 export class CreatePotReqDto {

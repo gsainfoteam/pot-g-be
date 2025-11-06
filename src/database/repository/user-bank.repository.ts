@@ -4,6 +4,7 @@ import { userBank } from "../../../drizzle/schema/user-bank";
 import { UserBankEntity } from "@src/database/entity/user-bank.entity";
 import { eq } from "drizzle-orm";
 import { TxType } from "@src/global/types/tx.types";
+import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
 export class UserBankRepository {
@@ -45,7 +46,7 @@ export class UserBankRepository {
       .returning();
 
     if (result.length === 0) {
-      throw new Error("Failed to insert user bank"); // TODO
+      throw new PotgDBError("Failed to insert user bank");
     }
 
     return this.resultToUserBankEntity(result[0]);
