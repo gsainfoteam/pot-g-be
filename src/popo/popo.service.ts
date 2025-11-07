@@ -20,7 +20,15 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
 import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
-import { asyncScheduler, catchError, defer, EMPTY, subscribeOn } from "rxjs";
+import {
+  asyncScheduler,
+  catchError,
+  defer,
+  delay,
+  EMPTY,
+  subscribeOn,
+} from "rxjs";
+import { SlackService } from "nestjs-slack";
 
 @Injectable()
 export class PopoService implements OnModuleInit {
@@ -35,6 +43,7 @@ export class PopoService implements OnModuleInit {
     private readonly broadcastingService: BroadcastingService,
     @Inject(forwardRef(() => PotService))
     private readonly potService: PotService,
+    private readonly slackService: SlackService,
   ) {}
 
   async onModuleInit() {
@@ -90,6 +99,11 @@ export class PopoService implements OnModuleInit {
       } catch (error) {
         // TODO: 에러 핸들링 필요 -> 재예약?
         this.logger.error(error);
+        await this.slackService.sendText(
+          `:warning: Error occurred while process PopoReservation: ${
+            error instanceof Error ? error.message : String(error)
+          }\n\nStack Trace:\n\`\`\`${error instanceof Error ? error.stack : "N/A"}\`\`\``,
+        );
       }
     }
   }
@@ -200,7 +214,7 @@ export class PopoService implements OnModuleInit {
       "popo-auto-archive-v1",
     );
 
-    this.asyncSendPopoChatMsgToPotRoom(
+    await this.sendPopoChatMsgToPotRoom(
       autoArchivePopoChatMsg,
       reservation.potFk,
       pot,
@@ -279,6 +293,27 @@ export class PopoService implements OnModuleInit {
       this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot, formatArguments),
     )
       .pipe(
+        subscribeOn(asyncScheduler),
+        catchError((err) => {
+          this.logger.error("Send Popo Chat Msg Failed: ", err);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  asyncSendPopoChatMsgToPotRoomWithDelay(
+    popoChatMsg: PopoChatMsgEntity,
+    delayMs: number,
+    potPk?: string,
+    pot?: Pot,
+    formatArguments?: any,
+  ) {
+    defer(() =>
+      this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot, formatArguments),
+    )
+      .pipe(
+        delay(delayMs),
         subscribeOn(asyncScheduler),
         catchError((err) => {
           this.logger.error("Send Popo Chat Msg Failed: ", err);

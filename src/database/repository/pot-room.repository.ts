@@ -58,7 +58,7 @@ export class PotRoomRepository {
     AND pr.ends_at >= ?2       // optional
     AND pr.starts_at <= ?3     // optional
   GROUP BY pr.pk               // for count()
-  ORDER BY pr.created_at ASC
+  ORDER BY pr.starts_at ASC
   OFFSET ?4 LIMIT ?5;
    */
   async searchPotList(
@@ -89,7 +89,7 @@ export class PotRoomRepository {
       .groupBy(potRoom.pk)
       .offset(offset * limit)
       .limit(limit)
-      .orderBy(asc(potRoom.createdAt));
+      .orderBy(asc(potRoom.startsAt));
 
     return results.map((result) => this.resultToPotRoomEntity(result));
   }

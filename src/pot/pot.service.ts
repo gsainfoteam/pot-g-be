@@ -128,6 +128,21 @@ export class PotService {
           ),
         },
       );
+    } else {
+      // 탑승 종료 시간이 6시간 이내로 남은 경우 즉시 메세지 발송
+      this.popoService.asyncSendPopoChatMsgToPotRoom(
+        popoDepartureConfirmRequestChatMsg,
+        null,
+        pot,
+        {
+          departureTimeEndsAt: formatInTimeZone(
+            pot.departureAvailableEndTime,
+            "Asia/Seoul",
+            "M월 d일 a h시 m분",
+            { locale: ko },
+          ),
+        },
+      );
     }
 
     // ends_at 시간에 팟 자동 해산 예약
@@ -343,7 +358,7 @@ export class PotService {
 
     const potEvents = await this.potEventRepository.getEventsByPotPkWithLimit(
       potPk,
-      fromUnixTime(req.starts_from),
+      req.starts_from! ? fromUnixTime(req.starts_from) : null,
       req.limit,
     );
 
