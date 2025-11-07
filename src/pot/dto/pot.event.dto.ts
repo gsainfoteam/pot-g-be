@@ -9,10 +9,11 @@ export class PotEventListReqDto {
   @Max(50)
   limit: number = 20;
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  starts_from: number;
+  starts_from?: number;
 
   @IsOptional()
   @Type(() => Number)

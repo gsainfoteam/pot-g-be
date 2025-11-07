@@ -276,3 +276,6 @@ CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
 
 ALTER TABLE "device"
     ADD COLUMN "logged_in" boolean NOT NULL DEFAULT FALSE;
+
+ALTER TABLE "popo_chat_reservation"
+    ADD COLUMN "format_arguments" jsonb NULL;
