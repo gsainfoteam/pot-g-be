@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { users } from "../../../drizzle/schema/users";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { UserEntity } from "@src/database/entity/user.entity";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
 import { bank } from "../../../drizzle/schema/bank";
@@ -15,13 +15,13 @@ export class UserRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
-  SELECT * FROM user WHERE pk = ?1;
+  SELECT * FROM user WHERE pk = ?1 and is_deleted = false;
    */
   async findUserByPk(pk: string): Promise<UserEntity | null> {
     const result = await this.dbService.db
       .select()
       .from(users)
-      .where(eq(users.pk, pk));
+      .where(and(eq(users.pk, pk), eq(users.isDeleted, false)));
 
     if (result.length === 0) {
       return null;
@@ -41,13 +41,13 @@ export class UserRepository {
   }
 
   /*
-  SELECT * FROM user WHERE idp_sub = ?1;
+  SELECT * FROM user WHERE idp_sub = ?1 and is_deleted = false;
    */
   async findUserByIdpSub(idpSub: string): Promise<UserEntity | null> {
     const result = await this.dbService.db
       .select()
       .from(users)
-      .where(eq(users.idpSub, idpSub));
+      .where(and(eq(users.idpSub, idpSub), eq(users.isDeleted, false)));
 
     if (result.length === 0) {
       return null;
@@ -77,7 +77,7 @@ export class UserRepository {
     INNER JOIN user_alarm_setting as uas ON uas.device_fk = ?2
     LEFT OUTER JOIN user_bank as ub ON ub.user_fk = u.pk
     LEFT JOIN bank as b ON b.pk = ub.bank_fk
-  WHERE pk = ?1;
+  WHERE pk = ?1 and u.is_deleted = false;
    */
   async getUserInfoByPk(userId: string, deviceId: string) {
     const result = await this.dbService.db
@@ -95,7 +95,7 @@ export class UserRepository {
       .innerJoin(userAlarmSetting, eq(userAlarmSetting.deviceFk, deviceId))
       .leftJoin(userBank, eq(userBank.userFk, users.pk))
       .leftJoin(bank, eq(bank.pk, userBank.bankFk))
-      .where(eq(users.pk, userId));
+      .where(and(eq(users.pk, userId), eq(users.isDeleted, false)));
 
     if (result.length === 0) {
       return null;
@@ -157,6 +157,7 @@ export class UserRepository {
   }
 
   /*
+  아래 쿼리는 is_deleted=true 인 유저에 대해서도 쿼리가 진행되어야 합니다.
   SELECT u.pk, u.name
   FROM user as u
   WHERE u.pk in (?1);
@@ -177,6 +178,7 @@ export class UserRepository {
   }
 
   /*
+  아래 쿼리는 is_deleted=true 인 유저가 쿼리하지 못합니다.
   SELECT u.pk, u.name
   FROM user as u
   WHERE u.pk = ?1;
