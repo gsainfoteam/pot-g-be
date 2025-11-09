@@ -104,6 +104,8 @@ export class WebsocketService implements OnModuleDestroy {
       throw new WsException("Invalid refresh token"); // TODO
     }
 
+    // TODO: 탈퇴한 회원 검사
+
     // 인증 처리
     client.setAuthorized(userId, devicePk, accessToken, validUntil);
     client.sendMessage(okRes);

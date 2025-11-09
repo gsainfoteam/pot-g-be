@@ -29,6 +29,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // 다만 UnauthorizedException 은 HttpExceptionFilter에서 처리되지 않으므로 여기서 로깅 없이 처리
       if (exception instanceof UnauthorizedException) {
         const status = exception.getStatus();
+        this.logger.error(
+          `[Response] Status: ${status}, Message: ${exception.message}`,
+        );
         response.status(status).json({
           statusCode: status,
           message: exception.message,
