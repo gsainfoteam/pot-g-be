@@ -71,7 +71,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ github.event.inputs.environment == 'dev' && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           
@@ -111,7 +111,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ github.event.inputs.environment == 'dev' && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           

@@ -81,7 +81,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         source: "deploy/${{ env.COMPOSE_FILE }}"
         target: ${{ env.DEPLOY_PATH }}
 
@@ -90,7 +90,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         source: "deploy/${{ env.NGINX_FILE }}"
         target: ${{ env.DEPLOY_PATH }}
 
@@ -99,7 +99,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           mv deploy/${{ env.COMPOSE_FILE }} ./docker-compose.yml
@@ -109,7 +109,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           mv deploy/${{ env.NGINX_FILE }} ./nginx.conf
@@ -156,7 +156,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key: ${{ startsWith(github.ref_name, 'dev-') && secrets.DEV_SERVER_SSH_KEY || secrets.PROD_SERVER_SSH_KEY }}
+        key_path: "${{ env.HOME }}/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           
