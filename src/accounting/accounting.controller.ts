@@ -4,7 +4,7 @@ import { AccountingService } from "@src/accounting/accounting.service";
 import { ChangeAccountingRequestDto } from "@src/accounting/dto/change-accounting.dto";
 import { AccountingDto } from "@src/user/dto/accounting.dto";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
-import { UserContext } from "@src/auth/user-context.entity";
+import { UserContext } from "@src/auth/context/user-context.entity";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { RequestAccountingRequestDto } from "@src/accounting/dto/request-accounting.dto";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";

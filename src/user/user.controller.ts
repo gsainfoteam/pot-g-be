@@ -11,7 +11,7 @@ import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
-import { UserContext } from "@src/auth/user-context.entity";
+import { UserContext } from "@src/auth/context/user-context.entity";
 import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
 import { LogoutRequestDto } from "@src/user/dto/logout.dto";
 
