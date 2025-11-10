@@ -12,7 +12,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       image-uri: ${{ steps.build-info.outputs.image-uri }}
     
@@ -50,7 +50,7 @@ jobs:
         echo "image-uri=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   prepare-server:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       server-ready: ${{ steps.server-info.outputs.ready }}
     
@@ -120,7 +120,7 @@ jobs:
         echo "ready=true" >> $GITHUB_OUTPUT
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [build-and-push, prepare-server]
     
     steps:
