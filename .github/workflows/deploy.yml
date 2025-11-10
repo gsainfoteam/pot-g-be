@@ -67,7 +67,6 @@ jobs:
           echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
-          echo "KEY_PATH=/home/ubuntu/.ssh/id_ed25519_github" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose-prod.yml" >> $GITHUB_ENV
@@ -75,7 +74,6 @@ jobs:
           echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
-          echo "KEY_PATH=/home/ubuntu/.ssh/id_ed25519_github_prod" >> $GITHUB_ENV
         fi
 
     - name: Copy docker-compose file to server
@@ -83,7 +81,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key_path: ${{ env.KEY_PATH }}
+        key_path: "/home/ubuntu/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         source: "deploy/${{ env.COMPOSE_FILE }}"
         target: ${{ env.DEPLOY_PATH }}
 
@@ -92,7 +90,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key_path: ${{ env.KEY_PATH }}
+        key_path: "/home/ubuntu/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         source: "deploy/${{ env.NGINX_FILE }}"
         target: ${{ env.DEPLOY_PATH }}
 
@@ -101,7 +99,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key_path: ${{ env.KEY_PATH }}
+        key_path: "/home/ubuntu/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           mv deploy/${{ env.COMPOSE_FILE }} ./docker-compose.yml
@@ -111,7 +109,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key_path: ${{ env.KEY_PATH }}
+        key_path: "/home/ubuntu/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           mv deploy/${{ env.NGINX_FILE }} ./nginx.conf
@@ -133,13 +131,11 @@ jobs:
           echo "SERVER_HOST=${{ vars.DEV_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.DEV_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.DEV_DEPLOY_PATH }}" >> $GITHUB_ENV
-          echo "KEY_PATH=/home/ubuntu/.ssh/id_ed25519_github" >> $GITHUB_ENV
         else
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
           echo "SERVER_HOST=${{ vars.PROD_SERVER_HOST }}" >> $GITHUB_ENV
           echo "SERVER_USER=${{ vars.PROD_SERVER_USER }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=${{ vars.PROD_DEPLOY_PATH }}" >> $GITHUB_ENV
-          echo "KEY_PATH=/home/ubuntu/.ssh/id_ed25519_github_prod" >> $GITHUB_ENV
         fi
         echo "IMAGE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
         echo "IMAGE_URI=${{ needs.build-and-push.outputs.image-uri }}" >> $GITHUB_ENV
@@ -160,7 +156,7 @@ jobs:
       with:
         host: ${{ env.SERVER_HOST }}
         username: ${{ env.SERVER_USER }}
-        key_path: ${{ env.KEY_PATH }}
+        key_path: "/home/ubuntu/.ssh/id_ed25519_github${{startsWith(github.ref_name, 'dev-') && '' || '_prod'}}"
         script: |
           cd ${{ env.DEPLOY_PATH }}
           
