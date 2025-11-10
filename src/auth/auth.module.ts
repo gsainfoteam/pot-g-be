@@ -3,12 +3,12 @@ import { HttpModule } from "@nestjs/axios";
 import { UserAuthService } from "@src/auth/user-auth.service";
 import { InfoteamIdpModule } from "@lib/infoteam-idp";
 import { UserGuard } from "@src/auth/guard/user.guard";
-import { UserJwtStrategy } from "@src/auth/strategy/user-jwt-strategy.service";
+import { UserJwtStrategy } from "@src/auth/strategy/user-jwt.strategy";
 import { JwtModule } from "@nestjs/jwt";
 import { DatabaseModule } from "@src/database/database.module";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
-import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt-strategy.service";
+import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt.strategy";
 
 @Module({
   imports: [
@@ -43,6 +43,6 @@ import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt-strategy.serv
       inject: [KeyPairService],
     },
   ],
-  exports: [UserAuthService, UserJwtStrategy],
+  exports: [UserAuthService, UserJwtStrategy, ManagerJwtStrategy],
 })
 export class AuthModule {}
