@@ -279,3 +279,12 @@ ALTER TABLE "device"
 
 ALTER TABLE "popo_chat_reservation"
     ADD COLUMN "format_arguments" jsonb NULL;
+
+alter table public.refresh_token
+    add user_pk uuid default gen_random_uuid() not null;
+
+alter table public.refresh_token
+    alter column user_pk drop default;
+
+create index refresh_token_user_pk_index
+    on public.refresh_token (user_pk);

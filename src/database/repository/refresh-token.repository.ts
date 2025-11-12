@@ -40,6 +40,7 @@ export class RefreshTokenRepository {
         refreshToken: refreshTokenEntity.refreshToken,
         createdAt: new Date(),
         updatedAt: new Date(),
+        userPk: refreshTokenEntity.userPk,
       })
       .returning();
 
@@ -63,6 +64,7 @@ export class RefreshTokenRepository {
       refreshToken: result.refreshToken,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      userPk: result.userPk,
     };
   }
 }
