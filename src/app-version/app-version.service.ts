@@ -29,25 +29,29 @@ export class AppVersionService implements OnModuleInit {
   }
 
   async updateVersion(req: VersionUpdateDto): Promise<VersionDto> {
+    if (!this.cachedAppVersion) {
+      await this.cacheAppVersion();
+    }
+    const oldVersion = { ...this.cachedAppVersion };
+
     if (req.ios_min_version !== undefined) {
-      this.cachedAppVersion.iosMinVersion = req.ios_min_version;
+      oldVersion.iosMinVersion = req.ios_min_version;
     }
     if (req.ios_latest_version !== undefined) {
-      this.cachedAppVersion.iosLatestVersion = req.ios_latest_version;
+      oldVersion.iosLatestVersion = req.ios_latest_version;
     }
     if (req.aos_min_version !== undefined) {
-      this.cachedAppVersion.aosMinVersion = req.aos_min_version;
+      oldVersion.aosMinVersion = req.aos_min_version;
     }
     if (req.aos_latest_version !== undefined) {
-      this.cachedAppVersion.aosLatestVersion = req.aos_latest_version;
+      oldVersion.aosLatestVersion = req.aos_latest_version;
     }
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      this.cachedAppVersion = await this.appVersionRepository.save(
-        this.cachedAppVersion,
-        tx,
-      );
-    });
+    this.cachedAppVersion = await this.dbService.db.transaction(
+      async (tx: TxType) => {
+        return await this.appVersionRepository.save(oldVersion, tx);
+      },
+    );
     return this.getVersion();
   }
 
