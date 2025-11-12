@@ -214,9 +214,13 @@ export class UserService {
 
   async withdraw(userCtx: UserContext): Promise<BaseResultDto> {
     // TODO
-    // 모든 사용자의 팟으로부터 사용자를 제거
+    // 모든 사용자의 액티브 팟으로부터 사용자 퇴장
 
     // 사용자의 계좌 정보 삭제
+    // user consent 삭제
+    // user alarm setting 삭제
+
+    // refresh token 삭제
 
     await this.dbService.db.transaction(async (tx: TxType) => {
       await this.userRepository.withdraw(userCtx.userId, tx);
