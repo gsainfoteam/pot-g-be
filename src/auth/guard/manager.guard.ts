@@ -2,15 +2,9 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class UserGuard extends AuthGuard("user-jwt") {
+export class ManagerGuard extends AuthGuard("manager-jwt") {
   handleRequest(err: any, user: any, info: any, _) {
     if (err || !user) {
-      console.log(`Authentication failed:`, {
-        error: err?.message,
-        info: info?.message || info,
-        user: user,
-      });
-
       if (info?.name === "TokenExpiredError") {
         throw new UnauthorizedException("Token expired");
       }

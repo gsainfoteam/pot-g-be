@@ -10,7 +10,7 @@ import {
   WsAuthorizationReqDto,
   WsAuthorizationResDto,
 } from "@src/websocket/dto/ws.authorization.dto";
-import { AuthService } from "@src/auth/auth.service";
+import { UserAuthService } from "@src/auth/user-auth.service";
 import type WebSocket from "ws";
 import { randomUUID } from "node:crypto";
 import { WsException } from "@nestjs/websockets";
@@ -25,7 +25,7 @@ export class WebsocketService implements OnModuleDestroy {
   private clients: PotgWsClient[] = [];
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: UserAuthService,
     @Inject(forwardRef(() => PotService))
     private readonly potService: PotService,
     private readonly usersRepository: UserRepository,

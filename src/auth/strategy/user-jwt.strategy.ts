@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { AccessTokenJwtPayload } from "@src/auth/jwt.payload";
-import { UserContext } from "@src/auth/user-context.entity";
+import { UserAccessTokenJwtPayload } from "@src/auth/jwt/user-jwt.payload";
+import { UserContext } from "@src/auth/context/user-context.entity";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class UserJwtStrategy extends PassportStrategy(Strategy, "user-jwt") {
   constructor(publicKey: string | Buffer) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: AccessTokenJwtPayload): Promise<UserContext> {
+  async validate(payload: UserAccessTokenJwtPayload): Promise<UserContext> {
     return new UserContext(payload.userId, payload.devicePk);
   }
 }
