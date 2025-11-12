@@ -1,6 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { UserEntity } from "@src/database/entity/user.entity";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { StringValue } from "ms";
 import { ManagerAccessTokenJwtPayload } from "@src/auth/jwt/manager-jwt.payload";
@@ -15,9 +14,12 @@ export class ManagerAuthService {
     private readonly keyPairService: KeyPairService,
   ) {}
 
-  async createNewJwtToken(user: UserEntity) {
+  async createNewJwtToken(email: string) {
+    if (!email.endsWith("@gistory.me")) {
+      throw new ForbiddenException();
+    }
     const payload: ManagerAccessTokenJwtPayload = {
-      email: user.email,
+      email: email,
     };
 
     const { privateKey } = await this.keyPairService.getKeyPair();
