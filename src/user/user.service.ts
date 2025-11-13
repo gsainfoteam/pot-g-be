@@ -29,6 +29,7 @@ import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
 import { LogoutRequestDto } from "@src/user/dto/logout.dto";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 import { UserBankRepository } from "@src/database/repository/user-bank.repository";
+import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 
 @Injectable()
 export class UserService {
@@ -42,6 +43,7 @@ export class UserService {
     private readonly userConsentRepository: UserConsentRepository,
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly userBankRepository: UserBankRepository,
+    private readonly broadcastingService: BroadcastingService,
   ) {}
 
   async login(
@@ -215,8 +217,10 @@ export class UserService {
   }
 
   async withdraw(userCtx: UserContext): Promise<BaseResultDto> {
-    // TODO
     // 사용자의 ws 연결 모두 해제
+    this.broadcastingService.disconnectUser(userCtx.userId);
+
+    // TODO
     // 사용자의 모든 액티브 팟으로부터 사용자 퇴장
 
     // 쿼리의 개수가 꽤 많기 때문에 트랜잭션으로 묶고 하나하나 처리합니다.
