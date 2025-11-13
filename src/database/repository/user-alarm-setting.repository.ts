@@ -65,6 +65,12 @@ export class UserAlarmSettingRepository {
       .where(eq(userAlarmSetting.pk, userAlarmSettingEntity.pk));
   }
 
+  async deleteByUserFk(userFk: string, tx: TxType): Promise<void> {
+    await tx
+      .delete(userAlarmSetting)
+      .where(eq(userAlarmSetting.deviceFk, userFk));
+  }
+
   private resultToUserAlarmSettingEntity(result: any): UserAlarmSettingEntity {
     return {
       pk: result.pk,
