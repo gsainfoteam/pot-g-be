@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   pgTable,
   text,
   timestamp,
@@ -23,21 +24,27 @@ CREATE TABLE "device" (
     "logged_in" boolean                  NOT NULL DEFAULT FALSE
 );
 */
-export const device = pgTable("device", {
-  pk: uuid("pk").primaryKey().notNull(),
-  userFk: uuid("user_fk").notNull(),
-  os: varchar("os", { length: 4 }).notNull(),
-  version: varchar("version", { length: 8 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  deviceId: varchar("device_id", { length: 64 }).notNull(),
-  fcmToken: text("fcm_token").notNull(),
-  loggedIn: boolean("logged_in").notNull().default(false),
-});
+export const device = pgTable(
+  "device",
+  {
+    pk: uuid("pk").primaryKey().notNull(),
+    userFk: uuid("user_fk")
+      .notNull()
+      .references(() => users.pk),
+    os: varchar("os", { length: 4 }).notNull(),
+    version: varchar("version", { length: 8 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    deviceId: varchar("device_id", { length: 64 }).notNull(),
+    fcmToken: text("fcm_token").notNull(),
+    loggedIn: boolean("logged_in").notNull().default(false),
+  },
+  (table) => [index().on(table.userFk)],
+);
 
 export const deviceRelations = relations(device, ({ one, many }) => ({
   user: one(users, {

@@ -178,5 +178,24 @@ jobs:
           # 새 이미지를 latest로 태그 (로컬 이름으로)
           sudo docker tag ${{ env.IMAGE_URI }} potg-backend:latest
           
+          # ===== Migration 실행 =====
+          echo "🔄 Running database migrations..."
+          
+          # docker-compose의 migration 서비스 실행
+          sudo docker compose run --rm potg-migrate
+          
+          MIGRATION_EXIT_CODE=$?
+          
+          if [ $MIGRATION_EXIT_CODE -eq 0 ]; then
+            echo "✅ Migration completed successfully"
+          else
+            echo "❌ Migration failed! Rolling back..."
+            # 롤백: 이전 이미지로 복구
+            sudo docker rmi potg-backend:latest || true
+            sudo docker tag potg-backend:previous potg-backend:latest || true
+            sudo docker compose up -d potg-backend
+            exit 1
+          fi
+          
           # potg-backend 서비스만 시작 (다운타임 종료)
           sudo docker compose up -d potg-backend

@@ -1,4 +1,4 @@
-import { jsonb, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { potRoom } from "./pot-room";
 import { popoChatMsg, popoChatType } from "./popo-chat-msg";
@@ -16,19 +16,31 @@ CREATE TABLE "popo_chat_reservation" (
 CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
     ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
 */
-export const popoChatReservation = pgTable("popo_chat_reservation", {
-  pk: uuid("pk").primaryKey().notNull(),
-  potFk: uuid("pot_fk").notNull(),
-  popoChatMsgType: popoChatType("popo_chat_msg_type").notNull(),
-  sendAfter: timestamp("send_after", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  formatArguments: jsonb("format_arguments"),
-});
+export const popoChatReservation = pgTable(
+  "popo_chat_reservation",
+  {
+    pk: uuid("pk").primaryKey().notNull(),
+    potFk: uuid("pot_fk")
+      .notNull()
+      .references(() => potRoom.pk),
+    popoChatMsgType: popoChatType("popo_chat_msg_type")
+      .notNull()
+      .references(() => popoChatMsg.type),
+    sendAfter: timestamp("send_after", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    formatArguments: jsonb("format_arguments"),
+  },
+  (table) => [
+    index().on(table.potFk),
+    index().on(table.popoChatMsgType),
+    index().on(table.potFk, table.popoChatMsgType),
+  ],
+);
 
 export const popoChatReservationRelations = relations(
   popoChatReservation,

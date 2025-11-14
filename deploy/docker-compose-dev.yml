@@ -28,6 +28,24 @@ services:
     ports:
       - "6379:6379"
 
+  # Migration 전용 서비스
+  potg-migrate:
+    image: potg-backend:latest
+    container_name: potg-migrate
+    networks:
+      - potg-network
+    depends_on:
+      potg-db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@potg-db:5432/${POSTGRES_DB}
+      - TZ=Asia/Seoul
+    command: npm run db:migrate
+    profiles:
+      - migration  # profile을 지정해서 기본적으로 실행되지 않도록
+
   potg-backend:
     image: potg-backend:latest
     restart: always

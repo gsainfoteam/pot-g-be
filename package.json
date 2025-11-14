@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "dbml:generate": "tsx drizzle/dbml/dbml.ts"
+    "dbml:generate": "tsx drizzle/dbml/dbml.ts",
+    "db:migrate": "tsx drizzle/migrate.ts"
   },
   "engines": {
     "npm": ">=10.0.0",
