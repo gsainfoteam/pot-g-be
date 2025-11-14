@@ -1,4 +1,4 @@
-import { boolean, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { device } from "./device";
 
@@ -13,19 +13,25 @@ CREATE TABLE "user_alarm_setting" (
     "updated_at" timestamp with time zone NOT NULL DEFAULT NOW()
 );
 */
-export const userAlarmSetting = pgTable("user_alarm_setting", {
-  pk: uuid("pk").primaryKey().notNull(),
-  deviceFk: uuid("device_fk").notNull(),
-  chatPush: boolean("chat_push").notNull().default(true),
-  marketingPush: boolean("marketing_push").notNull().default(true),
-  potInOutPush: boolean("pot_in_out_push").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const userAlarmSetting = pgTable(
+  "user_alarm_setting",
+  {
+    pk: uuid("pk").primaryKey().notNull(),
+    deviceFk: uuid("device_fk")
+      .notNull()
+      .references(() => device.pk),
+    chatPush: boolean("chat_push").notNull().default(true),
+    marketingPush: boolean("marketing_push").notNull().default(true),
+    potInOutPush: boolean("pot_in_out_push").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index().on(table.deviceFk)],
+);
 
 export const userAlarmSettingRelations = relations(
   userAlarmSetting,

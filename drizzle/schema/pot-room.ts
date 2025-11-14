@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   pgTable,
   smallint,
   timestamp,
@@ -26,25 +27,31 @@ CREATE TABLE "pot_room" (
     "name"                   varchar(64)              NOT NULL
 );
 */
-export const potRoom = pgTable("pot_room", {
-  pk: uuid("pk").primaryKey().notNull(),
-  routeFk: uuid("route_fk").notNull(),
-  isArchived: boolean("is_archived").notNull().default(false),
-  isDeleted: boolean("is_deleted").notNull().default(false),
-  isDepartureConfirmed: boolean("is_departure_confirmed")
-    .notNull()
-    .default(false),
-  maxCapacity: smallint("max_capacity").notNull(),
-  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
-  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  name: varchar("name", { length: 64 }).notNull(),
-});
+export const potRoom = pgTable(
+  "pot_room",
+  {
+    pk: uuid("pk").primaryKey().notNull(),
+    routeFk: uuid("route_fk")
+      .notNull()
+      .references(() => route.pk),
+    isArchived: boolean("is_archived").notNull().default(false),
+    isDeleted: boolean("is_deleted").notNull().default(false),
+    isDepartureConfirmed: boolean("is_departure_confirmed")
+      .notNull()
+      .default(false),
+    maxCapacity: smallint("max_capacity").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    name: varchar("name", { length: 64 }).notNull(),
+  },
+  (table) => [index().on(table.routeFk)],
+);
 
 export const potRoomRelations = relations(potRoom, ({ one, many }) => ({
   route: one(route, {
