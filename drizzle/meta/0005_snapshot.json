@@ -1,0 +1,1189 @@
+{
+  "id": "7506bb84-a695-4a9e-ada7-6f3cbbf093da",
+  "prevId": "3eb7faf5-a1cb-423e-b42e-e242dddcfd6c",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.jwt_key_pair": {
+      "name": "jwt_key_pair",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "public_key": {
+          "name": "public_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "private_key": {
+          "name": "private_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idp_sub": {
+          "name": "idp_sub",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pot_room": {
+      "name": "pot_room",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "route_fk": {
+          "name": "route_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_archived": {
+          "name": "is_archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_departure_confirmed": {
+          "name": "is_departure_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "max_capacity": {
+          "name": "max_capacity",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_route_TO_pot_room_1": {
+          "name": "FK_route_TO_pot_room_1",
+          "tableFrom": "pot_room",
+          "columnsFrom": [
+            "route_fk"
+          ],
+          "tableTo": "route",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.popo_chat_msg": {
+      "name": "popo_chat_msg",
+      "schema": "",
+      "columns": {
+        "type": {
+          "name": "type",
+          "type": "popo_chat_type",
+          "typeSchema": "public",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "action_btns": {
+          "name": "action_btns",
+          "type": "popo_action_btn_type[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.route": {
+      "name": "route",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "from_stop_fk": {
+          "name": "from_stop_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to_stop_fk": {
+          "name": "to_stop_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "short_name_kor": {
+          "name": "short_name_kor",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "short_name_eng": {
+          "name": "short_name_eng",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_stops_TO_route_from": {
+          "name": "FK_stops_TO_route_from",
+          "tableFrom": "route",
+          "columnsFrom": [
+            "from_stop_fk"
+          ],
+          "tableTo": "stops",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "FK_stops_TO_route_to": {
+          "name": "FK_stops_TO_route_to",
+          "tableFrom": "route",
+          "columnsFrom": [
+            "to_stop_fk"
+          ],
+          "tableTo": "stops",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_alarm_setting": {
+      "name": "user_alarm_setting",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "device_fk": {
+          "name": "device_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "any_push": {
+          "name": "any_push",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "chat_push": {
+          "name": "chat_push",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "marketing_push": {
+          "name": "marketing_push",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "pot_in_out_push": {
+          "name": "pot_in_out_push",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_device_TO_user_alarm_setting_1": {
+          "name": "FK_device_TO_user_alarm_setting_1",
+          "tableFrom": "user_alarm_setting",
+          "columnsFrom": [
+            "device_fk"
+          ],
+          "tableTo": "device",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.popo_chat_reservation": {
+      "name": "popo_chat_reservation",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pot_fk": {
+          "name": "pot_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "popo_chat_msg_type": {
+          "name": "popo_chat_msg_type",
+          "type": "popo_chat_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "send_after": {
+          "name": "send_after",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "format_arguments": {
+          "name": "format_arguments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type": {
+          "name": "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type",
+          "columns": [
+            {
+              "expression": "pot_fk",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            },
+            {
+              "expression": "popo_chat_msg_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "FK_popo_chat_msg_type_TO_popo_chat_reservation_1": {
+          "name": "FK_popo_chat_msg_type_TO_popo_chat_reservation_1",
+          "tableFrom": "popo_chat_reservation",
+          "columnsFrom": [
+            "popo_chat_msg_type"
+          ],
+          "tableTo": "popo_chat_msg",
+          "schemaTo": "public",
+          "columnsTo": [
+            "type"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "FK_pot_room_TO_popo_chat_reservation_1": {
+          "name": "FK_pot_room_TO_popo_chat_reservation_1",
+          "tableFrom": "popo_chat_reservation",
+          "columnsFrom": [
+            "pot_fk"
+          ],
+          "tableTo": "pot_room",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.bank": {
+      "name": "bank",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "bank_short_name": {
+          "name": "bank_short_name",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bank_full_name": {
+          "name": "bank_full_name",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'https://png.pngtree.com/template/20190308/ourmid/pngtree-banking-logo-image_63077.jpg'"
+        },
+        "is_securities": {
+          "name": "is_securities",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.device": {
+      "name": "device",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_fk": {
+          "name": "user_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fcm_token": {
+          "name": "fcm_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "os": {
+          "name": "os",
+          "type": "varchar(4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "varchar(8)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "device_id": {
+          "name": "device_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "logged_in": {
+          "name": "logged_in",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_users_TO_device_1": {
+          "name": "FK_users_TO_device_1",
+          "tableFrom": "device",
+          "columnsFrom": [
+            "user_fk"
+          ],
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.refresh_token": {
+      "name": "refresh_token",
+      "schema": "",
+      "columns": {
+        "opaque_hash": {
+          "name": "opaque_hash",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "user_pk": {
+          "name": "user_pk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "refresh_token__index": {
+          "name": "refresh_token__index",
+          "columns": [
+            {
+              "expression": "user_pk",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.stops": {
+      "name": "stops",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name_kor": {
+          "name": "name_kor",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name_eng": {
+          "name": "name_eng",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "lat": {
+          "name": "lat",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "lng": {
+          "name": "lng",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.app_version": {
+      "name": "app_version",
+      "schema": "",
+      "columns": {
+        "ios_min_version": {
+          "name": "ios_min_version",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ios_latest_version": {
+          "name": "ios_latest_version",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aos_min_version": {
+          "name": "aos_min_version",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aos_latest_version": {
+          "name": "aos_latest_version",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_bank": {
+      "name": "user_bank",
+      "schema": "",
+      "columns": {
+        "user_fk": {
+          "name": "user_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bank_fk": {
+          "name": "bank_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account": {
+          "name": "account",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_users_TO_user_bank_1": {
+          "name": "FK_users_TO_user_bank_1",
+          "tableFrom": "user_bank",
+          "columnsFrom": [
+            "user_fk"
+          ],
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "FK_bank_TO_user_bank_1": {
+          "name": "FK_bank_TO_user_bank_1",
+          "tableFrom": "user_bank",
+          "columnsFrom": [
+            "bank_fk"
+          ],
+          "tableTo": "bank",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_USER_BANK": {
+          "name": "PK_USER_BANK",
+          "columns": [
+            "user_fk",
+            "bank_fk"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_pot_room": {
+      "name": "user_pot_room",
+      "schema": "",
+      "columns": {
+        "pot_room_fk": {
+          "name": "pot_room_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_fk": {
+          "name": "user_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_host": {
+          "name": "is_host",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "is_archived": {
+          "name": "is_archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_users_TO_user_pot_room_1": {
+          "name": "FK_users_TO_user_pot_room_1",
+          "tableFrom": "user_pot_room",
+          "columnsFrom": [
+            "user_fk"
+          ],
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "FK_pot_room_TO_user_pot_room_1": {
+          "name": "FK_pot_room_TO_user_pot_room_1",
+          "tableFrom": "user_pot_room",
+          "columnsFrom": [
+            "pot_room_fk"
+          ],
+          "tableTo": "pot_room",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_USER_POT_ROOM": {
+          "name": "PK_USER_POT_ROOM",
+          "columns": [
+            "pot_room_fk",
+            "user_fk"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_consent": {
+      "name": "user_consent",
+      "schema": "",
+      "columns": {
+        "user_fk": {
+          "name": "user_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "term": {
+          "name": "term",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "FK_users_TO_user_consent_1": {
+          "name": "FK_users_TO_user_consent_1",
+          "tableFrom": "user_consent",
+          "columnsFrom": [
+            "user_fk"
+          ],
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsTo": [
+            "pk"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_USER_CONSENT": {
+          "name": "PK_USER_CONSENT",
+          "columns": [
+            "user_fk",
+            "term"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pot_event": {
+      "name": "pot_event",
+      "schema": "",
+      "columns": {
+        "pot_fk": {
+          "name": "pot_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "nextval('pot_event_id'::regclass)"
+        },
+        "type": {
+          "name": "type",
+          "type": "pot_event_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_pot_event_n_pot_fk_type": {
+          "name": "idx_pot_event_n_pot_fk_type",
+          "columns": [
+            {
+              "expression": "pot_fk",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops"
+            },
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "pot_event_pkey": {
+          "name": "pot_event_pkey",
+          "columns": [
+            "pot_fk",
+            "timestamp",
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.popo_action_btn_type": {
+      "name": "popo_action_btn_type",
+      "schema": "public",
+      "values": [
+        "departure-confirm-btn",
+        "taxi-call-btn",
+        "accounting-request-btn",
+        "accounting-info-check-btn",
+        "accounting-process-btn"
+      ]
+    },
+    "public.popo_chat_type": {
+      "name": "popo_chat_type",
+      "schema": "public",
+      "values": [
+        "popo-departure-confirm-request-v1",
+        "popo-departure-confirmed-v1",
+        "popo-reminder-taxi-call-v1",
+        "popo-accounting-reminder-v1",
+        "popo-accounting-request-v1",
+        "popo-auto-archive-no-departure-confirm-v1",
+        "popo-auto-archive-accounting-fin-v1",
+        "popo-auto-archive-v1"
+      ]
+    },
+    "public.pot_event_type": {
+      "name": "pot_event_type",
+      "schema": "public",
+      "values": [
+        "create_v1",
+        "chat_v1",
+        "popo_chat_v1",
+        "user_in_v1",
+        "user_leave_v1",
+        "user_kick_v1",
+        "departure_confirm_v1",
+        "accounting_request_v1",
+        "accounting_confirm_v1",
+        "archive_v1"
+      ]
+    }
+  },
+  "schemas": {},
+  "views": {},
+  "sequences": {
+    "public.pot_event_id": {
+      "name": "pot_event_id",
+      "increment": "1",
+      "minValue": "0",
+      "maxValue": "10000",
+      "startWith": "0",
+      "cache": "1",
+      "cycle": true,
+      "schema": "public"
+    }
+  },
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  },
+  "internal": {
+    "tables": {
+      "popo_chat_msg": {
+        "columns": {
+          "action_btns": {
+            "isArray": true,
+            "dimensions": 1,
+            "rawType": "popo_action_btn_type"
+          }
+        }
+      },
+      "pot_event": {
+        "columns": {
+          "id": {
+            "isDefaultAnExpression": true
+          }
+        }
+      }
+    }
+  }
+}

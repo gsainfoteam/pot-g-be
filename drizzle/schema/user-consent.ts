@@ -1,4 +1,5 @@
 import {
+  index,
   pgTable,
   primaryKey,
   timestamp,
@@ -19,7 +20,9 @@ CREATE TABLE "user_consent" (
 export const userConsent = pgTable(
   "user_consent",
   {
-    userFk: uuid("user_fk").notNull(),
+    userFk: uuid("user_fk")
+      .notNull()
+      .references(() => users.pk),
     term: varchar("term", { length: 255 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -28,7 +31,12 @@ export const userConsent = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (table) => [primaryKey({ columns: [table.userFk, table.term] })],
+  (table) => [
+    primaryKey({
+      columns: [table.userFk, table.term],
+    }),
+    index().on(table.userFk),
+  ],
 );
 
 export const userConsentRelations = relations(userConsent, ({ one }) => ({
