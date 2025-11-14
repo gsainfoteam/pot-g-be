@@ -23,6 +23,8 @@ COPY package*.json ./
 
 RUN npm install --omit=dev --force
 
+COPY --from=builder --chown=nestjs:nodejs /app/drizzle ./drizzle
+
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 
 RUN mkdir -p /app/logs && chown -R nestjs:nodejs /app/logs

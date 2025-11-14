@@ -4,7 +4,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
-import { UserContext } from "@src/auth/user-context.entity";
+import { UserContext } from "@src/auth/context/user-context.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotCreateEventV1 } from "@src/pot/event/v1/pot-create-event";
 import { RouteService } from "@src/discovery/route.service";

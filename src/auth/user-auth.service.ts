@@ -1,7 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UserEntity } from "@src/database/entity/user.entity";
-import { AccessTokenJwtPayload } from "@src/auth/jwt.payload";
+import { UserAccessTokenJwtPayload } from "@src/auth/jwt/user-jwt.payload";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { DeviceEntity } from "@src/database/entity/device.entity";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
@@ -11,8 +11,8 @@ import { createHash, getRandomValues } from "node:crypto";
 import { StringValue } from "ms";
 
 @Injectable()
-export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
+export class UserAuthService {
+  private readonly logger = new Logger(UserAuthService.name);
   private readonly accessTokenExpiresIn: StringValue = "6h";
   private readonly refreshTokenExpiresIn: StringValue = "30d";
 
@@ -23,7 +23,7 @@ export class AuthService {
   ) {}
 
   async createNewJwtToken(user: UserEntity, device: DeviceEntity, tx: TxType) {
-    const payload: AccessTokenJwtPayload = {
+    const payload: UserAccessTokenJwtPayload = {
       userId: user.pk,
       devicePk: device.pk,
     };
@@ -69,7 +69,7 @@ export class AuthService {
 
   async validateOpaqueHash(
     opaqueHash: string,
-  ): Promise<AccessTokenJwtPayload | null> {
+  ): Promise<UserAccessTokenJwtPayload | null> {
     try {
       const { publicKey } = await this.keyPairService.getKeyPair();
 
@@ -80,7 +80,7 @@ export class AuthService {
         throw new UnauthorizedException("Refresh token not found");
       }
 
-      return this.jwtService.verify<AccessTokenJwtPayload>(
+      return this.jwtService.verify<UserAccessTokenJwtPayload>(
         refreshTokenEntity.refreshToken,
         {
           publicKey: publicKey,
@@ -96,7 +96,7 @@ export class AuthService {
   }
 
   async refreshAccessToken(user: UserEntity, devicePk: string) {
-    const payload: AccessTokenJwtPayload = {
+    const payload: UserAccessTokenJwtPayload = {
       userId: user.pk,
       devicePk: devicePk,
     };
@@ -119,7 +119,7 @@ export class AuthService {
     try {
       const { publicKey } = await this.keyPairService.getKeyPair();
 
-      const payload = this.jwtService.verify<AccessTokenJwtPayload>(
+      const payload = this.jwtService.verify<UserAccessTokenJwtPayload>(
         accessToken,
         {
           publicKey: publicKey,

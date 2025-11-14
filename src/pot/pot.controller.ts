@@ -11,7 +11,7 @@ import { PotService } from "@src/pot/pot.service";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserGuard } from "@src/auth/guard/user.guard";
 import { GetUser } from "@src/global/decorator/get-user.decorator";
-import { UserContext } from "@src/auth/user-context.entity";
+import { UserContext } from "@src/auth/context/user-context.entity";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { MyPotResDto } from "@src/pot/dto/my.pot.dto";
 import { PotInfoDto } from "@src/pot/dto/pot.info.dto";

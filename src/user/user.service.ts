@@ -9,10 +9,10 @@ import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { SetDeviceInfoRequestDto } from "@src/user/dto/set-fcm.dto";
 import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
-import { UserContext } from "@src/auth/user-context.entity";
+import { UserContext } from "@src/auth/context/user-context.entity";
 import { InfoteamIdpService } from "@lib/infoteam-idp";
 import { UserRepository } from "@src/database/repository/user.repository";
-import { AuthService } from "@src/auth/auth.service";
+import { UserAuthService } from "@src/auth/user-auth.service";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { DeviceRepository } from "@src/database/repository/device.repository";
@@ -34,7 +34,7 @@ export class UserService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly idpService: InfoteamIdpService,
-    private readonly authService: AuthService,
+    private readonly authService: UserAuthService,
     private readonly userRepository: UserRepository,
     private readonly deviceRepository: DeviceRepository,
     private readonly userAlarmSettingRepository: UserAlarmSettingRepository,
