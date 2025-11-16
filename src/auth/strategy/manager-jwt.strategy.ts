@@ -14,6 +14,7 @@ export class ManagerJwtStrategy extends PassportStrategy(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       algorithms: ["RS256"],
       secretOrKey: publicKey,
+      issuer: "PotG-Manager",
     });
   }
 
