@@ -15,6 +15,7 @@ const { errors, combine, timestamp, ms, printf } = winstonFormat;
 export class LoggerService implements LS {
   private logger: winstonLogger;
   private queryLogger: winstonLogger;
+  private queryTimeLogger: winstonLogger;
 
   constructor(private readonly configService: ConfigService) {
     const logFilePath = this.configService.get<string>("LOG_PATH");
@@ -68,6 +69,22 @@ export class LoggerService implements LS {
       ],
     });
 
+    this.queryTimeLogger = createWinstonLogger({
+      format: combine(
+        errors({ stack: true }),
+        timestamp({ format: "isoDateTime" }),
+        ms(),
+        printf((info) => `[${info.timestamp}][DB QUERY TIME] ${info.message}`),
+      ),
+      transports: [
+        new winstonTransports.DailyRotateFile({
+          filename: `${logFilePath}/potg-query-%DATE%.log`,
+          zippedArchive: true,
+          datePattern: "YYYY-MM-DD",
+        }),
+      ],
+    });
+
     console.log = (message: any, params?: any) => {
       this.logger.debug(message, params);
     };
@@ -91,5 +108,9 @@ export class LoggerService implements LS {
 
   queryLog(message: string) {
     this.queryLogger.info(message);
+  }
+
+  queryTimeLog(message: string) {
+    this.queryTimeLogger.info(message);
   }
 }
