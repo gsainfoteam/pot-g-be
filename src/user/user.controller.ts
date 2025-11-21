@@ -54,6 +54,7 @@ export class UserController {
   }
 
   @Post("/withdraw")
+  @UseGuards(UserGuard)
   async withdraw(@GetUser() userCtx: UserContext): Promise<BaseResultDto> {
     return this.userService.withdraw(userCtx);
   }
