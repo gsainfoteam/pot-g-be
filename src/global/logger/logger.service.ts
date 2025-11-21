@@ -78,7 +78,7 @@ export class LoggerService implements LS {
       ),
       transports: [
         new winstonTransports.DailyRotateFile({
-          filename: `${logFilePath}/potg-query-%DATE%.log`,
+          filename: `${logFilePath}/potg-query-%DATE%.log`, //queryLogger와 queryTimeLogger 둘 다 같은곳에 저장 하는것이 의도
           zippedArchive: true,
           datePattern: "YYYY-MM-DD",
         }),

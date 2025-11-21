@@ -14,10 +14,19 @@ import { Pot } from "@src/pot/model/pot";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotEventFactory } from "@src/pot/event/pot-event";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
+import { QueryTimeLogWriter } from "@src/database/query.time.log.writer";
+import { LoggerService } from "@src/global/logger/logger.service";
 
 @Injectable()
 export class PotRoomRepository {
-  constructor(private readonly dbService: DatabaseService) {}
+  private readonly queryTimeLogWriter: QueryTimeLogWriter;
+
+  constructor(
+    private readonly dbService: DatabaseService,
+    private readonly loggerService: LoggerService,
+  ) {
+    this.queryTimeLogWriter = new QueryTimeLogWriter(loggerService);
+  }
 
   async insert(
     potRoomEntity: PotRoomEntity,
@@ -68,6 +77,7 @@ export class PotRoomRepository {
     starts_at?: Date,
     ends_at?: Date,
   ): Promise<PotRoomEntity[]> {
+    this.queryTimeLogWriter.startTimer();
     const results = await this.dbService.db
       .select({
         pk: potRoom.pk,
@@ -91,7 +101,10 @@ export class PotRoomRepository {
       .limit(limit)
       .orderBy(asc(potRoom.startsAt));
 
-    return results.map((result) => this.resultToPotRoomEntity(result));
+    const result = results.map((result) => this.resultToPotRoomEntity(result));
+    this.queryTimeLogWriter.write('searchPotList');
+    this.queryTimeLogWriter.resetTimer();
+    return result;
   }
 
   /*
@@ -164,6 +177,7 @@ export class PotRoomRepository {
     userPk: string,
     chatEventType: PotEventStringType,
   ): Promise<PotRoomEntity[]> {
+    this.queryTimeLogWriter.startTimer();
     const results = await this.dbService.db
       .select({
         pk: potRoom.pk,
@@ -199,8 +213,9 @@ export class PotRoomRepository {
       .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp, potEvent.id)
       .orderBy(asc(potEvent.timestamp));
 
+    this.queryTimeLogWriter.write('getUserPotRoomList');
     // 타입 체크를 위해 따로 함수로 분리하지 않습니다. (분리할 경우 타입 명시 해줘야 해서 코드가 더러워짐)
-    return results.reduce((acc, curr) => {
+    const result = results.reduce((acc, curr) => {
       const potEvent = PotEventFactory.toModel(curr);
 
       // find existing PotRoomEntity in acc
@@ -217,6 +232,8 @@ export class PotRoomRepository {
       }
       return acc;
     }, [] as PotRoomEntity[]);
+    this.queryTimeLogWriter.resetTimer();
+    return result;
   }
 
   /*
