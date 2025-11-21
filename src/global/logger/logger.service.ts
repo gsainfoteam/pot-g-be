@@ -110,7 +110,8 @@ export class LoggerService implements LS {
     this.queryLogger.info(message);
   }
 
-  queryTimeLog(message: string) {
-    this.queryTimeLogger.info(message);
+  queryTimeLog(queryName: string, startTime: number) {
+    const duration = Date.now() - startTime;
+    this.queryTimeLogger.info(`(${duration}ms) ${queryName}`);
   }
 }
