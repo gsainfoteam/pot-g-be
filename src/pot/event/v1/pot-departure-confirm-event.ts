@@ -3,6 +3,7 @@ import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
 import {
   AssertIfDepartureTimeBeforeNow,
+  AssertIfDepartureTimeNotSet,
   AssertIfHost,
   AssertIfValidDepartureTime,
   AssertIfValidPot,
@@ -55,7 +56,8 @@ export class PotDepartureConfirmEventV1
     // 방장만 출발 확정을 정할 수 있음
     AssertIfHost(pot, data.userPk);
 
-    // TODO: 이미 출발을 하지 않아야 함
+    // 이미 출발 시간이 정해졌다면 또 출발 확정 불가
+    AssertIfDepartureTimeNotSet(pot);
 
     // 출발 시간이 현재 시간 이후여야 함
     AssertIfDepartureTimeBeforeNow(data.departureTime);
