@@ -140,6 +140,12 @@ export class BroadcastingService {
       return;
     }
 
+    // findClientByUserId 메소드를 통해 targetClient 를 가져오기 때문에 userId 가 안들어있을 일이 없음.
+    // 다만 타입스크립트 오류 방지를 위해 추가
+    if (!targetClient.getUserId()) {
+      return;
+    }
+
     // 10초 대기 후에도 ack 가 오지 않는 경우 푸시 알람 발송
     await this.sendPotEventPush(
       potEventDto,

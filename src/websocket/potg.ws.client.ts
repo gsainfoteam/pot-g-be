@@ -29,6 +29,7 @@ export class PotgWsClient {
     this.sentMessageMap = new Map();
     this.queuedTasks = [];
     this.queuedMessages = [];
+    this.ackMessages = new Map();
   }
 
   getWsClient() {
