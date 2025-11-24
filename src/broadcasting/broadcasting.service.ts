@@ -88,6 +88,8 @@ export class BroadcastingService {
         }
 
         targetClient.sendMessage(potEventReceiveDto);
+        // TODO: targetClient 하나하나마다 10초 후에 ack 확인하는 비동기 작업을 시작하는게
+        //  아니라 모두 보낸 후 한꺼번에 확인할 수 있을텐데 우선은 하지 않음
         timer(10000)
           .pipe(
             switchMap(() =>
