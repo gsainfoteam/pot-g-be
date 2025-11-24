@@ -1,0 +1,1 @@
+[2025-11-24T16:29:42+00:00][DB QUERY] Query: select "pk", "public_key", "private_key", "created_at", "updated_at" from "jwt_key_pair" limit $1 -- params: [1]

@@ -1,4 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { addDays } from "date-fns";
 import { JwtService } from "@nestjs/jwt";
 import { UserEntity } from "@src/database/entity/user.entity";
 import { UserAccessTokenJwtPayload } from "@src/auth/jwt/user-jwt.payload";
@@ -61,6 +62,7 @@ export class UserAuthService {
     const refreshTokenEntity: RefreshTokenEntity = {
       opaqueHash: hash,
       refreshToken: refreshToken,
+      expiresAt: addDays(new Date(), 30),
     };
     await this.refreshTokenRepository.insert(refreshTokenEntity, tx);
 

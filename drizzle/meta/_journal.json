@@ -57,6 +57,13 @@
       "when": 1763139225421,
       "tag": "0007_little_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1764001116523,
+      "tag": "0008_lethal_valeria_richards",
+      "breakpoints": true
     }
   ]
 }
