@@ -98,7 +98,6 @@ export class BroadcastingService {
                   targetClient,
                   potEventReceiveDto,
                   potEventDto,
-                  pushAlarmTargetUserPks,
                   potName,
                   senderName,
                 ),
@@ -128,14 +127,13 @@ export class BroadcastingService {
     targetClient: PotgWsClient,
     potEventReceiveDto: WsBaseDto<PotEventDto<any>>,
     potEventDto: PotEventDto<any>,
-    pushAlarmTargetUserPks: string[] = [],
     potName?: string,
     senderName?: string,
   ) {
     if (
       targetClient.findAckMessage(
         potEventReceiveDto.request_id,
-        potEventReceiveDto.type,
+        potEventReceiveDto.type + "_res",
       )
     ) {
       // ack 가 도착했음
@@ -145,7 +143,7 @@ export class BroadcastingService {
     // 10초 대기 후에도 ack 가 오지 않는 경우 푸시 알람 발송
     await this.sendPotEventPush(
       potEventDto,
-      pushAlarmTargetUserPks,
+      [targetClient.getUserId()],
       potName,
       senderName,
     );
