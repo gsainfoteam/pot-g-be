@@ -1,5 +1,4 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 /*
 CREATE TABLE "refresh_token" (
@@ -21,5 +20,6 @@ export const refreshToken = pgTable("refresh_token", {
     .defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true })
     .notNull()
-    .default(sql`'2026-01-01'`),
-});
+},
+(table) => [index().on(table.expiresAt)],
+);
