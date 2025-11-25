@@ -150,6 +150,16 @@ export class WebsocketService implements OnModuleDestroy {
     client.sendMessage(WsResponseDto.OK("send_chat_res", payload.request_id));
   }
 
+  async potEventReceiveAck(
+    client: PotgWsClient,
+    payload: WsBaseDto<WsSendChatReqDto>,
+  ) {
+    // 요청 상관관계 검증
+    client.resolveRequestId(payload.request_id, "pot_event_receive");
+
+    client.addAckMessage(payload);
+  }
+
   private findClient(wsClient: WebSocket): PotgWsClient | undefined {
     return this.clients.find((c) => c.getWsClient() === wsClient);
   }
