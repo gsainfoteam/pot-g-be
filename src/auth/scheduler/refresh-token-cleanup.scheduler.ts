@@ -14,13 +14,13 @@ export class RefreshTokenCleanupScheduler {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleCron() {
-    this.logger.log("[RefreshTokenScheduler] Cleanup Started");
+    this.logger.log("[RefreshTokenCleanupScheduler] Cleanup Started");
     try {
       const count = await this.refreshTokenRepository.deleteExpiredTokens(
         this.dbService.db,
       );
       this.logger.log(
-        `[RefreshTokenScheduler] Cleanup Finished. count: ${count}`,
+        `[RefreshTokenCleanupScheduler] Cleanup Finished. count: ${count}`,
       );
     } catch (e) {
       this.logger.error("Failed to cleanup expired refresh tokens", e);
