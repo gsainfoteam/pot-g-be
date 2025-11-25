@@ -1,0 +1,1 @@
+DROP INDEX "refresh_token_expires_at_index";

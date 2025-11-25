@@ -59,7 +59,7 @@ export class RefreshTokenRepository {
       .where(eq(refreshToken.opaqueHash, opaqueHash));
   }
 
-  async deleteExpiredTokens(tx: TxType | NodePgDatabase<any>): Promise<number> {
+  async deleteExpiredTokens(tx: TxType): Promise<number> {
     const deletedTokens = await tx
       .delete(refreshToken)
       .where(lt(refreshToken.expiresAt, new Date()))

@@ -6,7 +6,7 @@ CREATE TABLE "refresh_token" (
     "refresh_token" text                     NOT NULL,
     "created_at"    timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at"    timestamp with time zone NOT NULL DEFAULT NOW(),
-    "expires_at"    timestamp with time zone NOT NULL DEFAULT '2026-01-01'
+    "expires_at"    timestamp with time zone NOT NULL
 );
 */
 export const refreshToken = pgTable("refresh_token", {
@@ -20,6 +20,4 @@ export const refreshToken = pgTable("refresh_token", {
     .defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true })
     .notNull()
-},
-(table) => [index().on(table.expiresAt)],
-);
+});
