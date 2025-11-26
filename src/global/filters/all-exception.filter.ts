@@ -5,11 +5,9 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-  UnauthorizedException,
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { SlackService } from "nestjs-slack";
-import { WsException } from "@nestjs/websockets";
 
 @Catch() // 모든 예외를 캐치
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -19,29 +17,33 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
+    const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
 
-    // 이미 HttpExceptionFilter 및 WsExceptionFilter에서 처리된 예외는 무시
-    if (
-      exception instanceof HttpException ||
-      exception instanceof WsException
-    ) {
-      // 다만 UnauthorizedException 은 HttpExceptionFilter에서 처리되지 않으므로 여기서 로깅 없이 처리
-      if (exception instanceof UnauthorizedException) {
-        const status = exception.getStatus();
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+
+      // Request 로깅
+      this.logger.error(`[Request] ${request.method} ${request.url}`);
+
+      // Response & Stack trace 로깅
+      if (exception.stack) {
+        this.logger.error(
+          `[Response] Status: ${status}, Message: ${exception.message} [Stack] ${exception.stack}`,
+        );
+      } else {
         this.logger.error(
           `[Response] Status: ${status}, Message: ${exception.message}`,
         );
-        response.status(status).json({
-          statusCode: status,
-          message: exception.message,
-        });
       }
+
+      response.status(status).json({
+        statusCode: status,
+        message: exception.message,
+      });
 
       return;
     }
-
-    const request = ctx.getRequest<Request>();
 
     // Critical 에러 로깅 (스택 트레이스 및 상세 정보 포함)
     let errorMessage: string;

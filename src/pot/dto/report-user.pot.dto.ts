@@ -5,6 +5,6 @@ export class ReportUserReqDto {
   report_target_id: string;
 
   @IsNotEmpty()
-  @Length(500)
+  @Length(0, 500)
   reason: string;
 }
