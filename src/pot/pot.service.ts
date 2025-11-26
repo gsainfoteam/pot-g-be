@@ -768,7 +768,7 @@ export class PotService {
     // slack 으로 신고 내용 전송
     await this.slackService
       .sendText(
-        `*[팟 사용자 신고]*\n- 팟 ID: ${potPk}\n- 신고자: ${userCtx.userId}\n- 신고 대상자: ${req.report_target_id}\n- 사유: ${req.reason}`,
+        `*[팟 사용자 신고]*\n- 팟 ID: ${potPk}\n- 팟 이름: ${pot.name}\n- 신고자: ${userCtx.userId}\n- 신고 대상자: ${req.report_target_id}\n- 사유: ${req.reason}`,
         { channel: "report" },
       )
       .catch((err) => {
