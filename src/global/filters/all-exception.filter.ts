@@ -17,6 +17,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly slackService: SlackService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
+    if (exception instanceof WsException) {
+      // WebSocket 예외는 여기서 처리하지 않음
+      return;
+    }
+
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
@@ -43,11 +48,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message: exception.message,
       });
 
-      return;
-    }
-
-    if (exception instanceof WsException) {
-      // WebSocket 예외는 여기서 처리하지 않음
       return;
     }
 
