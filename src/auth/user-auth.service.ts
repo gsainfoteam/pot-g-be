@@ -1,4 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { addDays } from "date-fns";
 import { JwtService } from "@nestjs/jwt";
 import { UserEntity } from "@src/database/entity/user.entity";
 import { UserAccessTokenJwtPayload } from "@src/auth/jwt/user-jwt.payload";
@@ -14,7 +15,7 @@ import { StringValue } from "ms";
 export class UserAuthService {
   private readonly logger = new Logger(UserAuthService.name);
   private readonly accessTokenExpiresIn: StringValue = "6h";
-  private readonly refreshTokenExpiresIn: StringValue = "30d";
+  private readonly refreshTokenExpireDays = 30;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -41,7 +42,7 @@ export class UserAuthService {
       issuer: "PotG",
       algorithm: "RS256",
       privateKey: privateKey,
-      expiresIn: this.refreshTokenExpiresIn,
+      expiresIn: `${this.refreshTokenExpireDays}d` as StringValue,
     });
 
     const hash = await this.createCSPRNHash(refreshToken, tx);
@@ -61,6 +62,7 @@ export class UserAuthService {
     const refreshTokenEntity: RefreshTokenEntity = {
       opaqueHash: hash,
       refreshToken: refreshToken,
+      expiresAt: addDays(new Date(), this.refreshTokenExpireDays),
     };
     await this.refreshTokenRepository.insert(refreshTokenEntity, tx);
 

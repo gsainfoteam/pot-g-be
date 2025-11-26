@@ -9,6 +9,7 @@ import { DatabaseModule } from "@src/database/database.module";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt.strategy";
+import { RefreshTokenCleanupScheduler } from "@src/auth/scheduler/refresh-token-cleanup.scheduler";
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt.strategy";
       },
       inject: [KeyPairService],
     },
+    RefreshTokenCleanupScheduler,
   ],
   exports: [UserAuthService, UserJwtStrategy, ManagerJwtStrategy],
 })
