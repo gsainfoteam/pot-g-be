@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { SlackService } from "nestjs-slack";
+import { WsException } from "@nestjs/websockets";
 
 @Catch() // 모든 예외를 캐치
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -42,6 +43,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message: exception.message,
       });
 
+      return;
+    }
+
+    if (exception instanceof WsException) {
+      // WebSocket 예외는 여기서 처리하지 않음
       return;
     }
 
