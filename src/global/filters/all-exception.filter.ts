@@ -61,6 +61,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     this.slackService
       .sendText(
         `*[CRITICAL ERROR]*\n${errorMessage}${stackTrace ? `\n\`\`\`${stackTrace}\`\`\`` : ""}`,
+        { channel: "bug" },
       )
       .catch((err) => {
         this.logger.error("Failed to send Slack notification", err);

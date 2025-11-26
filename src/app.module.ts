@@ -36,7 +36,17 @@ import { ConfigService } from "@nestjs/config";
       isGlobal: true,
       useFactory: (configService: ConfigService) => ({
         type: "webhook",
-        url: configService.get<string>("SLACK_WEBHOOK_URL"),
+        channels: [
+          {
+            name: "bug",
+            url: configService.get<string>("SLACK_WEBHOOK_URL"),
+          },
+          {
+            name: "report",
+            url: configService.get<string>("SLACK_REPORT_WEBHOOK_URL"),
+          },
+        ],
+        defaultChannel: "bug",
       }),
       inject: [ConfigService],
     }),

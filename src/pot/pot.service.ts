@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
 } from "@nestjs/common";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/context/user-context.entity";
@@ -50,9 +51,15 @@ import { toDateFormatWithTimezone } from "@src/global/utils/convert-date";
 import { ko } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
 import { ConfirmDepartureTimeDto } from "@src/pot/dto/confirm-departure-time.pot.dto";
+import { ReportUserReqDto } from "@src/pot/dto/report-user.pot.dto";
+import { ReportEntity } from "@src/database/entity/report.entity";
+import { ReportRepository } from "@src/database/repository/report.repository";
+import { SlackService } from "nestjs-slack";
 
 @Injectable()
 export class PotService {
+  private readonly logger = new Logger(PotService.name);
+
   constructor(
     private readonly dbService: DatabaseService,
     private readonly routeService: RouteService,
@@ -62,6 +69,8 @@ export class PotService {
     private readonly potEventRepository: PotEventRepository,
     private readonly userPotRoomRepository: UserPotRoomRepository,
     private readonly userRepository: UserRepository,
+    private readonly reportRepository: ReportRepository,
+    private readonly slackService: SlackService,
   ) {}
 
   async createPot(
@@ -724,6 +733,47 @@ export class PotService {
       null,
       pot,
     );
+
+    return BaseResultDto.OK;
+  }
+
+  async reportUser(potPk: string, req: ReportUserReqDto, userCtx: UserContext) {
+    const pot = await this.getPot(potPk);
+    if (!pot) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    // 유저가 팟에 참여하고 있는지 확인 필요
+    if (!pot.joinedUserPks.includes(userCtx.userId)) {
+      throw new ForbiddenException("User not in pot");
+    }
+
+    // 신고 대상자가 팟에 참여하고 있는지 또는 참여했었는지 확인 필요
+    if (!pot.loggedUserPks.includes(req.report_target_id)) {
+      throw new BadRequestException("Report target user not in pot");
+    }
+
+    const report: ReportEntity = {
+      potRoomFk: potPk,
+      userFk: userCtx.userId,
+      targetUserFk: req.report_target_id,
+      reason: req.reason,
+    };
+
+    // report 레코드 추가
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.reportRepository.insert(report, tx);
+    });
+
+    // slack 으로 신고 내용 전송
+    await this.slackService
+      .sendText(
+        `*[팟 사용자 신고]*\n- 팟 ID: ${potPk}\n- 신고자: ${userCtx.userId}\n- 신고 대상자: ${req.report_target_id}\n- 사유: ${req.reason}`,
+        { channel: "report" },
+      )
+      .catch((err) => {
+        this.logger.error("Failed to send Slack notification", err);
+      });
 
     return BaseResultDto.OK;
   }

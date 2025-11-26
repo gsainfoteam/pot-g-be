@@ -2,7 +2,7 @@ import { UserEntity } from "@src/database/entity/user.entity";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 
 export class ReportEntity {
-  pk: string;
+  pk?: string;
   potRoomFk: string;
   potRoomEntity?: PotRoomEntity;
   userFk: string;
