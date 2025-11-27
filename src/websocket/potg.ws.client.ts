@@ -15,6 +15,7 @@ export class PotgWsClient {
   private sentMessageMap: Map<string, WsBaseDto<any>>;
   private queuedTasks: (() => Promise<any>)[];
   private queuedMessages: WsBaseDto<any>[];
+  private ackMessages: Map<string, WsBaseDto<any>>;
 
   constructor(wsClient: WebSocket) {
     this.wsClient = wsClient;
@@ -28,6 +29,7 @@ export class PotgWsClient {
     this.sentMessageMap = new Map();
     this.queuedTasks = [];
     this.queuedMessages = [];
+    this.ackMessages = new Map();
   }
 
   getWsClient() {
@@ -126,6 +128,20 @@ export class PotgWsClient {
 
   addMessageToQueue(message: WsBaseDto<any>) {
     this.queuedMessages.push(message);
+  }
+
+  addAckMessage(message: WsBaseDto<any>) {
+    this.ackMessages.set(message.request_id, message);
+  }
+
+  findAckMessage(requestId: string, type: string): WsBaseDto<any> | undefined {
+    const ackMessage = this.ackMessages.get(requestId);
+    if (!ackMessage || ackMessage.type !== type) {
+      this.ackMessages.delete(requestId); // 혹시 남아있다면 정리
+      return undefined;
+    }
+    this.ackMessages.delete(requestId);
+    return ackMessage;
   }
 
   async sendQueuedMessages() {

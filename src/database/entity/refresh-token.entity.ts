@@ -3,5 +3,6 @@ export class RefreshTokenEntity {
   refreshToken: string;
   createdAt?: Date;
   updatedAt?: Date;
+  expiresAt: Date;
   userPk: string;
 }
