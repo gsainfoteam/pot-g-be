@@ -21,6 +21,7 @@ import {
 } from "@src/pot/dto/pot.event.dto";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { ConfirmDepartureTimeDto } from "@src/pot/dto/confirm-departure-time.pot.dto";
+import { ReportUserReqDto } from "@src/pot/dto/report-user.pot.dto";
 
 @Controller("/api/v1/pot")
 export class PotController {
@@ -103,5 +104,15 @@ export class PotController {
     @GetUser() userCtx: UserContext,
   ): Promise<BaseResultDto> {
     return this.potService.confirmDepartureTime(potPk, req, userCtx);
+  }
+
+  @Post("/:potPk/report")
+  @UseGuards(UserGuard)
+  async reportUser(
+    @Param("potPk") potPk: string,
+    @Body() req: ReportUserReqDto,
+    @GetUser() userCtx: UserContext,
+  ): Promise<BaseResultDto> {
+    return this.potService.reportUser(potPk, req, userCtx);
   }
 }

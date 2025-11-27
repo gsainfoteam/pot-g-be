@@ -3,7 +3,6 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { customMessageParser } from "@src/websocket/websocket.utils";
-import { HttpExceptionFilter } from "./global/filters/http-exception.filter";
 import { WsExceptionFilter } from "./global/filters/ws-exception.filter";
 import { AllExceptionsFilter } from "./global/filters/all-exception.filter";
 import { LoggerService } from "@src/global/logger/logger.service";
@@ -29,7 +28,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new HttpLoggingInterceptor());
   app.useGlobalFilters(
-    new HttpExceptionFilter(),
     new WsExceptionFilter(),
     new AllExceptionsFilter(slackService),
   );

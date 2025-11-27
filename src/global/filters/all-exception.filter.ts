@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-  UnauthorizedException,
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { SlackService } from "nestjs-slack";
@@ -18,30 +17,39 @@ export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly slackService: SlackService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-
-    // 이미 HttpExceptionFilter 및 WsExceptionFilter에서 처리된 예외는 무시
-    if (
-      exception instanceof HttpException ||
-      exception instanceof WsException
-    ) {
-      // 다만 UnauthorizedException 은 HttpExceptionFilter에서 처리되지 않으므로 여기서 로깅 없이 처리
-      if (exception instanceof UnauthorizedException) {
-        const status = exception.getStatus();
-        this.logger.error(
-          `[Response] Status: ${status}, Message: ${exception.message}`,
-        );
-        response.status(status).json({
-          statusCode: status,
-          message: exception.message,
-        });
-      }
-
+    if (exception instanceof WsException) {
+      // WebSocket 예외는 여기서 처리하지 않음
       return;
     }
 
+    const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<Response>();
+
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+
+      // Request 로깅
+      this.logger.error(`[Request] ${request.method} ${request.url}`);
+
+      // Response & Stack trace 로깅
+      if (exception.stack) {
+        this.logger.error(
+          `[Response] Status: ${status}, Message: ${exception.message} [Stack] ${exception.stack}`,
+        );
+      } else {
+        this.logger.error(
+          `[Response] Status: ${status}, Message: ${exception.message}`,
+        );
+      }
+
+      response.status(status).json({
+        statusCode: status,
+        message: exception.message,
+      });
+
+      return;
+    }
 
     // Critical 에러 로깅 (스택 트레이스 및 상세 정보 포함)
     let errorMessage: string;
@@ -61,6 +69,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     this.slackService
       .sendText(
         `*[CRITICAL ERROR]*\n${errorMessage}${stackTrace ? `\n\`\`\`${stackTrace}\`\`\`` : ""}`,
+        { channel: "bug" },
       )
       .catch((err) => {
         this.logger.error("Failed to send Slack notification", err);

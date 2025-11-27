@@ -9,6 +9,7 @@ import { relations } from "drizzle-orm";
 import { userPotRoom } from "./user-pot-room";
 import { device } from "./device";
 import { userBank } from "./user-bank";
+import { report } from "./report";
 
 /*
 CREATE TABLE "users" (
@@ -39,4 +40,5 @@ export const usersRelations = relations(users, ({ many }) => ({
   userPotRooms: many(userPotRoom),
   devices: many(device),
   userBanks: many(userBank),
+  reports: many(report),
 }));
