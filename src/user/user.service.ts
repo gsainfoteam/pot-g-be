@@ -30,6 +30,7 @@ import { LogoutRequestDto } from "@src/user/dto/logout.dto";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 import { UserBankRepository } from "@src/database/repository/user-bank.repository";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
+import { PotService } from "@src/pot/pot.service";
 
 @Injectable()
 export class UserService {
@@ -44,6 +45,7 @@ export class UserService {
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly userBankRepository: UserBankRepository,
     private readonly broadcastingService: BroadcastingService,
+    private readonly potService: PotService,
   ) {}
 
   async login(
@@ -220,24 +222,44 @@ export class UserService {
     // 사용자의 ws 연결 모두 해제
     this.broadcastingService.disconnectUser(userCtx.userId);
 
-    // TODO
-    // 사용자의 모든 액티브 팟으로부터 사용자 퇴장
+    let err: BaseResultDto | null = null;
 
-    // 쿼리의 개수가 꽤 많기 때문에 트랜잭션으로 묶고 하나하나 처리합니다.
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      // user alarm setting 물리 삭제
-      await this.userAlarmSettingRepository.deleteByUserFk(userCtx.userId, tx);
-      // 사용자의 계좌 정보 물리 삭제
-      await this.userBankRepository.deleteByUserPk(userCtx.userId, tx);
-      // user consent 물리 삭제
-      await this.userConsentRepository.deleteByUserFk(userCtx.userId, tx);
-      // refresh token 물리 삭제
-      await this.refreshTokenRepository.deleteByUserPk(userCtx.userId, tx);
-      // device 논리적 비활성화 (log out)
-      await this.deviceRepository.logoutAllWithUserFk(userCtx.userId, tx);
-      // user 테이블에서 논리 삭제
-      await this.userRepository.withdraw(userCtx.userId, tx);
-    });
+    try {
+      // 쿼리의 개수가 꽤 많기 때문에 트랜잭션으로 묶고 하나하나 처리합니다.
+      await this.dbService.db.transaction(async (tx: TxType) => {
+        // 사용자의 모든 액티브 팟으로부터 사용자 퇴장
+        const res = await this.potService.leaveUserFromAllPot(
+          userCtx.userId,
+          tx,
+        );
+        if (res !== BaseResultDto.OK) {
+          err = res;
+          throw new InternalServerErrorException("Failed to leave pots");
+        }
+
+        // user alarm setting 물리 삭제
+        await this.userAlarmSettingRepository.deleteByUserFk(
+          userCtx.userId,
+          tx,
+        );
+        // 사용자의 계좌 정보 물리 삭제
+        await this.userBankRepository.deleteByUserPk(userCtx.userId, tx);
+        // user consent 물리 삭제
+        await this.userConsentRepository.deleteByUserFk(userCtx.userId, tx);
+        // refresh token 물리 삭제
+        await this.refreshTokenRepository.deleteByUserPk(userCtx.userId, tx);
+        // device 논리적 비활성화 (log out)
+        await this.deviceRepository.logoutAllWithUserFk(userCtx.userId, tx);
+        // user 테이블에서 논리 삭제
+        await this.userRepository.withdraw(userCtx.userId, tx);
+      });
+    } catch {
+      if (err) {
+        return err;
+      } else {
+        return BaseResultDto.UNKNOWN;
+      }
+    }
 
     return BaseResultDto.OK;
   }

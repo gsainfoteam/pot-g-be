@@ -544,6 +544,87 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
+  async leaveUserFromAllPot(userId: string, tx: TxType) {
+    // 사용자가 들어가있는 모든 팟 조회, 모두 leave 이벤트 추가
+    const potRoomEntityList = await this.potRoomRepository.getUserPotRoomList(
+      userId,
+      "chat_v1",
+    );
+
+    for (const potRoomEntity of potRoomEntityList.filter(
+      (pre) => !pre.isArchived,
+    )) {
+      const res = await this.tryLeaveUserFromPot(userId, potRoomEntity.pot, tx);
+      if (res !== BaseResultDto.OK) {
+        // 미정산 등 문제 발생, 바로 에러 던지기
+        return res;
+      }
+    }
+
+    return BaseResultDto.OK;
+  }
+
+  private async tryLeaveUserFromPot(userId: string, pot: Pot, tx: TxType) {
+    // 해당 팟에서 사용자 제거
+    const previousHostUserPk = pot.hostUserPk;
+
+    const potUserLeaveEvent: PotUserLeaveEventV1 =
+      PotUserLeaveEventV1.generatePotUserLeaveEvent(pot.pk, new Date(), {
+        potRoomPk: pot.pk,
+        userPk: userId,
+      });
+
+    try {
+      PotEventReducer.reduce(pot, potUserLeaveEvent, true);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return error.baseResultDto;
+      }
+      throw error; // 알 수 없는 오류는 다시 던짐
+    }
+
+    await this.potEventRepository.saveEvent(potUserLeaveEvent, tx);
+    await this.userPotRoomRepository.deleteByPotRoomFkAndUserFk(
+      pot.pk,
+      userId,
+      tx,
+    );
+    // 방장이 바뀐 경우 user_pot_room 테이블의 is_host 업데이트
+    if (pot.joinedUserPks.length > 0 && previousHostUserPk !== pot.hostUserPk) {
+      await this.userPotRoomRepository.updateHostStatus(
+        pot.pk,
+        previousHostUserPk,
+        false,
+        tx,
+      );
+      await this.userPotRoomRepository.updateHostStatus(
+        pot.pk,
+        pot.hostUserPk,
+        true,
+        tx,
+      );
+    }
+
+    this.broadcastingService.asyncBroadcastPotEvent(
+      {
+        pot_pk: pot.pk,
+        timestamp: getUnixTime(potUserLeaveEvent.timestamp),
+        id: potUserLeaveEvent.id,
+        event_type: potUserLeaveEvent.eventType,
+        data: potUserLeaveEvent.toDto(),
+      },
+      pot.joinedUserPks,
+      pot.name,
+    );
+
+    // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
+    if (pot.joinedUserPks.length === 0) {
+      await this.archivePot(pot);
+    }
+
+    return BaseResultDto.OK;
+  }
+
   /*
     팟의 방장이 채팅방 내 사용자를 강퇴시킵니다.
 
