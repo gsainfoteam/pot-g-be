@@ -101,10 +101,14 @@ export class WebsocketService implements OnModuleDestroy {
     const { userId, devicePk, validUntil } =
       await this.authService.validateAccessToken(accessToken);
     if (!userId) {
-      throw new WsException("Invalid refresh token"); // TODO
+      throw new WsException("Invalid refresh token");
     }
 
-    // TODO: 탈퇴한 회원 검사
+    // 탈퇴한 회원 검사
+    const isWithdrawn = await this.usersRepository.isWithdrawn(userId);
+    if (isWithdrawn) {
+      throw new WsException("Withdrawn user");
+    }
 
     // 인증 처리
     client.setAuthorized(userId, devicePk, accessToken, validUntil);

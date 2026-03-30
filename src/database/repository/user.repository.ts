@@ -149,6 +149,22 @@ export class UserRepository {
     };
   }
 
+  /*
+  SELECT is_deleted FROM user WHERE pk = ?1;
+   */
+  async isWithdrawn(userPk: string): Promise<boolean> {
+    const result = await this.dbService.db
+      .select({ isDeleted: users.isDeleted })
+      .from(users)
+      .where(eq(users.pk, userPk));
+
+    if (result.length === 0) {
+      return false;
+    }
+
+    return result[0].isDeleted;
+  }
+
   async withdraw(userId: string, tx: TxType): Promise<void> {
     await tx
       .update(users)
