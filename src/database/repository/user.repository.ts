@@ -152,13 +152,13 @@ export class UserRepository {
   async withdraw(userId: string, tx: TxType): Promise<void> {
     await tx
       .update(users)
-      .set({ isDeleted: true, updatedAt: new Date() })
+      .set({ isDeleted: true, name: "", email: "", updatedAt: new Date() })
       .where(eq(users.pk, userId));
   }
 
   /*
   아래 쿼리는 is_deleted=true 인 유저에 대해서도 쿼리가 진행되어야 합니다.
-  SELECT u.pk, u.name
+  SELECT u.pk, u.name, u.is_deleted
   FROM user as u
   WHERE u.pk in (?1);
    */
@@ -167,6 +167,7 @@ export class UserRepository {
       .select({
         pk: users.pk,
         name: users.name,
+        isDeleted: users.isDeleted,
       })
       .from(users)
       .where(inArray(users.pk, userPks));
@@ -174,6 +175,7 @@ export class UserRepository {
     return result.map((user) => ({
       pk: user.pk,
       name: user.name,
+      isDeleted: user.isDeleted,
     }));
   }
 

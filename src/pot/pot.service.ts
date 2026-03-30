@@ -299,7 +299,7 @@ export class PotService {
         users: userProfiles.map((u) => {
           return {
             id: u.pk,
-            name: u.name,
+            name: u.isDeleted ? "unknown" : u.name,
             is_host: pot.hostUserPk == u.pk,
             is_in_pot: pot.joinedUserPks.includes(u.pk),
           };
@@ -338,6 +338,7 @@ export class PotService {
         total: potRoomEntity.maxCapacity,
         users: userProfiles
           .filter((up) => pot.joinedUserPks.includes(up.pk))
+          .filter((up) => !up.isDeleted)
           .map((u) => {
             return {
               id: u.pk,
@@ -871,7 +872,6 @@ export class PotService {
   }
 
   async getPot(potRoomPk: string): Promise<Pot | null> {
-    // TODO: 팟 캐싱 로직 고려 필요
     // 여러 서버가 사용될 경우 pot 의 일관성을 보장할 수 없음
     // 우선 로직만 따로 분리해 둡니다.
     const pot: Pot =
