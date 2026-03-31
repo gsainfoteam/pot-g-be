@@ -250,15 +250,19 @@ export class UserService {
         // user 테이블에서 논리 삭제
         await this.userRepository.withdraw(userCtx.userId, tx);
       });
-
-      // 사용자의 ws 연결 모두 해제
-      this.broadcastingService.disconnectUser(userCtx.userId);
     } catch {
       if (err) {
         return err;
       } else {
         return BaseResultDto.UNKNOWN;
       }
+    }
+
+    try {
+      // 사용자의 ws 연결 모두 해제
+      this.broadcastingService.disconnectUser(userCtx.userId);
+    } catch {
+      // WS 연결 해제 실패는 무시
     }
 
     return BaseResultDto.OK;
