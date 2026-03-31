@@ -219,9 +219,6 @@ export class UserService {
   }
 
   async withdraw(userCtx: UserContext): Promise<BaseResultDto> {
-    // 사용자의 ws 연결 모두 해제
-    this.broadcastingService.disconnectUser(userCtx.userId);
-
     let err: BaseResultDto | null = null;
 
     try {
@@ -253,6 +250,9 @@ export class UserService {
         // user 테이블에서 논리 삭제
         await this.userRepository.withdraw(userCtx.userId, tx);
       });
+
+      // 사용자의 ws 연결 모두 해제
+      this.broadcastingService.disconnectUser(userCtx.userId);
     } catch {
       if (err) {
         return err;

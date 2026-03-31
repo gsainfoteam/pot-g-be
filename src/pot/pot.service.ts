@@ -551,15 +551,41 @@ export class PotService {
       "chat_v1",
     );
 
+    const potUserLeaveEventList: { pot: Pot; event: PotUserLeaveEventV1 }[] =
+      [];
+
     for (const potRoomEntity of potRoomEntityList.filter(
       (pre) => !pre.isArchived,
     )) {
-      const res = await this.tryLeaveUserFromPot(userId, potRoomEntity.pot, tx);
+      const { res, potUserLeaveEvent } = await this.tryLeaveUserFromPot(
+        userId,
+        potRoomEntity.pot,
+        tx,
+      );
       if (res !== BaseResultDto.OK) {
         // 미정산 등 문제 발생, 바로 에러 던지기
         return res;
       }
+      potUserLeaveEventList.push({
+        pot: potRoomEntity.pot,
+        event: potUserLeaveEvent,
+      });
     }
+
+    // 다른 팟 사용자로의 이벤트 전송은 모든 팟으로부터의 퇴장이 끝난 후 진행합니다.
+    potUserLeaveEventList.forEach(({ pot, event }) => {
+      this.broadcastingService.asyncBroadcastPotEvent(
+        {
+          pot_pk: pot.pk,
+          timestamp: getUnixTime(event.timestamp),
+          id: event.id,
+          event_type: event.eventType,
+          data: event.toDto(),
+        },
+        pot.joinedUserPks,
+        pot.name,
+      );
+    });
 
     return BaseResultDto.OK;
   }
@@ -578,7 +604,7 @@ export class PotService {
       PotEventReducer.reduce(pot, potUserLeaveEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
-        return error.baseResultDto;
+        return { res: error.baseResultDto, potUserLeaveEvent: null };
       }
       throw error; // 알 수 없는 오류는 다시 던짐
     }
@@ -605,24 +631,12 @@ export class PotService {
       );
     }
 
-    this.broadcastingService.asyncBroadcastPotEvent(
-      {
-        pot_pk: pot.pk,
-        timestamp: getUnixTime(potUserLeaveEvent.timestamp),
-        id: potUserLeaveEvent.id,
-        event_type: potUserLeaveEvent.eventType,
-        data: potUserLeaveEvent.toDto(),
-      },
-      pot.joinedUserPks,
-      pot.name,
-    );
-
     // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
     if (pot.joinedUserPks.length === 0) {
       await this.archivePot(pot);
     }
 
-    return BaseResultDto.OK;
+    return { res: BaseResultDto.OK, potUserLeaveEvent };
   }
 
   /*
