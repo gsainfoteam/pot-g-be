@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
+  forwardRef,
 } from "@nestjs/common";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/context/user-context.entity";
@@ -63,6 +65,7 @@ export class PotService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly routeService: RouteService,
+    @Inject(forwardRef(() => BroadcastingService))
     private readonly broadcastingService: BroadcastingService,
     private readonly popoService: PopoService,
     private readonly potRoomRepository: PotRoomRepository,
