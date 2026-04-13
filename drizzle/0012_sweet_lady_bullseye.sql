@@ -1,1 +1,0 @@
-ALTER TABLE "refresh_token" ADD COLUMN "user_pk" uuid;
