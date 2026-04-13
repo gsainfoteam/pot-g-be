@@ -636,7 +636,7 @@ export class PotService {
 
     // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
     if (pot.joinedUserPks.length === 0) {
-      await this.archivePot(pot);
+      await this.archivePot(pot, tx);
     }
 
     return { res: BaseResultDto.OK, potUserLeaveEvent };
@@ -929,7 +929,7 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
-  async archivePot(pot: Pot): Promise<BaseResultDto> {
+  async archivePot(pot: Pot, tx?: TxType): Promise<BaseResultDto> {
     const now = new Date();
 
     const potArchiveEvent: PotArchiveEventV1 =
@@ -946,11 +946,17 @@ export class PotService {
       throw error;
     }
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
+    const runQueries = async (tx: TxType) => {
       await this.potRoomRepository.archivePotRoom(pot.pk, tx);
       await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
       await this.potEventRepository.saveEvent(potArchiveEvent, tx);
-    });
+    };
+
+    if (tx) {
+      await runQueries(tx);
+    } else {
+      await this.dbService.db.transaction(runQueries);
+    }
 
     this.broadcastingService.asyncBroadcastPotEvent(
       {
