@@ -1,5 +1,4 @@
 DROP INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type";--> statement-breakpoint
-DROP INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type";--> statement-breakpoint
 DROP INDEX "idx_pot_event_n_pot_fk_type";--> statement-breakpoint
 ALTER TABLE "user_bank" DROP CONSTRAINT "PK_USER_BANK";--> statement-breakpoint
 ALTER TABLE "user_consent" DROP CONSTRAINT "PK_USER_CONSENT";--> statement-breakpoint
