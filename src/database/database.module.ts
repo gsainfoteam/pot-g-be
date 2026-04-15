@@ -18,6 +18,7 @@ import { RefreshTokenRepository } from "@src/database/repository/refresh-token.r
 import { AppVersionRepository } from "@src/database/repository/app-version.repository";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { LoggerModule } from "@src/global/logger/logger.module";
+import { ReportRepository } from "@src/database/repository/report.repository";
 
 @Module({
   imports: [ConfigModule, LoggerModule],
@@ -39,6 +40,7 @@ import { LoggerModule } from "@src/global/logger/logger.module";
     RefreshTokenRepository,
     AppVersionRepository,
     UserConsentRepository,
+    ReportRepository,
   ],
   exports: [
     DatabaseService,
@@ -58,6 +60,7 @@ import { LoggerModule } from "@src/global/logger/logger.module";
     RefreshTokenRepository,
     AppVersionRepository,
     UserConsentRepository,
+    ReportRepository,
   ],
 })
 export class DatabaseModule {}

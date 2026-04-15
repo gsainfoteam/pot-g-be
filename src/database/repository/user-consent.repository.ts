@@ -68,6 +68,10 @@ export class UserConsentRepository {
     return this.resultToUserConsentEntity(insertedUserConsent);
   }
 
+  async deleteByUserFk(userFk: string, tx: TxType): Promise<void> {
+    await tx.delete(userConsent).where(eq(userConsent.userFk, userFk));
+  }
+
   private resultToUserConsentEntity(result: any): UserConsentEntity {
     return {
       userFk: result.userFk,

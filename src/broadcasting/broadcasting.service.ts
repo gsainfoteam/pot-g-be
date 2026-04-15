@@ -3,13 +3,22 @@ import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
 import { randomUUID } from "node:crypto";
-import { asyncScheduler, catchError, defer, EMPTY, subscribeOn } from "rxjs";
+import {
+  asyncScheduler,
+  catchError,
+  defer,
+  EMPTY,
+  subscribeOn,
+  switchMap,
+  timer,
+} from "rxjs";
 import { DeviceRepository } from "@src/database/repository/device.repository";
 import { FcmService } from "@src/fcm/fcm.service";
 import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
 import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
 import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
+import { PotgWsClient } from "@src/websocket/potg.ws.client";
 
 @Injectable()
 export class BroadcastingService {
@@ -79,9 +88,79 @@ export class BroadcastingService {
         }
 
         targetClient.sendMessage(potEventReceiveDto);
+        // TODO: targetClient 하나하나마다 10초 후에 ack 확인하는 비동기 작업을 시작하는게
+        //  아니라 모두 보낸 후 한꺼번에 확인할 수 있을텐데 우선은 하지 않음
+        timer(10000)
+          .pipe(
+            switchMap(() =>
+              defer(() =>
+                this.checkPotEventAck(
+                  targetClient,
+                  potEventReceiveDto,
+                  potEventDto,
+                  potName,
+                  senderName,
+                ),
+              ),
+            ),
+            catchError((err) => {
+              this.logger.error(
+                `Error checking ack for event type ${potEventDto.event_type}:`,
+                err,
+              );
+              return EMPTY;
+            }),
+          )
+          .subscribe();
       });
     });
 
+    await this.sendPotEventPush(
+      potEventDto,
+      pushAlarmTargetUserPks,
+      potName,
+      senderName,
+    );
+  }
+
+  async checkPotEventAck(
+    targetClient: PotgWsClient,
+    potEventReceiveDto: WsBaseDto<PotEventDto<any>>,
+    potEventDto: PotEventDto<any>,
+    potName?: string,
+    senderName?: string,
+  ) {
+    if (
+      targetClient.findAckMessage(
+        potEventReceiveDto.request_id,
+        potEventReceiveDto.type + "_res",
+      )
+    ) {
+      // ack 가 도착했음
+      return;
+    }
+
+    // findClientByUserId 메소드를 통해 targetClient 를 가져오기 때문에 userId 가 안들어있을 일이 없음.
+    // 다만 타입스크립트 오류 방지를 위해 추가
+    if (!targetClient.getUserId()) {
+      return;
+    }
+
+    // 10초 대기 후에도 ack 가 오지 않는 경우 푸시 알람 발송
+    await this.sendPotEventPush(
+      potEventDto,
+      [targetClient.getUserId()],
+      potName,
+      senderName,
+    );
+  }
+
+  async sendPotEventPush(
+    potEventDto: PotEventDto<any>,
+    pushAlarmTargetUserPks: string[] = [],
+    potName?: string,
+    senderName?: string,
+  ) {
     // 채팅 관련 이벤트인 경우에만 푸시 알람 발송
     if (potEventDto.event_type === "chat_v1") {
       await this.sendChatPush(
@@ -103,6 +182,16 @@ export class BroadcastingService {
     } else if (potEventDto.event_type === "user_kick_v1") {
       await this.sendUserKickPush(potEventDto, pushAlarmTargetUserPks, potName);
     }
+  }
+
+  // TODO
+  // 현재 로직은 Redis 를 사용하지 않고 단일 서버에서 동작하는 경우에만 유효합니다.
+  // 추후 서버가 여러대로 늘어날 경우 Redis 에 ws 연결 정보가 저장되기 때문에 다른 서버에서 ws 연결을 끊을 수 있도록 메세지를 보내야 합니다.
+  disconnectUser(userPk: string) {
+    const targetClients = this.websocketService.findClientByUserId(userPk);
+    targetClients.forEach((targetClient) => {
+      targetClient.destroy();
+    });
   }
 
   private async sendChatPush(

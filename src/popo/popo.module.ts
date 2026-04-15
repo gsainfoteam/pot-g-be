@@ -6,7 +6,11 @@ import { PopoService } from "@src/popo/popo.service";
 import { PopoSchedulerService } from "@src/popo/popo.scheduler.service";
 
 @Module({
-  imports: [DatabaseModule, BroadcastingModule, forwardRef(() => PotModule)],
+  imports: [
+    DatabaseModule,
+    forwardRef(() => BroadcastingModule),
+    forwardRef(() => PotModule),
+  ],
   providers: [PopoService, PopoSchedulerService],
   exports: [PopoService],
 })

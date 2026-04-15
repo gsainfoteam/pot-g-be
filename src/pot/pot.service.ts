@@ -1,7 +1,10 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
+  Logger,
+  forwardRef,
 } from "@nestjs/common";
 import { CreatePotReqDto, CreatePotResDto } from "@src/pot/dto/create.pot.dto";
 import { UserContext } from "@src/auth/context/user-context.entity";
@@ -50,18 +53,27 @@ import { toDateFormatWithTimezone } from "@src/global/utils/convert-date";
 import { ko } from "date-fns/locale";
 import { formatInTimeZone } from "date-fns-tz";
 import { ConfirmDepartureTimeDto } from "@src/pot/dto/confirm-departure-time.pot.dto";
+import { ReportUserReqDto } from "@src/pot/dto/report-user.pot.dto";
+import { ReportEntity } from "@src/database/entity/report.entity";
+import { ReportRepository } from "@src/database/repository/report.repository";
+import { SlackService } from "nestjs-slack";
 
 @Injectable()
 export class PotService {
+  private readonly logger = new Logger(PotService.name);
+
   constructor(
     private readonly dbService: DatabaseService,
     private readonly routeService: RouteService,
+    @Inject(forwardRef(() => BroadcastingService))
     private readonly broadcastingService: BroadcastingService,
     private readonly popoService: PopoService,
     private readonly potRoomRepository: PotRoomRepository,
     private readonly potEventRepository: PotEventRepository,
     private readonly userPotRoomRepository: UserPotRoomRepository,
     private readonly userRepository: UserRepository,
+    private readonly reportRepository: ReportRepository,
+    private readonly slackService: SlackService,
   ) {}
 
   async createPot(
@@ -290,7 +302,7 @@ export class PotService {
         users: userProfiles.map((u) => {
           return {
             id: u.pk,
-            name: u.name,
+            name: u.isDeleted ? "unknown" : u.name,
             is_host: pot.hostUserPk == u.pk,
             is_in_pot: pot.joinedUserPks.includes(u.pk),
           };
@@ -329,6 +341,7 @@ export class PotService {
         total: potRoomEntity.maxCapacity,
         users: userProfiles
           .filter((up) => pot.joinedUserPks.includes(up.pk))
+          .filter((up) => !up.isDeleted)
           .map((u) => {
             return {
               id: u.pk,
@@ -534,6 +547,101 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
+  async leaveUserFromAllPot(userId: string, tx: TxType) {
+    // 사용자가 들어가있는 모든 팟 조회, 모두 leave 이벤트 추가
+    const potRoomEntityList = await this.potRoomRepository.getUserPotRoomList(
+      userId,
+      "chat_v1",
+    );
+
+    const potUserLeaveEventList: { pot: Pot; event: PotUserLeaveEventV1 }[] =
+      [];
+
+    for (const potRoomEntity of potRoomEntityList.filter(
+      (pre) => !pre.isArchived,
+    )) {
+      const { res, potUserLeaveEvent } = await this.tryLeaveUserFromPot(
+        userId,
+        potRoomEntity.pot,
+        tx,
+      );
+      if (res !== BaseResultDto.OK) {
+        // 미정산 등 문제 발생, 바로 에러 던지기
+        return res;
+      }
+      potUserLeaveEventList.push({
+        pot: potRoomEntity.pot,
+        event: potUserLeaveEvent,
+      });
+    }
+
+    // 다른 팟 사용자로의 이벤트 전송은 모든 팟으로부터의 퇴장이 끝난 후 진행합니다.
+    potUserLeaveEventList.forEach(({ pot, event }) => {
+      this.broadcastingService.asyncBroadcastPotEvent(
+        {
+          pot_pk: pot.pk,
+          timestamp: getUnixTime(event.timestamp),
+          id: event.id,
+          event_type: event.eventType,
+          data: event.toDto(),
+        },
+        pot.joinedUserPks,
+        pot.name,
+      );
+    });
+
+    return BaseResultDto.OK;
+  }
+
+  private async tryLeaveUserFromPot(userId: string, pot: Pot, tx: TxType) {
+    // 해당 팟에서 사용자 제거
+    const previousHostUserPk = pot.hostUserPk;
+
+    const potUserLeaveEvent: PotUserLeaveEventV1 =
+      PotUserLeaveEventV1.generatePotUserLeaveEvent(pot.pk, new Date(), {
+        potRoomPk: pot.pk,
+        userPk: userId,
+      });
+
+    try {
+      PotEventReducer.reduce(pot, potUserLeaveEvent, true);
+    } catch (error) {
+      if (error instanceof PotEventError) {
+        return { res: error.baseResultDto, potUserLeaveEvent: null };
+      }
+      throw error; // 알 수 없는 오류는 다시 던짐
+    }
+
+    await this.potEventRepository.saveEvent(potUserLeaveEvent, tx);
+    await this.userPotRoomRepository.deleteByPotRoomFkAndUserFk(
+      pot.pk,
+      userId,
+      tx,
+    );
+    // 방장이 바뀐 경우 user_pot_room 테이블의 is_host 업데이트
+    if (pot.joinedUserPks.length > 0 && previousHostUserPk !== pot.hostUserPk) {
+      await this.userPotRoomRepository.updateHostStatus(
+        pot.pk,
+        previousHostUserPk,
+        false,
+        tx,
+      );
+      await this.userPotRoomRepository.updateHostStatus(
+        pot.pk,
+        pot.hostUserPk,
+        true,
+        tx,
+      );
+    }
+
+    // 모든 참여자가 퇴장했다면 팟 해산 이벤트 전송
+    if (pot.joinedUserPks.length === 0) {
+      await this.archivePot(pot, tx);
+    }
+
+    return { res: BaseResultDto.OK, potUserLeaveEvent };
+  }
+
   /*
     팟의 방장이 채팅방 내 사용자를 강퇴시킵니다.
 
@@ -728,6 +836,47 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
+  async reportUser(potPk: string, req: ReportUserReqDto, userCtx: UserContext) {
+    const pot = await this.getPot(potPk);
+    if (!pot) {
+      throw new BadRequestException("Pot not found");
+    }
+
+    // 유저가 팟에 참여하고 있는지 확인 필요
+    if (!pot.joinedUserPks.includes(userCtx.userId)) {
+      throw new ForbiddenException("User not in pot");
+    }
+
+    // 신고 대상자가 팟에 참여하고 있는지 또는 참여했었는지 확인 필요
+    if (!pot.loggedUserPks.includes(req.report_target_id)) {
+      throw new BadRequestException("Report target user not in pot");
+    }
+
+    const report: ReportEntity = {
+      potRoomFk: potPk,
+      userFk: userCtx.userId,
+      targetUserFk: req.report_target_id,
+      reason: req.reason,
+    };
+
+    // report 레코드 추가
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      await this.reportRepository.insert(report, tx);
+    });
+
+    // slack 으로 신고 내용 전송
+    await this.slackService
+      .sendText(
+        `*[팟 사용자 신고]*\n- 팟 ID: ${potPk}\n- 팟 이름: ${pot.name}\n- 신고자: ${userCtx.userId}\n- 신고 대상자: ${req.report_target_id}\n- 사유: ${req.reason}`,
+        { channel: "report" },
+      )
+      .catch((err) => {
+        this.logger.error("Failed to send Slack notification", err);
+      });
+
+    return BaseResultDto.OK;
+  }
+
   async saveChat(
     req: SendChatReqDto,
     senderUserPk: string,
@@ -780,7 +929,7 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
-  async archivePot(pot: Pot): Promise<BaseResultDto> {
+  async archivePot(pot: Pot, tx?: TxType): Promise<BaseResultDto> {
     const now = new Date();
 
     const potArchiveEvent: PotArchiveEventV1 =
@@ -797,11 +946,17 @@ export class PotService {
       throw error;
     }
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
+    const runQueries = async (tx: TxType) => {
       await this.potRoomRepository.archivePotRoom(pot.pk, tx);
       await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
       await this.potEventRepository.saveEvent(potArchiveEvent, tx);
-    });
+    };
+
+    if (tx) {
+      await runQueries(tx);
+    } else {
+      await this.dbService.db.transaction(runQueries);
+    }
 
     this.broadcastingService.asyncBroadcastPotEvent(
       {
@@ -821,7 +976,6 @@ export class PotService {
   }
 
   async getPot(potRoomPk: string): Promise<Pot | null> {
-    // TODO: 팟 캐싱 로직 고려 필요
     // 여러 서버가 사용될 경우 pot 의 일관성을 보장할 수 없음
     // 우선 로직만 따로 분리해 둡니다.
     const pot: Pot =

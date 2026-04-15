@@ -110,6 +110,16 @@ export class DeviceRepository {
       .where(eq(device.pk, deviceEntity.pk));
   }
 
+  async logoutAllWithUserFk(userFk: string, tx: TxType) {
+    await tx
+      .update(device)
+      .set({
+        loggedIn: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(device.userFk, userFk));
+  }
+
   private resultToDeviceEntity(result: any): DeviceEntity {
     return {
       pk: result.pk,

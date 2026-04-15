@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
-import { eq } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { refreshToken } from "../../../drizzle/schema/refresh-token";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
@@ -40,6 +40,8 @@ export class RefreshTokenRepository {
         refreshToken: refreshTokenEntity.refreshToken,
         createdAt: new Date(),
         updatedAt: new Date(),
+        expiresAt: refreshTokenEntity.expiresAt,
+        userPk: refreshTokenEntity.userPk,
       })
       .returning();
 
@@ -57,12 +59,26 @@ export class RefreshTokenRepository {
       .where(eq(refreshToken.opaqueHash, opaqueHash));
   }
 
+  async deleteExpiredTokens(tx: TxType): Promise<number> {
+    const deletedTokens = await tx
+      .delete(refreshToken)
+      .where(lt(refreshToken.expiresAt, new Date()))
+      .returning();
+    return deletedTokens.length;
+  }
+
+  async deleteByUserPk(userPk: string, tx: TxType): Promise<void> {
+    await tx.delete(refreshToken).where(eq(refreshToken.userPk, userPk));
+  }
+
   private resultToRefreshTokenEntity(result: any): RefreshTokenEntity {
     return {
       opaqueHash: result.opaqueHash,
       refreshToken: result.refreshToken,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
+      expiresAt: result.expiresAt,
+      userPk: result.userPk,
     };
   }
 }
