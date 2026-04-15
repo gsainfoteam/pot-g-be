@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { eq, lt } from "drizzle-orm";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { refreshToken } from "../../../drizzle/schema/refresh-token";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
@@ -42,6 +41,7 @@ export class RefreshTokenRepository {
         createdAt: new Date(),
         updatedAt: new Date(),
         expiresAt: refreshTokenEntity.expiresAt,
+        userPk: refreshTokenEntity.userPk,
       })
       .returning();
 
@@ -67,6 +67,10 @@ export class RefreshTokenRepository {
     return deletedTokens.length;
   }
 
+  async deleteByUserPk(userPk: string, tx: TxType): Promise<void> {
+    await tx.delete(refreshToken).where(eq(refreshToken.userPk, userPk));
+  }
+
   private resultToRefreshTokenEntity(result: any): RefreshTokenEntity {
     return {
       opaqueHash: result.opaqueHash,
@@ -74,6 +78,7 @@ export class RefreshTokenRepository {
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
       expiresAt: result.expiresAt,
+      userPk: result.userPk,
     };
   }
 }

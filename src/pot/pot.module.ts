@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { ConfigModule } from "../config/config.module";
 import { DatabaseModule } from "../database/database.module";
 import { PotController } from "@src/pot/pot.controller";
@@ -12,7 +12,7 @@ import { PopoModule } from "@src/popo/popo.module";
     ConfigModule,
     DatabaseModule,
     DiscoveryModule,
-    BroadcastingModule,
+    forwardRef(() => BroadcastingModule),
     PopoModule,
   ],
   providers: [PotService],

@@ -62,6 +62,10 @@ export class UserBankRepository {
       .where(eq(userBank.userFk, userBankEntity.userFk));
   }
 
+  async deleteByUserPk(userPk: string, tx: TxType): Promise<void> {
+    await tx.delete(userBank).where(eq(userBank.userFk, userPk));
+  }
+
   private resultToUserBankEntity(result: any): UserBankEntity {
     return {
       userFk: result.userFk,

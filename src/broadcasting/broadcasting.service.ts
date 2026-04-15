@@ -184,6 +184,16 @@ export class BroadcastingService {
     }
   }
 
+  // TODO
+  // 현재 로직은 Redis 를 사용하지 않고 단일 서버에서 동작하는 경우에만 유효합니다.
+  // 추후 서버가 여러대로 늘어날 경우 Redis 에 ws 연결 정보가 저장되기 때문에 다른 서버에서 ws 연결을 끊을 수 있도록 메세지를 보내야 합니다.
+  disconnectUser(userPk: string) {
+    const targetClients = this.websocketService.findClientByUserId(userPk);
+    targetClients.forEach((targetClient) => {
+      targetClient.destroy();
+    });
+  }
+
   private async sendChatPush(
     potEventDto: PotEventDto<any>,
     pushAlarmTargetUserPks: string[] = [],

@@ -45,7 +45,7 @@ export class UserAuthService {
       expiresIn: `${this.refreshTokenExpireDays}d` as StringValue,
     });
 
-    const hash = await this.createCSPRNHash(refreshToken, tx);
+    const hash = await this.createCSPRNHash(refreshToken, user.pk, tx);
 
     return {
       accessToken,
@@ -53,7 +53,11 @@ export class UserAuthService {
     };
   }
 
-  private async createCSPRNHash(refreshToken: string, tx: TxType) {
+  private async createCSPRNHash(
+    refreshToken: string,
+    userPk: string,
+    tx: TxType,
+  ) {
     const randomNumberArray = new Uint32Array(16);
     getRandomValues(randomNumberArray);
     // 좀 긴 문자열을 만들고 싶은 의도로 hash 를 생성하는 것이지 위변조를 검증하기 위함이 아니므로 추후 validate 시 hash 를 비교하지는 않습니다.
@@ -63,6 +67,7 @@ export class UserAuthService {
       opaqueHash: hash,
       refreshToken: refreshToken,
       expiresAt: addDays(new Date(), this.refreshTokenExpireDays),
+      userPk: userPk,
     };
     await this.refreshTokenRepository.insert(refreshTokenEntity, tx);
 
