@@ -1,0 +1,1 @@
+ALTER TABLE "refresh_token" ADD COLUMN "expires_at" timestamp with time zone DEFAULT '2026-01-01' NOT NULL;

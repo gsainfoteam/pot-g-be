@@ -54,4 +54,24 @@ export class WebsocketGateway
 
     await this.websocketService.sendChat(validClient.client, payload);
   }
+
+  @SubscribeMessage("pot_event_receive_res")
+  async potEventReceiveAck(
+    @ConnectedSocket() client: WebSocket,
+    @MessageBody() payload: WsBaseDto<any>,
+  ) {
+    const validClient = this.websocketService.checkIfValidClient(client);
+    if (!validClient) {
+      throw new WsException("Client not found");
+    }
+    if (validClient.needAuthorization) {
+      // 프로미스 생성 시 바로 실행이 되기 때문에 지연시키기 위해 람다로 감싸서 저장합니다.
+      validClient.client.addTaskToQueue(() =>
+        this.websocketService.potEventReceiveAck(validClient.client, payload),
+      );
+      return;
+    }
+
+    await this.websocketService.potEventReceiveAck(validClient.client, payload);
+  }
 }

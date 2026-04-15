@@ -3,7 +3,8 @@ import { DatabaseService } from "@src/database/database.service";
 import { UserAlarmSettingEntity } from "@src/database/entity/user-alarm-setting.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
-import { eq } from "drizzle-orm";
+import { device } from "../../../drizzle/schema/device";
+import { eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
@@ -63,6 +64,23 @@ export class UserAlarmSettingRepository {
         updatedAt: new Date(),
       })
       .where(eq(userAlarmSetting.pk, userAlarmSettingEntity.pk));
+  }
+
+  /*
+  DELETE FROM user_alarm_setting
+  WHERE device_fk IN (
+    SELECT pk FROM device WHERE user_fk = ?1
+  );
+   */
+  async deleteByUserFk(userFk: string, tx: TxType): Promise<void> {
+    const devicePks = tx
+      .select({ pk: device.pk })
+      .from(device)
+      .where(eq(device.userFk, userFk));
+
+    await tx
+      .delete(userAlarmSetting)
+      .where(inArray(userAlarmSetting.deviceFk, devicePks));
   }
 
   private resultToUserAlarmSettingEntity(result: any): UserAlarmSettingEntity {

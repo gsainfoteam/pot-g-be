@@ -2,7 +2,7 @@ import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
 import {
-  AssertIfDepartureTimeNotSet,
+  AssertIfDepartureTimeSetAndAccountingNotStarted,
   AssertIfUserAccountingRequestedAndNotConfirmed,
   AssertIfUserAccountingRequestingAndNotCompleted,
   AssertIfUserInPot,
@@ -60,9 +60,6 @@ export class PotUserLeaveEventV1
     // 방 존재 여부 확인
     AssertIfValidPot(pot, data.potRoomPk);
 
-    // 출발 시간이 정해지면 퇴장 불가
-    AssertIfDepartureTimeNotSet(pot);
-
     // 퇴장할 유저가 방에 존재하는지 확인
     AssertIfUserInPot(pot, data.userPk);
 
@@ -71,6 +68,9 @@ export class PotUserLeaveEventV1
 
     // 본인이 정산자인데 정산이 완료되지 않은 다른 사람이 있는지 확인
     AssertIfUserAccountingRequestingAndNotCompleted(pot, data.userPk);
+
+    // 출발 시간이 정해졌는데, 정산 절차가 시작되지 않았는지 확인
+    AssertIfDepartureTimeSetAndAccountingNotStarted(pot);
   }
 
   toDto(): PotEventUserLeaveV1Dto {

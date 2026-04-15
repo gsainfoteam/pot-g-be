@@ -5,6 +5,10 @@ export class BaseResultDto {
     result: "OK",
   };
 
+  static UNKNOWN: BaseResultDto = {
+    result: "UNKNOWN",
+  };
+
   static PotNotExist: BaseResultDto = {
     // potPk 가 존재하지 않는 팟인 경우
     result: "PotNotExist",

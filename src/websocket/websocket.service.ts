@@ -101,10 +101,14 @@ export class WebsocketService implements OnModuleDestroy {
     const { userId, devicePk, validUntil } =
       await this.authService.validateAccessToken(accessToken);
     if (!userId) {
-      throw new WsException("Invalid refresh token"); // TODO
+      throw new WsException("Invalid access token");
     }
 
-    // TODO: 탈퇴한 회원 검사
+    // 탈퇴한 회원 검사
+    const isWithdrawn = await this.usersRepository.isWithdrawn(userId);
+    if (isWithdrawn) {
+      throw new WsException("Withdrawn user");
+    }
 
     // 인증 처리
     client.setAuthorized(userId, devicePk, accessToken, validUntil);
@@ -148,6 +152,16 @@ export class WebsocketService implements OnModuleDestroy {
     }
 
     client.sendMessage(WsResponseDto.OK("send_chat_res", payload.request_id));
+  }
+
+  async potEventReceiveAck(
+    client: PotgWsClient,
+    payload: WsBaseDto<WsSendChatReqDto>,
+  ) {
+    // 요청 상관관계 검증
+    client.resolveRequestId(payload.request_id, "pot_event_receive");
+
+    client.addAckMessage(payload);
   }
 
   private findClient(wsClient: WebSocket): PotgWsClient | undefined {

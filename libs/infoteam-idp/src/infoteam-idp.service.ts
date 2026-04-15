@@ -194,7 +194,7 @@ export class InfoteamIdpService implements OnModuleInit {
             client_id: this.configService.getOrThrow<string>("IDP_CLIENT_ID"),
             client_secret:
               this.configService.getOrThrow<string>("IDP_CLIENT_SECRET"),
-            scope: ["profile", "email"].join(" "),
+            scope: ["name", "email"].join(" "),
           },
         )
         .pipe(

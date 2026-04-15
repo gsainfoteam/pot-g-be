@@ -40,6 +40,7 @@ export class PopoService implements OnModuleInit {
     private readonly popoChatMsgRepository: PopoChatMsgRepository,
     private readonly popoChatReservationRepository: PopoChatReservationRepository,
     private readonly potEventRepository: PotEventRepository,
+    @Inject(forwardRef(() => BroadcastingService))
     private readonly broadcastingService: BroadcastingService,
     @Inject(forwardRef(() => PotService))
     private readonly potService: PotService,

@@ -64,6 +64,12 @@ export const AssertIfAccountingRequested = (pot: Pot) => {
   }
 };
 
+export const AssertIfDepartureTimeSetAndAccountingNotStarted = (pot: Pot) => {
+  if (pot.departureTime !== null && pot.accountingRequestUserId == null) {
+    throw new PotEventError(BaseResultDto.AfterDepartureConfirmed);
+  }
+};
+
 export const AssertIfDepartureTimeSet = (pot: Pot, message?: string) => {
   if (pot.departureTime == null) {
     throw new Error(message || "Departure time is not set");
