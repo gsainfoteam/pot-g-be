@@ -4,8 +4,7 @@ import { clearAccessToken } from "../lib/auth";
 const NAV_ITEMS = [
   { to: "/", label: "현황", end: true },
   { to: "/pots", label: "팟 관리" },
-  { to: "/routes", label: "노선 관리" },
-  { to: "/stops", label: "정류장 관리" },
+  { to: "/routes", label: "노선/정류장 관리" },
   { to: "/users", label: "사용자" },
   { to: "/stats", label: "통계" },
   { to: "/admin-accounts", label: "관리자 계정" },
