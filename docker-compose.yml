@@ -46,6 +46,9 @@ services:
       - TZ=Asia/Seoul
     build:
       context: .
+      args:
+        VITE_IDP_AUTHORIZE_URL: ${IDP_AUTHORIZE_URL}
+        VITE_IDP_CLIENT_ID: ${IDP_CLIENT_ID}
     ports:
       - "3000:3000"
 

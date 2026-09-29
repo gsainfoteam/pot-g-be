@@ -146,11 +146,13 @@ export class InfoteamIdpService implements OnModuleInit {
    * access token, using this server's client_id/client_secret.
    * @param code the authorization code returned by the idp's authorize endpoint
    * @param redirectUri the redirect_uri used in the authorize request (must match exactly)
+   * @param codeVerifier the PKCE code_verifier matching the code_challenge sent to /authorize
    * @returns the idp access token
    */
   async exchangeAuthorizationCode(
     code: string,
     redirectUri: string,
+    codeVerifier?: string,
   ): Promise<string> {
     const tokenResponse = await firstValueFrom(
       this.httpService
@@ -163,6 +165,7 @@ export class InfoteamIdpService implements OnModuleInit {
               this.configService.getOrThrow<string>("IDP_CLIENT_SECRET"),
             code,
             redirect_uri: redirectUri,
+            code_verifier: codeVerifier,
           },
         )
         .pipe(

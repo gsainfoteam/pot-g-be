@@ -1,4 +1,5 @@
 const TOKEN_KEY = "potg_admin_access_token";
+const PKCE_VERIFIER_KEY = "potg_admin_pkce_verifier";
 
 export function getAccessToken(): string | null {
   try {
@@ -28,19 +29,48 @@ export function isLoggedIn(): boolean {
   return !!getAccessToken();
 }
 
+function generateCodeVerifier(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
 export function buildIdpAuthorizeUrl(): string {
-  const idpUrl = import.meta.env.VITE_IDP_URL;
+  const authorizeUrl = import.meta.env.VITE_IDP_AUTHORIZE_URL;
   const clientId = import.meta.env.VITE_IDP_CLIENT_ID;
-  const redirectUri = `${window.location.origin}/callback`;
+
+  // 이 IDP는 code_challenge_method=plain을 쓰므로 code_verifier를 그대로
+  // code_challenge로 보내고, 콜백에서 같은 값을 code_verifier로 다시 보냅니다.
+  const codeVerifier = generateCodeVerifier();
+  try {
+    sessionStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
+  } catch {
+    // ignore
+  }
 
   const params = new URLSearchParams({
     response_type: "code",
     client_id: clientId,
-    redirect_uri: redirectUri,
-    scope: "name email",
+    redirect_uri: getRedirectUri(),
+    scope: "profile email",
+    code_challenge: codeVerifier,
+    code_challenge_method: "plain",
   });
 
-  return `${idpUrl}/oauth/authorize?${params.toString()}`;
+  return `${authorizeUrl}?${params.toString()}`;
+}
+
+export function consumeStoredCodeVerifier(): string | null {
+  try {
+    const verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+    return verifier;
+  } catch {
+    return null;
+  }
 }
 
 export function getRedirectUri(): string {

@@ -19,11 +19,12 @@ export class ManagerAuthService {
     private readonly adminAccountRepository: AdminAccountRepository,
   ) {}
 
-  async login(code: string, redirectUri: string) {
+  async login(code: string, redirectUri: string, codeVerifier: string) {
     const idpAccessToken =
       await this.infoteamIdpService.exchangeAuthorizationCode(
         code,
         redirectUri,
+        codeVerifier,
       );
     const { email } =
       await this.infoteamIdpService.validateAccessToken(idpAccessToken);

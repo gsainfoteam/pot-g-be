@@ -44,6 +44,7 @@ export type AuthorizationCodeTokenRequest = {
   client_secret: string;
   code: string;
   redirect_uri: string;
+  code_verifier?: string;
 };
 
 /** Authorization code grant api response type from infoteam idp */

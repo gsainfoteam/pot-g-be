@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-import { getRedirectUri, setAccessToken } from "../lib/auth";
+import {
+  consumeStoredCodeVerifier,
+  getRedirectUri,
+  setAccessToken,
+} from "../lib/auth";
 
 type ManagerLoginResponse = {
   access_token: string;
@@ -20,8 +24,9 @@ export function CallbackPage() {
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
+    const codeVerifier = consumeStoredCodeVerifier();
 
-    if (!code) {
+    if (!code || !codeVerifier) {
       setError("인증 코드가 없습니다.");
       return;
     }
@@ -30,6 +35,7 @@ export function CallbackPage() {
       .post<ManagerLoginResponse>("/api/manager/v1/auth/login", {
         code,
         redirect_uri: getRedirectUri(),
+        code_verifier: codeVerifier,
       })
       .then((res) => {
         setAccessToken(res.access_token);

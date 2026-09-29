@@ -16,6 +16,7 @@ export class ManagerAuthController {
     const { accessToken } = await this.managerAuthService.login(
       req.code,
       req.redirect_uri,
+      req.code_verifier,
     );
 
     return { access_token: accessToken };
