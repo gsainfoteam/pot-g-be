@@ -23,8 +23,10 @@ export class AdminAccountService {
   }
 
   async create(req: CreateAdminAccountRequestDto): Promise<AdminAccountDto> {
-    if (!req.email.endsWith("@gistory.me")) {
-      throw new BadRequestException("gistory.me 이메일만 등록할 수 있습니다.");
+    if (!req.email.endsWith("@gm.gist.ac.kr")) {
+      throw new BadRequestException(
+        "gm.gist.ac.kr 이메일만 등록할 수 있습니다.",
+      );
     }
 
     const existing = await this.adminAccountRepository.findByEmail(req.email);

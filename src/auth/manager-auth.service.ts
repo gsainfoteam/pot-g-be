@@ -38,7 +38,7 @@ export class ManagerAuthService {
   }
 
   async createNewJwtToken(email: string, role: AdminAccountRole) {
-    if (!email.endsWith("@gistory.me")) {
+    if (!email.endsWith("@gm.gist.ac.kr")) {
       throw new ForbiddenException();
     }
     const payload: ManagerAccessTokenJwtPayload = {

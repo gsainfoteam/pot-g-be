@@ -12,9 +12,9 @@ async function seedAdmin() {
   const email = process.argv[2];
   const role = process.argv[3] === "admin" ? "admin" : "superadmin";
 
-  if (!email || !email.endsWith("@gistory.me")) {
+  if (!email || !email.endsWith("@gm.gist.ac.kr")) {
     console.error(
-      "Usage: npm run db:seed-admin -- <email>@gistory.me [admin|superadmin]",
+      "Usage: npm run db:seed-admin -- <email>@gm.gist.ac.kr [admin|superadmin]",
     );
     process.exit(1);
   }
