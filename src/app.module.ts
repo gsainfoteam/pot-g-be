@@ -11,6 +11,7 @@ import { WebsocketModule } from "@src/websocket/websocket.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { FcmModule } from "@src/fcm/fcm.module";
 import { AppVersionModule } from "@src/app-version/app-version.module";
+import { AdminAccountModule } from "@src/admin-account/admin-account.module";
 import { LoggerModule } from "@src/global/logger/logger.module";
 import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
@@ -30,6 +31,7 @@ import { ConfigService } from "@nestjs/config";
     ScheduleModule.forRoot(),
     FcmModule,
     AppVersionModule,
+    AdminAccountModule,
     LoggerModule,
     SlackModule.forRootAsync({
       imports: [ConfigModule],

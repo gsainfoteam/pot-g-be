@@ -40,7 +40,7 @@ describe("ManagerAuthService", () => {
     const email = "manager@gistory.me";
 
     // Act - Generate token
-    const result = await service.createNewJwtToken(email);
+    const result = await service.createNewJwtToken(email, "superadmin");
 
     // Print generated token
     console.log("\n=== Generated JWT Token ===");

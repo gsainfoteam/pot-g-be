@@ -10,6 +10,8 @@ import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt.strategy";
 import { RefreshTokenCleanupScheduler } from "@src/auth/scheduler/refresh-token-cleanup.scheduler";
+import { ManagerAuthService } from "@src/auth/manager-auth.service";
+import { ManagerAuthController } from "@src/auth/manager-auth.controller";
 
 @Module({
   imports: [
@@ -22,8 +24,10 @@ import { RefreshTokenCleanupScheduler } from "@src/auth/scheduler/refresh-token-
     DatabaseModule,
     KeyPairModule,
   ],
+  controllers: [ManagerAuthController],
   providers: [
     UserAuthService,
+    ManagerAuthService,
     UserGuard,
     {
       provide: UserJwtStrategy,
