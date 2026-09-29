@@ -1,5 +1,5 @@
 {
-  "id": "40f09658-953b-44c1-8bd0-3c33a1f47e6f",
+  "id": "47551acf-eb58-4ee5-9ba7-39513ac0dfe5",
   "prevId": "1143a023-d169-43dd-a3fd-93f1ae15beae",
   "version": "7",
   "dialect": "postgresql",
@@ -27,12 +27,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'admin'"
-        },
-        "memo": {
-          "name": "memo",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
