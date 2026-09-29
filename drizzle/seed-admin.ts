@@ -9,7 +9,7 @@ import { adminAccount } from "./schema/admin-account";
 dotenv.config();
 
 async function seedAdmin() {
-  const email = process.argv[2];
+  const email = (process.argv[2] ?? "").trim().toLowerCase();
   const role = process.argv[3] === "admin" ? "admin" : "superadmin";
 
   if (!email || !email.endsWith("@gm.gist.ac.kr")) {

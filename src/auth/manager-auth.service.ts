@@ -26,8 +26,9 @@ export class ManagerAuthService {
         redirectUri,
         codeVerifier,
       );
-    const { email } =
+    const { email: idpEmail } =
       await this.infoteamIdpService.validateAccessToken(idpAccessToken);
+    const email = idpEmail.trim().toLowerCase();
 
     const adminAccount = await this.adminAccountRepository.findByEmail(email);
     if (!adminAccount) {

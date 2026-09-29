@@ -23,13 +23,15 @@ export class AdminAccountService {
   }
 
   async create(req: CreateAdminAccountRequestDto): Promise<AdminAccountDto> {
-    if (!req.email.endsWith("@gm.gist.ac.kr")) {
+    const email = req.email.trim().toLowerCase();
+
+    if (!email.endsWith("@gm.gist.ac.kr")) {
       throw new BadRequestException(
         "gm.gist.ac.kr 이메일만 등록할 수 있습니다.",
       );
     }
 
-    const existing = await this.adminAccountRepository.findByEmail(req.email);
+    const existing = await this.adminAccountRepository.findByEmail(email);
     if (existing) {
       throw new ConflictException("이미 등록된 관리자 이메일입니다.");
     }
@@ -37,7 +39,7 @@ export class AdminAccountService {
     const inserted = await this.dbService.db.transaction(async (tx: TxType) => {
       return this.adminAccountRepository.insert(
         {
-          email: req.email,
+          email,
           role: req.role ?? "admin",
         },
         tx,
