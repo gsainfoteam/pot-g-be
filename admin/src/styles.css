@@ -255,6 +255,26 @@ th {
   border-color: var(--primary);
 }
 
+.inline-form.compact {
+  margin-bottom: 0;
+  gap: 6px;
+  align-items: center;
+}
+
+.inline-form.compact input {
+  width: 90px;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.inline-form.compact .button,
+.inline-form.compact .button.secondary {
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
 .error-text {
   color: var(--warning);
   font-size: 13px;

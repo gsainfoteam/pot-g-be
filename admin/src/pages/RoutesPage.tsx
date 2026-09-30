@@ -346,7 +346,7 @@ export function RoutesPage() {
                 <tr key={stop.pk}>
                   <td>
                     {editingStopPk === stop.pk ? (
-                      <div className="inline-form" style={{ marginBottom: 0 }}>
+                      <div className="inline-form compact">
                         <input
                           placeholder="한글 이름"
                           value={editStopForm.name_kor}
@@ -617,7 +617,7 @@ export function RoutesPage() {
               <tr key={route.pk}>
                 <td>
                   {editingRoutePk === route.pk ? (
-                    <div className="inline-form" style={{ marginBottom: 0 }}>
+                    <div className="inline-form compact">
                       <input
                         placeholder="한글 이름"
                         value={editRouteForm.short_name_kor}
