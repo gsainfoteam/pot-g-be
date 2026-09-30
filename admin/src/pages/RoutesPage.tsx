@@ -82,6 +82,19 @@ export function RoutesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const [editingStopPk, setEditingStopPk] = useState<string | null>(null);
+  const [editStopForm, setEditStopForm] = useState({
+    name_kor: "",
+    name_eng: "",
+  });
+  const [editingRoutePk, setEditingRoutePk] = useState<string | null>(null);
+  const [editRouteForm, setEditRouteForm] = useState({
+    short_name_kor: "",
+    short_name_eng: "",
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const load = () => {
     setLoading(true);
     setError(null);
@@ -212,6 +225,74 @@ export function RoutesPage() {
     }
   };
 
+  const startEditStop = (stop: AdminStopDto) => {
+    setEditingStopPk(stop.pk);
+    setEditStopForm({ name_kor: stop.name_kor, name_eng: stop.name_eng });
+    setEditError(null);
+  };
+
+  const saveStopName = async (pk: string) => {
+    if (!editStopForm.name_kor.trim() || !editStopForm.name_eng.trim()) {
+      setEditError("한글/영문 이름을 모두 입력하세요.");
+      return;
+    }
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      await api.patch(`/api/manager/v1/route/stop/${pk}`, {
+        name_kor: editStopForm.name_kor.trim(),
+        name_eng: editStopForm.name_eng.trim(),
+      });
+      setEditingStopPk(null);
+      load();
+    } catch (err) {
+      setEditError(
+        err instanceof ApiError
+          ? `수정하지 못했습니다. (${err.status})`
+          : "수정하지 못했습니다.",
+      );
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const startEditRoute = (route: AdminRouteDto) => {
+    setEditingRoutePk(route.pk);
+    setEditRouteForm({
+      short_name_kor: route.short_name_kor,
+      short_name_eng: route.short_name_eng,
+    });
+    setEditError(null);
+  };
+
+  const saveRouteName = async (pk: string) => {
+    if (
+      !editRouteForm.short_name_kor.trim() ||
+      !editRouteForm.short_name_eng.trim()
+    ) {
+      setEditError("한글/영문 이름을 모두 입력하세요.");
+      return;
+    }
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      await api.patch(`/api/manager/v1/route/${pk}`, {
+        short_name_kor: editRouteForm.short_name_kor.trim(),
+        short_name_eng: editRouteForm.short_name_eng.trim(),
+      });
+      setEditingRoutePk(null);
+      load();
+    } catch (err) {
+      setEditError(
+        err instanceof ApiError
+          ? `수정하지 못했습니다. (${err.status})`
+          : "수정하지 못했습니다.",
+      );
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -222,6 +303,7 @@ export function RoutesPage() {
       </div>
 
       {error && <p className="error-text">{error}</p>}
+      {editError && <p className="error-text">{editError}</p>}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <button
@@ -263,8 +345,55 @@ export function RoutesPage() {
               {stops.map((stop) => (
                 <tr key={stop.pk}>
                   <td>
-                    {stop.name_kor}
-                    <span className="placeholder"> ({stop.name_eng})</span>
+                    {editingStopPk === stop.pk ? (
+                      <div className="inline-form" style={{ marginBottom: 0 }}>
+                        <input
+                          placeholder="한글 이름"
+                          value={editStopForm.name_kor}
+                          onChange={(e) =>
+                            setEditStopForm((f) => ({
+                              ...f,
+                              name_kor: e.target.value,
+                            }))
+                          }
+                        />
+                        <input
+                          placeholder="영문 이름"
+                          value={editStopForm.name_eng}
+                          onChange={(e) =>
+                            setEditStopForm((f) => ({
+                              ...f,
+                              name_eng: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          className="button"
+                          disabled={editSubmitting}
+                          onClick={() => saveStopName(stop.pk)}
+                        >
+                          저장
+                        </button>
+                        <button
+                          className="button secondary"
+                          disabled={editSubmitting}
+                          onClick={() => setEditingStopPk(null)}
+                        >
+                          취소
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {stop.name_kor}
+                        <span className="placeholder"> ({stop.name_eng})</span>
+                        <button
+                          className="link-button"
+                          onClick={() => startEditStop(stop)}
+                        >
+                          수정
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -487,8 +616,55 @@ export function RoutesPage() {
             {routes.map((route) => (
               <tr key={route.pk}>
                 <td>
-                  {route.short_name_kor}
-                  <span className="placeholder"> ({route.short_name_eng})</span>
+                  {editingRoutePk === route.pk ? (
+                    <div className="inline-form" style={{ marginBottom: 0 }}>
+                      <input
+                        placeholder="한글 이름"
+                        value={editRouteForm.short_name_kor}
+                        onChange={(e) =>
+                          setEditRouteForm((f) => ({
+                            ...f,
+                            short_name_kor: e.target.value,
+                          }))
+                        }
+                      />
+                      <input
+                        placeholder="영문 이름"
+                        value={editRouteForm.short_name_eng}
+                        onChange={(e) =>
+                          setEditRouteForm((f) => ({
+                            ...f,
+                            short_name_eng: e.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        className="button"
+                        disabled={editSubmitting}
+                        onClick={() => saveRouteName(route.pk)}
+                      >
+                        저장
+                      </button>
+                      <button
+                        className="button secondary"
+                        disabled={editSubmitting}
+                        onClick={() => setEditingRoutePk(null)}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {route.short_name_kor}
+                      <span className="placeholder"> ({route.short_name_eng})</span>
+                      <button
+                        className="link-button"
+                        onClick={() => startEditRoute(route)}
+                      >
+                        수정
+                      </button>
+                    </>
+                  )}
                 </td>
                 <td>{route.from_stop.name_kor}</td>
                 <td>{route.to_stop.name_kor}</td>
