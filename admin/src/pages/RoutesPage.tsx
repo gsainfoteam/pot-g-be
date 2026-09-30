@@ -64,6 +64,7 @@ export function RoutesPage() {
   const [stops, setStops] = useState<AdminStopDto[]>([]);
   const [routes, setRoutes] = useState<AdminRouteDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [mode, setMode] = useState<Mode>("none");
@@ -117,7 +118,10 @@ export function RoutesPage() {
             : "목록을 불러오지 못했습니다.",
         );
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasLoadedOnce(true);
+      });
   };
 
   useEffect(load, []);
@@ -424,7 +428,7 @@ export function RoutesPage() {
           </table>
         </div>
 
-        {!loading && (
+        {hasLoadedOnce && (
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               className="card"
