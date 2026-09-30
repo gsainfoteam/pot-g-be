@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip } from "react-leaflet";
+import {
+  CircleMarker,
+  MapContainer,
+  Marker,
+  Polyline,
+  Popup,
+  TileLayer,
+  Tooltip,
+  useMapEvents,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
@@ -36,11 +45,42 @@ type AdminRouteDto = {
   to_stop: AdminStopDto;
 };
 
+type Mode = "none" | "add-stop" | "add-route";
+
+function MapClickHandler({
+  onClick,
+}: {
+  onClick: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      onClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 export function RoutesPage() {
   const [stops, setStops] = useState<AdminStopDto[]>([]);
   const [routes, setRoutes] = useState<AdminRouteDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [mode, setMode] = useState<Mode>("none");
+  const [pendingStop, setPendingStop] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [stopForm, setStopForm] = useState({ name_kor: "", name_eng: "" });
+  const [routeSelection, setRouteSelection] = useState<AdminStopDto[]>([]);
+  const [routeForm, setRouteForm] = useState({
+    short_name_kor: "",
+    short_name_eng: "",
+    reverse_short_name_kor: "",
+    reverse_short_name_eng: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -72,6 +112,106 @@ export function RoutesPage() {
     return [lat, lng];
   }, [stops]);
 
+  const resetInteraction = () => {
+    setPendingStop(null);
+    setRouteSelection([]);
+    setStopForm({ name_kor: "", name_eng: "" });
+    setRouteForm({
+      short_name_kor: "",
+      short_name_eng: "",
+      reverse_short_name_kor: "",
+      reverse_short_name_eng: "",
+    });
+    setFormError(null);
+  };
+
+  const toggleMode = (next: Mode) => {
+    setMode((current) => (current === next ? "none" : next));
+    resetInteraction();
+  };
+
+  const handleMapClick = (lat: number, lng: number) => {
+    if (mode === "add-stop") {
+      setFormError(null);
+      setPendingStop({ lat, lng });
+    }
+  };
+
+  const handleStopMarkerClick = (stop: AdminStopDto) => {
+    if (mode !== "add-route") return;
+    setFormError(null);
+    setRouteSelection((prev) => {
+      if (prev.some((s) => s.pk === stop.pk)) return prev;
+      if (prev.length < 2) return [...prev, stop];
+      return [stop];
+    });
+  };
+
+  const submitStop = async () => {
+    if (!pendingStop) return;
+    if (!stopForm.name_kor.trim() || !stopForm.name_eng.trim()) {
+      setFormError("한글/영문 이름을 모두 입력하세요.");
+      return;
+    }
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await api.post("/api/manager/v1/route/stop", {
+        name_kor: stopForm.name_kor.trim(),
+        name_eng: stopForm.name_eng.trim(),
+        lat: pendingStop.lat,
+        lng: pendingStop.lng,
+      });
+      setMode("none");
+      resetInteraction();
+      load();
+    } catch (err) {
+      setFormError(
+        err instanceof ApiError
+          ? `정류장을 추가하지 못했습니다. (${err.status})`
+          : "정류장을 추가하지 못했습니다.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const submitRoute = async () => {
+    if (routeSelection.length !== 2) return;
+    if (
+      !routeForm.short_name_kor.trim() ||
+      !routeForm.short_name_eng.trim() ||
+      !routeForm.reverse_short_name_kor.trim() ||
+      !routeForm.reverse_short_name_eng.trim()
+    ) {
+      setFormError("양방향 한글/영문 노선 이름을 모두 입력하세요.");
+      return;
+    }
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await api.post("/api/manager/v1/route", {
+        from_stop_pk: routeSelection[0].pk,
+        to_stop_pk: routeSelection[1].pk,
+        short_name_kor: routeForm.short_name_kor.trim(),
+        short_name_eng: routeForm.short_name_eng.trim(),
+        reverse_short_name_kor: routeForm.reverse_short_name_kor.trim(),
+        reverse_short_name_eng: routeForm.reverse_short_name_eng.trim(),
+      });
+      setMode("none");
+      resetInteraction();
+      load();
+    } catch (err) {
+      setFormError(
+        err instanceof ApiError
+          ? `노선을 추가하지 못했습니다. (${err.status})`
+          : "노선을 추가하지 못했습니다.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -82,6 +222,33 @@ export function RoutesPage() {
       </div>
 
       {error && <p className="error-text">{error}</p>}
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <button
+          className={mode === "add-stop" ? "button" : "button secondary"}
+          onClick={() => toggleMode("add-stop")}
+        >
+          정류장 추가
+        </button>
+        <button
+          className={mode === "add-route" ? "button" : "button secondary"}
+          onClick={() => toggleMode("add-route")}
+        >
+          경로 추가
+        </button>
+      </div>
+
+      {mode === "add-stop" && !pendingStop && (
+        <p className="placeholder" style={{ marginBottom: 12 }}>
+          지도를 클릭해 새 정류장 위치를 선택하세요.
+        </p>
+      )}
+      {mode === "add-route" && routeSelection.length < 2 && (
+        <p className="placeholder" style={{ marginBottom: 12 }}>
+          지도에서 출발 정류장, 도착 정류장을 순서대로 클릭하세요. (
+          {routeSelection.length}/2 선택됨)
+        </p>
+      )}
 
       <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
         <div className="card" style={{ flex: 1, minWidth: 0 }}>
@@ -110,36 +277,198 @@ export function RoutesPage() {
           </table>
         </div>
 
-        {!loading && stops.length > 0 && (
-          <div
-            className="card"
-            style={{ flex: 1, minWidth: 0, padding: 0, overflow: "hidden" }}
-          >
-            <MapContainer center={center} zoom={12} className="map-container">
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              {stops.map((stop) => (
-                <Marker key={stop.pk} position={[stop.lat, stop.lng]} icon={stopIcon}>
-                  <Popup>
-                    {stop.name_kor} ({stop.name_eng})
-                  </Popup>
-                </Marker>
-              ))}
-              {routes.map((route) => (
-                <Polyline
-                  key={route.pk}
-                  positions={[
-                    [route.from_stop.lat, route.from_stop.lng],
-                    [route.to_stop.lat, route.to_stop.lng],
-                  ]}
-                  pathOptions={{ color: "#418501", weight: 3, opacity: 0.6 }}
-                >
-                  <Tooltip sticky>{route.short_name_kor}</Tooltip>
-                </Polyline>
-              ))}
-            </MapContainer>
+        {!loading && (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              className="card"
+              style={{ padding: 0, overflow: "hidden" }}
+            >
+              <MapContainer
+                center={center}
+                zoom={12}
+                className="map-container"
+                style={{
+                  cursor: mode === "add-stop" ? "crosshair" : undefined,
+                }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <MapClickHandler onClick={handleMapClick} />
+                {stops.map((stop) => (
+                  <Marker
+                    key={stop.pk}
+                    position={[stop.lat, stop.lng]}
+                    icon={stopIcon}
+                    eventHandlers={{
+                      click: () => handleStopMarkerClick(stop),
+                    }}
+                  >
+                    <Popup>
+                      {stop.name_kor} ({stop.name_eng})
+                    </Popup>
+                  </Marker>
+                ))}
+                {routeSelection.map((stop) => (
+                  <CircleMarker
+                    key={`selected-${stop.pk}`}
+                    center={[stop.lat, stop.lng]}
+                    radius={14}
+                    pathOptions={{ color: "#ba0407", weight: 3, fillOpacity: 0 }}
+                  />
+                ))}
+                {pendingStop && (
+                  <Marker
+                    position={[pendingStop.lat, pendingStop.lng]}
+                    icon={stopIcon}
+                    opacity={0.6}
+                  >
+                    <Popup>새 정류장 위치</Popup>
+                  </Marker>
+                )}
+                {routes.map((route) => (
+                  <Polyline
+                    key={route.pk}
+                    positions={[
+                      [route.from_stop.lat, route.from_stop.lng],
+                      [route.to_stop.lat, route.to_stop.lng],
+                    ]}
+                    pathOptions={{ color: "#418501", weight: 3, opacity: 0.6 }}
+                  >
+                    <Tooltip sticky>{route.short_name_kor}</Tooltip>
+                  </Polyline>
+                ))}
+              </MapContainer>
+            </div>
+
+            {pendingStop && (
+              <div className="card" style={{ marginTop: 12 }}>
+                <h4 style={{ marginTop: 0 }}>새 정류장 추가</h4>
+                <p className="placeholder">
+                  위도 {pendingStop.lat.toFixed(6)}, 경도{" "}
+                  {pendingStop.lng.toFixed(6)}
+                </p>
+                <div className="inline-form">
+                  <input
+                    placeholder="한글 이름"
+                    value={stopForm.name_kor}
+                    onChange={(e) =>
+                      setStopForm((f) => ({ ...f, name_kor: e.target.value }))
+                    }
+                  />
+                  <input
+                    placeholder="영문 이름"
+                    value={stopForm.name_eng}
+                    onChange={(e) =>
+                      setStopForm((f) => ({ ...f, name_eng: e.target.value }))
+                    }
+                  />
+                  <button
+                    className="button"
+                    disabled={submitting}
+                    onClick={submitStop}
+                  >
+                    추가
+                  </button>
+                  <button
+                    className="button secondary"
+                    disabled={submitting}
+                    onClick={() => {
+                      setPendingStop(null);
+                      setFormError(null);
+                    }}
+                  >
+                    취소
+                  </button>
+                </div>
+                {formError && <p className="error-text">{formError}</p>}
+              </div>
+            )}
+
+            {mode === "add-route" && routeSelection.length > 0 && (
+              <div className="card" style={{ marginTop: 12 }}>
+                <h4 style={{ marginTop: 0 }}>새 노선 추가 (양방향)</h4>
+                <p className="placeholder">
+                  {routeSelection[0]?.name_kor ?? "-"} ↔{" "}
+                  {routeSelection[1]?.name_kor ?? "-"}
+                </p>
+                {routeSelection.length === 2 && (
+                  <>
+                    <div className="inline-form">
+                      <span style={{ minWidth: 140 }}>
+                        {routeSelection[0].name_kor} → {routeSelection[1].name_kor}
+                      </span>
+                      <input
+                        placeholder="한글 이름"
+                        value={routeForm.short_name_kor}
+                        onChange={(e) =>
+                          setRouteForm((f) => ({
+                            ...f,
+                            short_name_kor: e.target.value,
+                          }))
+                        }
+                      />
+                      <input
+                        placeholder="영문 이름"
+                        value={routeForm.short_name_eng}
+                        onChange={(e) =>
+                          setRouteForm((f) => ({
+                            ...f,
+                            short_name_eng: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="inline-form">
+                      <span style={{ minWidth: 140 }}>
+                        {routeSelection[1].name_kor} → {routeSelection[0].name_kor}
+                      </span>
+                      <input
+                        placeholder="한글 이름"
+                        value={routeForm.reverse_short_name_kor}
+                        onChange={(e) =>
+                          setRouteForm((f) => ({
+                            ...f,
+                            reverse_short_name_kor: e.target.value,
+                          }))
+                        }
+                      />
+                      <input
+                        placeholder="영문 이름"
+                        value={routeForm.reverse_short_name_eng}
+                        onChange={(e) =>
+                          setRouteForm((f) => ({
+                            ...f,
+                            reverse_short_name_eng: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="inline-form">
+                      <button
+                        className="button"
+                        disabled={submitting}
+                        onClick={submitRoute}
+                      >
+                        추가
+                      </button>
+                      <button
+                        className="button secondary"
+                        disabled={submitting}
+                        onClick={() => {
+                          setRouteSelection([]);
+                          setFormError(null);
+                        }}
+                      >
+                        다시 선택
+                      </button>
+                    </div>
+                  </>
+                )}
+                {formError && <p className="error-text">{formError}</p>}
+              </div>
+            )}
           </div>
         )}
       </div>
