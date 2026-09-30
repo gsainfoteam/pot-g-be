@@ -407,7 +407,7 @@ export function RoutesPage() {
                     ) : (
                       <>
                         {stop.name_kor}
-                        <span className="placeholder"> ({stop.name_eng})</span>
+                        <span className="text-secondary"> ({stop.name_eng})</span>
                         <button
                           className="link-button"
                           onClick={() => startEditStop(stop)}
@@ -693,7 +693,7 @@ export function RoutesPage() {
                   ) : (
                     <>
                       {route.short_name_kor}
-                      <span className="placeholder"> ({route.short_name_eng})</span>
+                      <span className="text-secondary"> ({route.short_name_eng})</span>
                       <button
                         className="link-button"
                         onClick={() => startEditRoute(route)}
