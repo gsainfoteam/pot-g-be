@@ -322,21 +322,6 @@ export function RoutesPage() {
       {error && <p className="error-text">{error}</p>}
       {editError && <p className="error-text">{editError}</p>}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button
-          className={mode === "add-stop" ? "button" : "button secondary"}
-          onClick={() => toggleMode("add-stop")}
-        >
-          정류장 추가
-        </button>
-        <button
-          className={mode === "add-route" ? "button" : "button secondary"}
-          onClick={() => toggleMode("add-route")}
-        >
-          경로 추가
-        </button>
-      </div>
-
       {mode === "add-stop" && !pendingStop && (
         <p className="placeholder" style={{ marginBottom: 12 }}>
           지도를 클릭해 새 정류장 위치를 선택하세요.
@@ -356,7 +341,21 @@ export function RoutesPage() {
 
       <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
         <div className="card" style={{ flex: 1, minWidth: 0 }}>
-          <h3>정류장 ({stops.length})</h3>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <h3>정류장 ({stops.length})</h3>
+            <button
+              className={mode === "add-stop" ? "button" : "button secondary"}
+              onClick={() => toggleMode("add-stop")}
+            >
+              정류장 추가
+            </button>
+          </div>
           <table>
             <thead>
               <tr>
@@ -640,7 +639,21 @@ export function RoutesPage() {
       </div>
 
       <div className="card">
-        <h3>노선 ({routes.length})</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h3>노선 ({routes.length})</h3>
+          <button
+            className={mode === "add-route" ? "button" : "button secondary"}
+            onClick={() => toggleMode("add-route")}
+          >
+            경로 추가
+          </button>
+        </div>
         <table>
           <thead>
             <tr>
