@@ -109,7 +109,10 @@ export class AdminRouteService {
     ];
   }
 
-  async updateStop(pk: string, req: UpdateStopRequestDto): Promise<AdminStopDto> {
+  async updateStop(
+    pk: string,
+    req: UpdateStopRequestDto,
+  ): Promise<AdminStopDto> {
     const existing = await this.stopsRepository.findByPk(pk);
     if (!existing) {
       throw new BadRequestException("정류장을 찾을 수 없습니다.");

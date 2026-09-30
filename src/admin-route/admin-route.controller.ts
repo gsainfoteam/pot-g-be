@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -32,7 +33,9 @@ export class AdminRouteController {
   }
 
   @Post()
-  async createRoute(@Body() req: CreateRouteRequestDto): Promise<AdminRouteDto[]> {
+  async createRoute(
+    @Body() req: CreateRouteRequestDto,
+  ): Promise<AdminRouteDto[]> {
     return this.adminRouteService.createRoute(req);
   }
 
@@ -43,7 +46,7 @@ export class AdminRouteController {
 
   @Patch("/stop/:pk")
   async updateStop(
-    @Param("pk") pk: string,
+    @Param("pk", ParseUUIDPipe) pk: string,
     @Body() req: UpdateStopRequestDto,
   ): Promise<AdminStopDto> {
     return this.adminRouteService.updateStop(pk, req);
@@ -51,7 +54,7 @@ export class AdminRouteController {
 
   @Patch("/:pk")
   async updateRouteName(
-    @Param("pk") pk: string,
+    @Param("pk", ParseUUIDPipe) pk: string,
     @Body() req: UpdateRouteNameRequestDto,
   ): Promise<AdminRouteDto> {
     return this.adminRouteService.updateRouteName(pk, req);
