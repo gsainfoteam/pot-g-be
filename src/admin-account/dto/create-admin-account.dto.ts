@@ -1,7 +1,9 @@
 import { IsEmail, IsIn, IsOptional } from "class-validator";
 import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { Transform } from "class-transformer";
 
 export class CreateAdminAccountRequestDto {
+  @Transform(({ value }) => (typeof value === "string" ? value.trim() : value))
   @IsEmail()
   email: string;
 
