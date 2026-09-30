@@ -10,14 +10,27 @@ dotenv.config();
 
 async function seedAdmin() {
   const email = (process.argv[2] ?? "").trim().toLowerCase();
-  const role = process.argv[3] === "admin" ? "admin" : "superadmin";
+  const roleArg = process.argv[3];
 
-  if (!email || !email.endsWith("@gm.gist.ac.kr")) {
+  const usage = () => {
     console.error(
       "Usage: npm run db:seed-admin -- <email>@gm.gist.ac.kr [admin|superadmin]",
     );
     process.exit(1);
+  };
+
+  if (!email || !email.endsWith("@gm.gist.ac.kr")) {
+    usage();
   }
+  if (
+    roleArg !== undefined &&
+    roleArg !== "admin" &&
+    roleArg !== "superadmin"
+  ) {
+    usage();
+  }
+
+  const role = roleArg === "admin" ? "admin" : "superadmin";
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
