@@ -242,7 +242,9 @@ export function RoutesPage() {
 
     const map = mapRef.current;
     if (map) {
-      map.flyTo([stop.lat, stop.lng], Math.max(map.getZoom(), 16));
+      map.flyTo([stop.lat, stop.lng], Math.max(map.getZoom(), 16), {
+        duration: 0.5,
+      });
     }
   };
 
