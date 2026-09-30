@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CircleMarker,
   MapContainer,
@@ -61,6 +61,7 @@ function MapClickHandler({
 }
 
 export function RoutesPage() {
+  const mapRef = useRef<L.Map | null>(null);
   const [stops, setStops] = useState<AdminStopDto[]>([]);
   const [routes, setRoutes] = useState<AdminRouteDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -238,6 +239,11 @@ export function RoutesPage() {
     setEditStopForm({ name_kor: stop.name_kor, name_eng: stop.name_eng });
     setEditStopPosition({ lat: stop.lat, lng: stop.lng });
     setEditError(null);
+
+    const map = mapRef.current;
+    if (map) {
+      map.flyTo([stop.lat, stop.lng], Math.max(map.getZoom(), 16));
+    }
   };
 
   const cancelEditStop = () => {
@@ -434,6 +440,7 @@ export function RoutesPage() {
               style={{ padding: 0, overflow: "hidden" }}
             >
               <MapContainer
+                ref={mapRef}
                 center={center}
                 zoom={12}
                 className="map-container"
