@@ -47,6 +47,24 @@ type AdminRouteDto = {
 
 type Mode = "none" | "add-stop" | "add-route";
 
+function PlusIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
 function MapClickHandler({
   onClick,
 }: {
@@ -358,10 +376,12 @@ export function RoutesPage() {
           >
             <h3>정류장 ({stops.length})</h3>
             <button
-              className={mode === "add-stop" ? "button" : "button secondary"}
+              className={`icon-button ${mode === "add-stop" ? "button" : "button secondary"}`}
               onClick={() => toggleMode("add-stop")}
+              title="정류장 추가"
+              aria-label="정류장 추가"
             >
-              정류장 추가
+              <PlusIcon />
             </button>
           </div>
           <table>
@@ -657,10 +677,12 @@ export function RoutesPage() {
         >
           <h3>노선 ({routes.length})</h3>
           <button
-            className={mode === "add-route" ? "button" : "button secondary"}
+            className={`icon-button ${mode === "add-route" ? "button" : "button secondary"}`}
             onClick={() => toggleMode("add-route")}
+            title="경로 추가"
+            aria-label="경로 추가"
           >
-            경로 추가
+            <PlusIcon />
           </button>
         </div>
         <table>

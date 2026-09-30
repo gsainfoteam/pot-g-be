@@ -220,6 +220,11 @@ body {
   text-decoration: underline;
 }
 
+.icon-button {
+  padding: 8px;
+  line-height: 0;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
