@@ -9,6 +9,8 @@ import { AdminRouteDto } from "@src/admin-route/dto/admin-route.dto";
 import { AdminStopDto } from "@src/admin-route/dto/admin-stop.dto";
 import { CreateStopRequestDto } from "@src/admin-route/dto/create-stop.dto";
 import { CreateRouteRequestDto } from "@src/admin-route/dto/create-route.dto";
+import { UpdateStopNameRequestDto } from "@src/admin-route/dto/update-stop-name.dto";
+import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
 import { TxType } from "@src/global/types/tx.types";
 
 @Injectable()
@@ -105,6 +107,64 @@ export class AdminRouteService {
         to_stop: this.stopToDto(fromStop),
       },
     ];
+  }
+
+  async updateStopName(
+    pk: string,
+    req: UpdateStopNameRequestDto,
+  ): Promise<AdminStopDto> {
+    const existing = await this.stopsRepository.findByPk(pk);
+    if (!existing) {
+      throw new BadRequestException("정류장을 찾을 수 없습니다.");
+    }
+
+    const updated = await this.dbService.db.transaction(async (tx: TxType) => {
+      return this.stopsRepository.updateName(
+        {
+          pk,
+          nameKor: req.name_kor,
+          nameEng: req.name_eng,
+          lat: existing.lat,
+          lng: existing.lng,
+        },
+        tx,
+      );
+    });
+    await this.discoveryRouteService.cacheData();
+
+    return this.stopToDto(updated);
+  }
+
+  async updateRouteName(
+    pk: string,
+    req: UpdateRouteNameRequestDto,
+  ): Promise<AdminRouteDto> {
+    const existing = await this.routeRepository.findByPk(pk);
+    if (!existing) {
+      throw new BadRequestException("노선을 찾을 수 없습니다.");
+    }
+
+    const updated = await this.dbService.db.transaction(async (tx: TxType) => {
+      return this.routeRepository.updateName(
+        {
+          pk,
+          fromStopFk: existing.fromStopFk,
+          toStopFk: existing.toStopFk,
+          shortNameKor: req.short_name_kor,
+          shortNameEng: req.short_name_eng,
+        },
+        tx,
+      );
+    });
+    await this.discoveryRouteService.cacheData();
+
+    return {
+      pk: updated.pk,
+      short_name_kor: updated.shortNameKor,
+      short_name_eng: updated.shortNameEng,
+      from_stop: this.stopToDto(existing.fromStop),
+      to_stop: this.stopToDto(existing.toStop),
+    };
   }
 
   private routeToDto(route: RouteEntity): AdminRouteDto {

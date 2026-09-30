@@ -55,6 +55,24 @@ export class StopsRepository {
     return this.resultToStopsEntity(result[0]);
   }
 
+  async updateName(stopEntity: StopsEntity, tx: TxType): Promise<StopsEntity> {
+    const result = await tx
+      .update(stops)
+      .set({
+        nameKor: stopEntity.nameKor,
+        nameEng: stopEntity.nameEng,
+        updatedAt: new Date(),
+      })
+      .where(eq(stops.pk, stopEntity.pk))
+      .returning();
+
+    if (result.length === 0) {
+      throw new PotgDBError("Failed to update stop");
+    }
+
+    return this.resultToStopsEntity(result[0]);
+  }
+
   private resultToStopsEntity(result: any): StopsEntity {
     return {
       pk: result.pk,

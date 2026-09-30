@@ -1,10 +1,20 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import { ManagerGuard } from "@src/auth/guard/manager.guard";
 import { AdminRouteService } from "@src/admin-route/admin-route.service";
 import { AdminRouteDto } from "@src/admin-route/dto/admin-route.dto";
 import { AdminStopDto } from "@src/admin-route/dto/admin-stop.dto";
 import { CreateStopRequestDto } from "@src/admin-route/dto/create-stop.dto";
 import { CreateRouteRequestDto } from "@src/admin-route/dto/create-route.dto";
+import { UpdateStopNameRequestDto } from "@src/admin-route/dto/update-stop-name.dto";
+import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
 
 @Controller("/api/manager/v1/route")
 @UseGuards(ManagerGuard)
@@ -29,5 +39,21 @@ export class AdminRouteController {
   @Post("/stop")
   async createStop(@Body() req: CreateStopRequestDto): Promise<AdminStopDto> {
     return this.adminRouteService.createStop(req);
+  }
+
+  @Patch("/stop/:pk")
+  async updateStopName(
+    @Param("pk") pk: string,
+    @Body() req: UpdateStopNameRequestDto,
+  ): Promise<AdminStopDto> {
+    return this.adminRouteService.updateStopName(pk, req);
+  }
+
+  @Patch("/:pk")
+  async updateRouteName(
+    @Param("pk") pk: string,
+    @Body() req: UpdateRouteNameRequestDto,
+  ): Promise<AdminRouteDto> {
+    return this.adminRouteService.updateRouteName(pk, req);
   }
 }
