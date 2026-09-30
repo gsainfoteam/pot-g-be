@@ -13,7 +13,7 @@ import { AdminRouteDto } from "@src/admin-route/dto/admin-route.dto";
 import { AdminStopDto } from "@src/admin-route/dto/admin-stop.dto";
 import { CreateStopRequestDto } from "@src/admin-route/dto/create-stop.dto";
 import { CreateRouteRequestDto } from "@src/admin-route/dto/create-route.dto";
-import { UpdateStopNameRequestDto } from "@src/admin-route/dto/update-stop-name.dto";
+import { UpdateStopRequestDto } from "@src/admin-route/dto/update-stop.dto";
 import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
 
 @Controller("/api/manager/v1/route")
@@ -42,11 +42,11 @@ export class AdminRouteController {
   }
 
   @Patch("/stop/:pk")
-  async updateStopName(
+  async updateStop(
     @Param("pk") pk: string,
-    @Body() req: UpdateStopNameRequestDto,
+    @Body() req: UpdateStopRequestDto,
   ): Promise<AdminStopDto> {
-    return this.adminRouteService.updateStopName(pk, req);
+    return this.adminRouteService.updateStop(pk, req);
   }
 
   @Patch("/:pk")

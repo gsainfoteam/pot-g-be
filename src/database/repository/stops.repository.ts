@@ -55,12 +55,14 @@ export class StopsRepository {
     return this.resultToStopsEntity(result[0]);
   }
 
-  async updateName(stopEntity: StopsEntity, tx: TxType): Promise<StopsEntity> {
+  async update(stopEntity: StopsEntity, tx: TxType): Promise<StopsEntity> {
     const result = await tx
       .update(stops)
       .set({
         nameKor: stopEntity.nameKor,
         nameEng: stopEntity.nameEng,
+        lat: stopEntity.lat,
+        lng: stopEntity.lng,
         updatedAt: new Date(),
       })
       .where(eq(stops.pk, stopEntity.pk))

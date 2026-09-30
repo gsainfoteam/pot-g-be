@@ -9,7 +9,7 @@ import { AdminRouteDto } from "@src/admin-route/dto/admin-route.dto";
 import { AdminStopDto } from "@src/admin-route/dto/admin-stop.dto";
 import { CreateStopRequestDto } from "@src/admin-route/dto/create-stop.dto";
 import { CreateRouteRequestDto } from "@src/admin-route/dto/create-route.dto";
-import { UpdateStopNameRequestDto } from "@src/admin-route/dto/update-stop-name.dto";
+import { UpdateStopRequestDto } from "@src/admin-route/dto/update-stop.dto";
 import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
 import { TxType } from "@src/global/types/tx.types";
 
@@ -109,23 +109,20 @@ export class AdminRouteService {
     ];
   }
 
-  async updateStopName(
-    pk: string,
-    req: UpdateStopNameRequestDto,
-  ): Promise<AdminStopDto> {
+  async updateStop(pk: string, req: UpdateStopRequestDto): Promise<AdminStopDto> {
     const existing = await this.stopsRepository.findByPk(pk);
     if (!existing) {
       throw new BadRequestException("정류장을 찾을 수 없습니다.");
     }
 
     const updated = await this.dbService.db.transaction(async (tx: TxType) => {
-      return this.stopsRepository.updateName(
+      return this.stopsRepository.update(
         {
           pk,
           nameKor: req.name_kor,
           nameEng: req.name_eng,
-          lat: existing.lat,
-          lng: existing.lng,
+          lat: req.lat ?? existing.lat,
+          lng: req.lng ?? existing.lng,
         },
         tx,
       );
