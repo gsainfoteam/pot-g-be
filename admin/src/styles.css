@@ -194,6 +194,11 @@ body {
   font-weight: 500;
 }
 
+.map-container {
+  height: 420px;
+  width: 100%;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
