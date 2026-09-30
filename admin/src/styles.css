@@ -194,6 +194,37 @@ body {
   font-weight: 500;
 }
 
+.text-secondary {
+  color: var(--grey);
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.map-container {
+  height: 420px;
+  width: 100%;
+}
+
+.link-button {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.icon-button {
+  padding: 8px;
+  line-height: 0;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -233,6 +264,26 @@ th {
 .inline-form select:focus {
   outline: none;
   border-color: var(--primary);
+}
+
+.inline-form.compact {
+  margin-bottom: 0;
+  gap: 6px;
+  align-items: center;
+}
+
+.inline-form.compact input {
+  width: 90px;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.inline-form.compact .button,
+.inline-form.compact .button.secondary {
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 6px;
 }
 
 .error-text {

@@ -3,6 +3,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { CallbackPage } from "./pages/CallbackPage";
 import { DashboardLayout } from "./pages/DashboardLayout";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { RoutesPage } from "./pages/RoutesPage";
 import { isLoggedIn } from "./lib/auth";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -27,10 +28,7 @@ export function App() {
       >
         <Route index element={<PlaceholderPage title="현황" />} />
         <Route path="pots" element={<PlaceholderPage title="팟 관리" />} />
-        <Route
-          path="routes"
-          element={<PlaceholderPage title="노선/정류장 관리" />}
-        />
+        <Route path="routes" element={<RoutesPage />} />
         <Route path="users" element={<PlaceholderPage title="사용자" />} />
         <Route path="stats" element={<PlaceholderPage title="통계" />} />
         <Route
