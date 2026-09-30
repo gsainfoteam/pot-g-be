@@ -87,6 +87,10 @@ export function RoutesPage() {
     name_kor: "",
     name_eng: "",
   });
+  const [editStopPosition, setEditStopPosition] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [editingRoutePk, setEditingRoutePk] = useState<string | null>(null);
   const [editRouteForm, setEditRouteForm] = useState({
     short_name_kor: "",
@@ -228,7 +232,13 @@ export function RoutesPage() {
   const startEditStop = (stop: AdminStopDto) => {
     setEditingStopPk(stop.pk);
     setEditStopForm({ name_kor: stop.name_kor, name_eng: stop.name_eng });
+    setEditStopPosition({ lat: stop.lat, lng: stop.lng });
     setEditError(null);
+  };
+
+  const cancelEditStop = () => {
+    setEditingStopPk(null);
+    setEditStopPosition(null);
   };
 
   const saveStopName = async (pk: string) => {
@@ -242,8 +252,11 @@ export function RoutesPage() {
       await api.patch(`/api/manager/v1/route/stop/${pk}`, {
         name_kor: editStopForm.name_kor.trim(),
         name_eng: editStopForm.name_eng.trim(),
+        lat: editStopPosition?.lat,
+        lng: editStopPosition?.lng,
       });
       setEditingStopPk(null);
+      setEditStopPosition(null);
       load();
     } catch (err) {
       setEditError(
@@ -331,6 +344,11 @@ export function RoutesPage() {
           {routeSelection.length}/2 선택됨)
         </p>
       )}
+      {editingStopPk && (
+        <p className="placeholder" style={{ marginBottom: 12 }}>
+          지도에서 정류장 아이콘을 드래그해 위치를 옮긴 뒤, 표에서 저장하세요.
+        </p>
+      )}
 
       <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
         <div className="card" style={{ flex: 1, minWidth: 0 }}>
@@ -377,7 +395,7 @@ export function RoutesPage() {
                         <button
                           className="button secondary"
                           disabled={editSubmitting}
-                          onClick={() => setEditingStopPk(null)}
+                          onClick={cancelEditStop}
                         >
                           취소
                         </button>
@@ -425,20 +443,28 @@ export function RoutesPage() {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <MapClickHandler onClick={handleMapClick} />
-                {stops.map((stop) => (
-                  <Marker
-                    key={stop.pk}
-                    position={[stop.lat, stop.lng]}
-                    icon={stopIcon}
-                    eventHandlers={{
-                      click: () => handleStopMarkerClick(stop),
-                    }}
-                  >
-                    <Popup>
-                      {stop.name_kor} ({stop.name_eng})
-                    </Popup>
-                  </Marker>
-                ))}
+                {stops.map((stop) => {
+                  const isEditing = editingStopPk === stop.pk;
+                  return (
+                    <Marker
+                      key={`${stop.pk}:${isEditing ? "editing" : "idle"}`}
+                      position={[stop.lat, stop.lng]}
+                      icon={stopIcon}
+                      draggable={isEditing}
+                      eventHandlers={{
+                        click: () => handleStopMarkerClick(stop),
+                        drag: (e) => {
+                          const { lat, lng } = e.target.getLatLng();
+                          setEditStopPosition({ lat, lng });
+                        },
+                      }}
+                    >
+                      <Popup>
+                        {stop.name_kor} ({stop.name_eng})
+                      </Popup>
+                    </Marker>
+                  );
+                })}
                 {routeSelection.map((stop) => (
                   <CircleMarker
                     key={`selected-${stop.pk}`}
@@ -447,6 +473,13 @@ export function RoutesPage() {
                     pathOptions={{ color: "#ba0407", weight: 3, fillOpacity: 0 }}
                   />
                 ))}
+                {editingStopPk && editStopPosition && (
+                  <CircleMarker
+                    center={[editStopPosition.lat, editStopPosition.lng]}
+                    radius={16}
+                    pathOptions={{ color: "#0066ff", weight: 3, fillOpacity: 0 }}
+                  />
+                )}
                 {pendingStop && (
                   <Marker
                     position={[pendingStop.lat, pendingStop.lng]}
