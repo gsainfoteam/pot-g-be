@@ -1,4 +1,7 @@
-export type AdminAccountRole = "admin" | "superadmin";
+export enum AdminAccountRole {
+  admin = 0,
+  superadmin = 1,
+}
 
 export class AdminAccountEntity {
   pk?: string;

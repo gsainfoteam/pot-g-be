@@ -5,6 +5,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { ManagerContext } from "@src/auth/context/manager-context.entity";
+import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
 
 /**
  * ManagerGuard 뒤에 붙여서 사용합니다. superadmin 권한을 가진 매니저만 통과시킵니다.
@@ -15,7 +16,7 @@ export class SuperAdminGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const managerCtx: ManagerContext = req.user;
 
-    if (!managerCtx || managerCtx.role !== "superadmin") {
+    if (!managerCtx || managerCtx.role !== AdminAccountRole.superadmin) {
       throw new ForbiddenException("superadmin 권한이 필요합니다.");
     }
 

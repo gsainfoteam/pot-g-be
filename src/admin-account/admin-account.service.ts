@@ -5,7 +5,10 @@ import {
 } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { AdminAccountRepository } from "@src/database/repository/admin-account.repository";
-import { AdminAccountEntity } from "@src/database/entity/admin-account.entity";
+import {
+  AdminAccountEntity,
+  AdminAccountRole,
+} from "@src/database/entity/admin-account.entity";
 import { AdminAccountDto } from "@src/admin-account/dto/admin-account.dto";
 import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admin-account.dto";
 import { TxType } from "@src/global/types/tx.types";
@@ -40,7 +43,7 @@ export class AdminAccountService {
       return this.adminAccountRepository.insert(
         {
           email,
-          role: req.role ?? "admin",
+          role: req.role ?? AdminAccountRole.admin,
         },
         tx,
       );

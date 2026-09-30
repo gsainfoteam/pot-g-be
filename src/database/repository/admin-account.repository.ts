@@ -2,7 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
-import { AdminAccountEntity } from "@src/database/entity/admin-account.entity";
+import {
+  AdminAccountEntity,
+  AdminAccountRole,
+} from "@src/database/entity/admin-account.entity";
 import { adminAccount } from "../../../drizzle/schema/admin-account";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 import { TxType } from "@src/global/types/tx.types";
@@ -45,7 +48,9 @@ export class AdminAccountRepository {
       .values({
         pk: adminAccountEntity.pk || randomUUID(),
         email: adminAccountEntity.email,
-        role: adminAccountEntity.role,
+        role: AdminAccountRole[adminAccountEntity.role] as
+          | "admin"
+          | "superadmin",
       })
       .returning();
 
@@ -64,7 +69,7 @@ export class AdminAccountRepository {
     return {
       pk: result.pk,
       email: result.email,
-      role: result.role,
+      role: AdminAccountRole[result.role as "admin" | "superadmin"],
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };

@@ -6,6 +6,7 @@ import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { DatabaseModule } from "@src/database/database.module";
 import { InfoteamIdpModule } from "@lib/infoteam-idp";
+import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
 
 describe("ManagerAuthService", () => {
   let service: ManagerAuthService;
@@ -42,7 +43,10 @@ describe("ManagerAuthService", () => {
     const email = "manager@gm.gist.ac.kr";
 
     // Act - Generate token
-    const result = await service.createNewJwtToken(email, "superadmin");
+    const result = await service.createNewJwtToken(
+      email,
+      AdminAccountRole.superadmin,
+    );
 
     // Print generated token
     console.log("\n=== Generated JWT Token ===");
