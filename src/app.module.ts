@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { join } from "node:path";
+import { ServeStaticModule } from "@nestjs/serve-static";
 import { DatabaseModule } from "./database/database.module";
 import { ConfigModule } from "./config/config.module";
 import { UserModule } from "@src/user/user.module";
@@ -11,12 +13,18 @@ import { WebsocketModule } from "@src/websocket/websocket.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { FcmModule } from "@src/fcm/fcm.module";
 import { AppVersionModule } from "@src/app-version/app-version.module";
+import { AdminAccountModule } from "@src/admin-account/admin-account.module";
 import { LoggerModule } from "@src/global/logger/logger.module";
 import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      // 빌드 결과물 기준 __dirname: dist/src -> ../../admin/dist
+      rootPath: join(__dirname, "..", "..", "admin", "dist"),
+      exclude: ["/api/{*any}"],
+    }),
     ConfigModule,
     DatabaseModule,
     UserModule,
@@ -30,6 +38,7 @@ import { ConfigService } from "@nestjs/config";
     ScheduleModule.forRoot(),
     FcmModule,
     AppVersionModule,
+    AdminAccountModule,
     LoggerModule,
     SlackModule.forRootAsync({
       imports: [ConfigModule],

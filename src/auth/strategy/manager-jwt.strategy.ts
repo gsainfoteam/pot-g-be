@@ -21,6 +21,6 @@ export class ManagerJwtStrategy extends PassportStrategy(
   async validate(
     payload: ManagerAccessTokenJwtPayload,
   ): Promise<ManagerContext> {
-    return new ManagerContext(payload.email);
+    return new ManagerContext(payload.email, payload.role);
   }
 }

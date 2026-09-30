@@ -1,6 +1,8 @@
 import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
 
-export type ManagerAccessTokenJwtPayload = {
+export class AdminAccountDto {
+  pk: string;
   email: string;
   role: AdminAccountRole;
-};
+  created_at: Date;
+}
