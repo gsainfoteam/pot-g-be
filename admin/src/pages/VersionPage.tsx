@@ -85,7 +85,16 @@ export function VersionPage() {
     try {
       const data = await api.patch<VersionDto>("/api/manager/v1/version", body);
       setSaved(data);
-      setForm(data);
+      // 저장한 플랫폼의 필드만, 요청 이후 수정되지 않은 경우에 서버 값을 반영합니다.
+      setForm((prev) => {
+        if (!prev) return data;
+        const next = { ...prev };
+        if (prev[minKey].trim() === min) next[minKey] = data[minKey];
+        if (prev[latestKey].trim() === latest) {
+          next[latestKey] = data[latestKey];
+        }
+        return next;
+      });
       setMessage("저장했습니다.");
     } catch (err) {
       setError(
@@ -121,7 +130,9 @@ export function VersionPage() {
                     value={form[minKey]}
                     placeholder="1.0.0"
                     onChange={(e) =>
-                      setForm({ ...form, [minKey]: e.target.value })
+                      setForm(
+                        (prev) => prev && { ...prev, [minKey]: e.target.value },
+                      )
                     }
                   />
                 </label>
@@ -131,7 +142,10 @@ export function VersionPage() {
                     value={form[latestKey]}
                     placeholder="1.0.0"
                     onChange={(e) =>
-                      setForm({ ...form, [latestKey]: e.target.value })
+                      setForm(
+                        (prev) =>
+                          prev && { ...prev, [latestKey]: e.target.value },
+                      )
                     }
                   />
                 </label>
