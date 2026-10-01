@@ -340,9 +340,6 @@ export function RoutesPage() {
     <>
       <div className="page-header">
         <h2>노선/정류장 관리</h2>
-        <button className="button secondary" onClick={load} disabled={loading}>
-          새로고침
-        </button>
       </div>
 
       {error && <p className="error-text">{error}</p>}

@@ -2,21 +2,24 @@ import { useState } from "react";
 
 type Props = {
   title: string;
+  refreshable?: boolean;
 };
 
-export function PlaceholderPage({ title }: Props) {
+export function PlaceholderPage({ title, refreshable = false }: Props) {
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
 
   return (
     <>
       <div className="page-header">
         <h2>{title}</h2>
-        <button
-          className="button secondary"
-          onClick={() => setRefreshedAt(new Date())}
-        >
-          새로고침
-        </button>
+        {refreshable && (
+          <button
+            className="button secondary"
+            onClick={() => setRefreshedAt(new Date())}
+          >
+            새로고침
+          </button>
+        )}
       </div>
       <div className="card">
         <p className="placeholder">
