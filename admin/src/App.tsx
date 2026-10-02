@@ -4,6 +4,7 @@ import { CallbackPage } from "./pages/CallbackPage";
 import { DashboardLayout } from "./pages/DashboardLayout";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { RoutesPage } from "./pages/RoutesPage";
+import { VersionPage } from "./pages/VersionPage";
 import { isLoggedIn } from "./lib/auth";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -26,11 +27,12 @@ export function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<PlaceholderPage title="현황" />} />
+        <Route index element={<PlaceholderPage title="현황" refreshable />} />
         <Route path="pots" element={<PlaceholderPage title="팟 관리" />} />
         <Route path="routes" element={<RoutesPage />} />
+        <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<PlaceholderPage title="사용자" />} />
-        <Route path="stats" element={<PlaceholderPage title="통계" />} />
+        <Route path="stats" element={<PlaceholderPage title="통계" refreshable />} />
         <Route
           path="admin-accounts"
           element={<PlaceholderPage title="관리자 계정" />}

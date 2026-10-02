@@ -291,3 +291,22 @@ th {
   font-size: 13px;
   margin-top: 8px;
 }
+
+.version-form {
+  align-items: flex-end;
+}
+
+.version-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-grey);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.version-form .button {
+  padding: 8px 18px;
+  font-size: 14px;
+  border-radius: 10px;
+}
