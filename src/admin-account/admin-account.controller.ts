@@ -4,7 +4,9 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ManagerGuard } from "@src/auth/guard/manager.guard";
@@ -12,6 +14,8 @@ import { SuperAdminGuard } from "@src/auth/guard/super-admin.guard";
 import { AdminAccountService } from "@src/admin-account/admin-account.service";
 import { AdminAccountDto } from "@src/admin-account/dto/admin-account.dto";
 import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admin-account.dto";
+import { UpdateAdminAccountRoleRequestDto } from "@src/admin-account/dto/update-admin-account-role.dto";
+import { ManagerContext } from "@src/auth/context/manager-context.entity";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 
 @Controller("/api/manager/v1/admin-account")
@@ -32,10 +36,23 @@ export class AdminAccountController {
     return this.adminAccountService.create(req);
   }
 
+  @Patch("/:pk")
+  @UseGuards(SuperAdminGuard)
+  async updateRole(
+    @Param("pk") pk: string,
+    @Body() req: UpdateAdminAccountRoleRequestDto,
+    @Req() request: { user: ManagerContext },
+  ): Promise<AdminAccountDto> {
+    return this.adminAccountService.updateRole(pk, req, request.user.email);
+  }
+
   @Delete("/:pk")
   @UseGuards(SuperAdminGuard)
-  async remove(@Param("pk") pk: string): Promise<BaseResultDto> {
-    await this.adminAccountService.remove(pk);
+  async remove(
+    @Param("pk") pk: string,
+    @Req() req: { user: ManagerContext },
+  ): Promise<BaseResultDto> {
+    await this.adminAccountService.remove(pk, req.user.email);
     return BaseResultDto.OK;
   }
 }

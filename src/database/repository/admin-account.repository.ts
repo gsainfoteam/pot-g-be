@@ -39,6 +39,22 @@ export class AdminAccountRepository {
     return this.resultToAdminAccountEntity(results[0]);
   }
 
+  /*
+  SELECT * FROM admin_account WHERE pk = ?1;
+   */
+  async findByPk(pk: string): Promise<AdminAccountEntity | null> {
+    const results = await this.dbService.db
+      .select()
+      .from(adminAccount)
+      .where(eq(adminAccount.pk, pk));
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    return this.resultToAdminAccountEntity(results[0]);
+  }
+
   async insert(
     adminAccountEntity: AdminAccountEntity,
     tx: TxType,
@@ -56,6 +72,28 @@ export class AdminAccountRepository {
 
     if (result.length === 0) {
       throw new PotgDBError("Failed to insert admin account");
+    }
+
+    return this.resultToAdminAccountEntity(result[0]);
+  }
+
+  async update(
+    adminAccountEntity: AdminAccountEntity,
+    tx: TxType,
+  ): Promise<AdminAccountEntity> {
+    const result = await tx
+      .update(adminAccount)
+      .set({
+        role: AdminAccountRole[adminAccountEntity.role] as
+          | "admin"
+          | "superadmin",
+        updatedAt: new Date(),
+      })
+      .where(eq(adminAccount.pk, adminAccountEntity.pk!))
+      .returning();
+
+    if (result.length === 0) {
+      throw new PotgDBError("Failed to update admin account");
     }
 
     return this.resultToAdminAccountEntity(result[0]);
