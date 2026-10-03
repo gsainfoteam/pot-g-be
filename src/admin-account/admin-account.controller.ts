@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
@@ -39,7 +40,7 @@ export class AdminAccountController {
   @Patch("/:pk")
   @UseGuards(SuperAdminGuard)
   async updateRole(
-    @Param("pk") pk: string,
+    @Param("pk", ParseUUIDPipe) pk: string,
     @Body() req: UpdateAdminAccountRoleRequestDto,
     @Req() request: { user: ManagerContext },
   ): Promise<AdminAccountDto> {
@@ -49,7 +50,7 @@ export class AdminAccountController {
   @Delete("/:pk")
   @UseGuards(SuperAdminGuard)
   async remove(
-    @Param("pk") pk: string,
+    @Param("pk", ParseUUIDPipe) pk: string,
     @Req() req: { user: ManagerContext },
   ): Promise<BaseResultDto> {
     await this.adminAccountService.remove(pk, req.user.email);
