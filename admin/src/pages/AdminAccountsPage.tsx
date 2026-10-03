@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api, ApiError } from "../lib/api";
-import { getCurrentManager } from "../lib/auth";
+import { useCurrentManager } from "../lib/current-manager";
 
 // 서버의 AdminAccountRole enum 값과 맞춰야 합니다.
 const ROLE_ADMIN = 0;
@@ -44,8 +44,8 @@ function errorMessage(err: unknown, fallback: string): string {
 }
 
 export function AdminAccountsPage() {
-  const me = getCurrentManager();
-  const isSuperAdmin = me?.role === ROLE_SUPERADMIN;
+  const me = useCurrentManager();
+  const isSuperAdmin = me.role === ROLE_SUPERADMIN;
 
   const [accounts, setAccounts] = useState<AdminAccountDto[]>([]);
   const [email, setEmail] = useState("");
@@ -117,7 +117,7 @@ export function AdminAccountsPage() {
   };
 
   const isSelf = (account: AdminAccountDto) =>
-    account.email.toLowerCase() === me?.email.toLowerCase();
+    account.email.toLowerCase() === me.email.toLowerCase();
 
   return (
     <>
