@@ -15,6 +15,7 @@ import { FcmModule } from "@src/fcm/fcm.module";
 import { AppVersionModule } from "@src/app-version/app-version.module";
 import { AdminAccountModule } from "@src/admin-account/admin-account.module";
 import { AdminRouteModule } from "@src/admin-route/admin-route.module";
+import { AdminPotModule } from "@src/admin-pot/admin-pot.module";
 import { LoggerModule } from "@src/global/logger/logger.module";
 import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
@@ -41,6 +42,7 @@ import { ConfigService } from "@nestjs/config";
     AppVersionModule,
     AdminAccountModule,
     AdminRouteModule,
+    AdminPotModule,
     LoggerModule,
     SlackModule.forRootAsync({
       imports: [ConfigModule],
