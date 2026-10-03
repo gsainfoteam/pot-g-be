@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { subDays } from "date-fns";
-import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
-import { PotEventRepository } from "@src/database/repository/pot-event.repository";
+import { PotRoomAdminRepository } from "@src/database/repository/pot-room.admin.repository";
+import { PotEventAdminRepository } from "@src/database/repository/pot-event.admin.repository";
 import { RouteRepository } from "@src/database/repository/route.repository";
 import { UserRepository } from "@src/database/repository/user.repository";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
@@ -24,20 +24,20 @@ const UUID_PATTERN =
 @Injectable()
 export class AdminPotService {
   constructor(
-    private readonly potRoomRepository: PotRoomRepository,
-    private readonly potEventRepository: PotEventRepository,
+    private readonly potRoomAdminRepository: PotRoomAdminRepository,
+    private readonly potEventAdminRepository: PotEventAdminRepository,
     private readonly routeRepository: RouteRepository,
     private readonly userRepository: UserRepository,
   ) {}
 
   async listAll(req: AdminPotListReqDto): Promise<AdminPotListResDto> {
     const [potRooms, total] = await Promise.all([
-      this.potRoomRepository.findAllWithDeparture({
+      this.potRoomAdminRepository.findAllWithDeparture({
         search: req.search,
         page: req.page,
         size: req.size,
       }),
-      this.potRoomRepository.countForAdmin(req.search),
+      this.potRoomAdminRepository.countForAdmin(req.search),
     ]);
 
     return {
@@ -53,7 +53,7 @@ export class AdminPotService {
    * 하루가 지났는데도 해산(아카이브)되지 않은 팟을 조회합니다.
    */
   async listOverdue(req: AdminPotSearchReqDto): Promise<AdminPotDto[]> {
-    const potRooms = await this.potRoomRepository.findAllWithDeparture({
+    const potRooms = await this.potRoomAdminRepository.findAllWithDeparture({
       search: req.search,
       overdueBefore: subDays(new Date(), 1),
     });
@@ -61,12 +61,13 @@ export class AdminPotService {
   }
 
   async getDetail(potPk: string): Promise<AdminPotDetailDto> {
-    const potRoom = await this.potRoomRepository.findByPk(potPk);
+    const potRoom = await this.potRoomAdminRepository.findByPk(potPk);
     if (!potRoom) {
       throw new NotFoundException("Pot not found.");
     }
 
-    const events = await this.potEventRepository.findEventsWithoutChat(potPk);
+    const events =
+      await this.potEventAdminRepository.findEventsWithoutChat(potPk);
     const pot = PotEventReducer.reduceFromInitial(events);
 
     const eventDtos = events.map((event) => ({

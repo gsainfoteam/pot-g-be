@@ -34,25 +34,15 @@ export class PotEventRepository {
     ORDER BY timestamp ASC;
    */
   async findByIdWithoutChat(potPk: string): Promise<Pot> {
-    const potEvents = await this.findEventsWithoutChat(potPk);
-
-    return PotEventReducer.reduceFromInitial(potEvents);
-  }
-
-  /*
-  SELECT * FROM pot_event
-    WHERE pot_fk = ?1
-      AND type != 'chat_v1'
-    ORDER BY timestamp ASC, id ASC;
-   */
-  async findEventsWithoutChat(potPk: string): Promise<PotEvent<any, any>[]> {
     const result = await this.db.db
       .select()
       .from(potEvent)
       .where(and(eq(potEvent.potFk, potPk), not(eq(potEvent.type, "chat_v1"))))
-      .orderBy(asc(potEvent.timestamp), asc(potEvent.id));
+      .orderBy(asc(potEvent.timestamp));
 
-    return result.map((event) => PotEventFactory.toModel(event));
+    const potEvents = result.map((event) => PotEventFactory.toModel(event));
+
+    return PotEventReducer.reduceFromInitial(potEvents);
   }
 
   async findById(roomId: string): Promise<Pot> {
