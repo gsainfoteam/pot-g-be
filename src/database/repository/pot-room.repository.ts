@@ -3,7 +3,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { potRoom } from "../../../drizzle/schema/pot-room";
-import { and, asc, eq, gte, lte, not, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, not, sql } from "drizzle-orm";
 import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
 import { users } from "../../../drizzle/schema/users";
 import {
@@ -288,6 +288,78 @@ export class PotRoomRepository {
     });
 
     return potRoomEntity;
+  }
+
+  /*
+  SELECT pr.*, count(upr.user_fk) as current_user_count,
+         (SELECT (pe.data->>'departureTime')::timestamptz FROM pot_event as pe
+           WHERE pe.pot_fk = pr.pk AND pe.type = 'departure_confirm_v1'
+           ORDER BY pe.timestamp DESC LIMIT 1) as departure_time
+  FROM pot_room as pr
+    LEFT JOIN user_pot_room as upr ON pr.pk = upr.pot_room_fk
+  WHERE pr.is_archived = false   // overdueBefore 가 있는 경우에만
+    AND pr.is_deleted = false    // overdueBefore 가 있는 경우에만
+    AND COALESCE(departure_time, pr.ends_at) < ?1  // overdueBefore 가 있는 경우에만
+  GROUP BY pr.pk
+  ORDER BY pr.starts_at DESC;
+   */
+  async findAllWithDeparture(overdueBefore?: Date): Promise<PotRoomEntity[]> {
+    const departureTime = sql<
+      string | null
+    >`(SELECT (pe.data->>'departureTime')::timestamptz FROM pot_event AS pe WHERE pe.pot_fk = ${potRoom.pk} AND pe.type = 'departure_confirm_v1' ORDER BY pe.timestamp DESC LIMIT 1)`;
+
+    const results = await this.dbService.db
+      .select({
+        pk: potRoom.pk,
+        routeFk: potRoom.routeFk,
+        isArchived: potRoom.isArchived,
+        isDeleted: potRoom.isDeleted,
+        isDepartureConfirmed: potRoom.isDepartureConfirmed,
+        maxCapacity: potRoom.maxCapacity,
+        currentUserCount: sql<number>`cast(count(${userPotRoom.userFk}) as int)`,
+        startsAt: potRoom.startsAt,
+        endsAt: potRoom.endsAt,
+        createdAt: potRoom.createdAt,
+        updatedAt: potRoom.updatedAt,
+        name: potRoom.name,
+        departureTime,
+      })
+      .from(potRoom)
+      .leftJoin(userPotRoom, eq(potRoom.pk, userPotRoom.potRoomFk))
+      .where(
+        overdueBefore
+          ? and(
+              eq(potRoom.isArchived, false),
+              eq(potRoom.isDeleted, false),
+              sql`COALESCE(${departureTime}, ${potRoom.endsAt}) < ${overdueBefore.toISOString()}::timestamptz`,
+            )
+          : undefined,
+      )
+      .groupBy(potRoom.pk)
+      .orderBy(desc(potRoom.startsAt));
+
+    return results.map((result) => ({
+      ...this.resultToPotRoomEntity(result),
+      departureTime: result.departureTime
+        ? new Date(result.departureTime)
+        : null,
+    }));
+  }
+
+  /*
+  SELECT * FROM pot_room WHERE pk = ?1;
+   */
+  async findByPk(potPk: string): Promise<PotRoomEntity | null> {
+    const results = await this.dbService.db
+      .select()
+      .from(potRoom)
+      .where(eq(potRoom.pk, potPk));
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    return this.resultToPotRoomEntity(results[0]);
   }
 
   private getSearchPotListWhereClause(
