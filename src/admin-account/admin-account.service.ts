@@ -14,6 +14,7 @@ import {
 import { AdminAccountDto } from "@src/admin-account/dto/admin-account.dto";
 import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admin-account.dto";
 import { UpdateAdminAccountRoleRequestDto } from "@src/admin-account/dto/update-admin-account-role.dto";
+import { ManagerContext } from "@src/auth/context/manager-context.entity";
 import { TxType } from "@src/global/types/tx.types";
 
 @Injectable()
@@ -55,13 +56,13 @@ export class AdminAccountService {
     return this.toDto(inserted);
   }
 
-  async remove(pk: string, requesterEmail: string): Promise<void> {
+  async remove(pk: string, managerCtx: ManagerContext): Promise<void> {
     const target = await this.adminAccountRepository.findByPk(pk);
     if (!target) {
       throw new NotFoundException("존재하지 않는 관리자 계정입니다.");
     }
 
-    if (this.isSameEmail(target.email, requesterEmail)) {
+    if (this.isSameEmail(target.email, managerCtx.email)) {
       throw new ForbiddenException("자기 자신은 제거할 수 없습니다.");
     }
 
@@ -79,14 +80,14 @@ export class AdminAccountService {
   async updateRole(
     pk: string,
     req: UpdateAdminAccountRoleRequestDto,
-    requesterEmail: string,
+    managerCtx: ManagerContext,
   ): Promise<AdminAccountDto> {
     const target = await this.adminAccountRepository.findByPk(pk);
     if (!target) {
       throw new NotFoundException("존재하지 않는 관리자 계정입니다.");
     }
 
-    if (this.isSameEmail(target.email, requesterEmail)) {
+    if (this.isSameEmail(target.email, managerCtx.email)) {
       throw new ForbiddenException("자기 자신의 권한은 변경할 수 없습니다.");
     }
 

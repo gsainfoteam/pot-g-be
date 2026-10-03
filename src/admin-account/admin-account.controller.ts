@@ -7,7 +7,6 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ManagerGuard } from "@src/auth/guard/manager.guard";
@@ -16,6 +15,7 @@ import { AdminAccountService } from "@src/admin-account/admin-account.service";
 import { AdminAccountDto } from "@src/admin-account/dto/admin-account.dto";
 import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admin-account.dto";
 import { UpdateAdminAccountRoleRequestDto } from "@src/admin-account/dto/update-admin-account-role.dto";
+import { GetManager } from "@src/global/decorator/get-manager.decorator";
 import { ManagerContext } from "@src/auth/context/manager-context.entity";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 
@@ -42,18 +42,18 @@ export class AdminAccountController {
   async updateRole(
     @Param("pk", ParseUUIDPipe) pk: string,
     @Body() req: UpdateAdminAccountRoleRequestDto,
-    @Req() request: { user: ManagerContext },
+    @GetManager() managerCtx: ManagerContext,
   ): Promise<AdminAccountDto> {
-    return this.adminAccountService.updateRole(pk, req, request.user.email);
+    return this.adminAccountService.updateRole(pk, req, managerCtx);
   }
 
   @Delete("/:pk")
   @UseGuards(SuperAdminGuard)
   async remove(
     @Param("pk", ParseUUIDPipe) pk: string,
-    @Req() req: { user: ManagerContext },
+    @GetManager() managerCtx: ManagerContext,
   ): Promise<BaseResultDto> {
-    await this.adminAccountService.remove(pk, req.user.email);
+    await this.adminAccountService.remove(pk, managerCtx);
     return BaseResultDto.OK;
   }
 }
