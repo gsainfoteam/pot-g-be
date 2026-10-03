@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../lib/api";
 import { formatDateTime } from "../lib/format";
-import { POT_STATUS_LABEL } from "../lib/pot";
+import { PotStatusBadge } from "../components/PotStatusBadge";
 
 export type PotDto = {
   pk: string;
@@ -42,7 +42,9 @@ function PotTable({ pots, empty }: { pots: PotDto[]; empty: string }) {
           >
             <td>{pot.name}</td>
             <td>{pot.route_name}</td>
-            <td>{POT_STATUS_LABEL[pot.status] ?? pot.status}</td>
+            <td>
+              <PotStatusBadge status={pot.status} />
+            </td>
             <td>
               {pot.current}/{pot.total}
             </td>

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, ApiError } from "../lib/api";
 import { formatDateTime } from "../lib/format";
-import { EVENT_TYPE_LABEL, POT_STATUS_LABEL } from "../lib/pot";
+import { PotStatusBadge } from "../components/PotStatusBadge";
+import { EVENT_TYPE_LABEL } from "../lib/pot";
 
 type PotEventDto = {
   id: number;
@@ -88,7 +89,9 @@ export function PotDetailPage() {
             <h3 style={{ marginTop: 0 }}>{pot.name}</h3>
             <dl className="info-grid">
               <dt>상태</dt>
-              <dd>{POT_STATUS_LABEL[pot.status] ?? pot.status}</dd>
+              <dd>
+                <PotStatusBadge status={pot.status} />
+              </dd>
               <dt>노선</dt>
               <dd>{pot.route_name}</dd>
               <dt>방장</dt>
