@@ -3,10 +3,16 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ManagerGuard } from "@src/auth/guard/manager.guard";
 import { AdminPotService } from "@src/admin-pot/admin-pot.service";
+import {
+  AdminPotListReqDto,
+  AdminPotListResDto,
+  AdminPotSearchReqDto,
+} from "@src/admin-pot/dto/admin-pot-search.dto";
 import { AdminPotDto } from "@src/admin-pot/dto/admin-pot.dto";
 import { AdminPotDetailDto } from "@src/admin-pot/dto/admin-pot-detail.dto";
 
@@ -16,13 +22,15 @@ export class AdminPotController {
   constructor(private readonly adminPotService: AdminPotService) {}
 
   @Get()
-  async listAll(): Promise<AdminPotDto[]> {
-    return this.adminPotService.listAll();
+  async listAll(@Query() req: AdminPotListReqDto): Promise<AdminPotListResDto> {
+    return this.adminPotService.listAll(req);
   }
 
   @Get("/overdue")
-  async listOverdue(): Promise<AdminPotDto[]> {
-    return this.adminPotService.listOverdue();
+  async listOverdue(
+    @Query() req: AdminPotSearchReqDto,
+  ): Promise<AdminPotDto[]> {
+    return this.adminPotService.listOverdue(req);
   }
 
   @Get("/:pk")

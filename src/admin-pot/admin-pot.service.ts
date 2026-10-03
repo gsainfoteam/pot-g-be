@@ -9,6 +9,11 @@ import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Pot } from "@src/pot/model/pot";
 import { AdminPotDto, AdminPotStatus } from "@src/admin-pot/dto/admin-pot.dto";
 import {
+  AdminPotListReqDto,
+  AdminPotListResDto,
+  AdminPotSearchReqDto,
+} from "@src/admin-pot/dto/admin-pot-search.dto";
+import {
   AdminPotAccountingDto,
   AdminPotDetailDto,
 } from "@src/admin-pot/dto/admin-pot-detail.dto";
@@ -25,19 +30,33 @@ export class AdminPotService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async listAll(): Promise<AdminPotDto[]> {
-    const potRooms = await this.potRoomRepository.findAllWithDeparture();
-    return this.toDtos(potRooms);
+  async listAll(req: AdminPotListReqDto): Promise<AdminPotListResDto> {
+    const [potRooms, total] = await Promise.all([
+      this.potRoomRepository.findAllWithDeparture({
+        search: req.search,
+        page: req.page,
+        size: req.size,
+      }),
+      this.potRoomRepository.countForAdmin(req.search),
+    ]);
+
+    return {
+      items: await this.toDtos(potRooms),
+      total,
+      page: req.page,
+      size: req.size,
+    };
   }
 
   /**
    * 예정 출발 시간(확정된 출발 시간, 없으면 출발 가능 종료 시간)으로부터
    * 하루가 지났는데도 해산(아카이브)되지 않은 팟을 조회합니다.
    */
-  async listOverdue(): Promise<AdminPotDto[]> {
-    const potRooms = await this.potRoomRepository.findAllWithDeparture(
-      subDays(new Date(), 1),
-    );
+  async listOverdue(req: AdminPotSearchReqDto): Promise<AdminPotDto[]> {
+    const potRooms = await this.potRoomRepository.findAllWithDeparture({
+      search: req.search,
+      overdueBefore: subDays(new Date(), 1),
+    });
     return this.toDtos(potRooms);
   }
 

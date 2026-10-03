@@ -364,3 +364,23 @@ th {
 a.button {
   text-decoration: none;
 }
+
+.search-input {
+  width: 360px;
+  max-width: 100%;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

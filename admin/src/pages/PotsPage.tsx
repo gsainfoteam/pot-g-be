@@ -73,35 +73,91 @@ function loadError(err: unknown): string {
     : "팟 목록을 불러오지 못했습니다.";
 }
 
+type PotListDto = {
+  items: PotDto[];
+  total: number;
+  page: number;
+  size: number;
+};
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
+
 export function PotsPage() {
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const [overdue, setOverdue] = useState<PotDto[] | null>(null);
-  const [all, setAll] = useState<PotDto[] | null>(null);
+  const [all, setAll] = useState<PotListDto | null>(null);
   const [allOpen, setAllOpen] = useState(false);
+  const [page, setPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  // 입력이 멈춘 뒤에만 검색어를 반영하고, 검색어가 바뀌면 첫 페이지로 돌아갑니다.
   useEffect(() => {
-    api
-      .get<PotDto[]>("/api/manager/v1/pot/overdue")
-      .then(setOverdue)
-      .catch((err) => setError(loadError(err)));
-  }, []);
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(0);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  const toggleAll = () => {
-    const next = !allOpen;
-    setAllOpen(next);
-    // 처음 펼칠 때만 전체 목록을 불러옵니다.
-    if (next && all === null) {
-      api
-        .get<PotDto[]>("/api/manager/v1/pot")
-        .then(setAll)
-        .catch((err) => setError(loadError(err)));
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<PotDto[]>(
+        `/api/manager/v1/pot/overdue?${new URLSearchParams({ search })}`,
+      )
+      .then((data) => {
+        if (!cancelled) {
+          setOverdue(data);
+          setError(null);
+        }
+      })
+      .catch((err) => !cancelled && setError(loadError(err)));
+    return () => {
+      cancelled = true;
+    };
+  }, [search]);
+
+  // 접혀 있는 동안에는 전체 목록을 불러오지 않습니다.
+  useEffect(() => {
+    if (!allOpen) return;
+    let cancelled = false;
+    api
+      .get<PotListDto>(
+        `/api/manager/v1/pot?${new URLSearchParams({
+          search,
+          page: String(page),
+          size: String(PAGE_SIZE),
+        })}`,
+      )
+      .then((data) => {
+        if (!cancelled) {
+          setAll(data);
+          setError(null);
+        }
+      })
+      .catch((err) => !cancelled && setError(loadError(err)));
+    return () => {
+      cancelled = true;
+    };
+  }, [allOpen, search, page]);
+
+  const totalPages = all ? Math.max(1, Math.ceil(all.total / all.size)) : 1;
 
   return (
     <>
       <div className="page-header">
         <h2>팟 관리</h2>
+      </div>
+
+      <div className="inline-form">
+        <input
+          className="search-input"
+          value={searchInput}
+          placeholder="팟 이름 또는 ID로 검색"
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
       </div>
 
       {error && <p className="error-text">{error}</p>}
@@ -116,15 +172,39 @@ export function PotsPage() {
       </div>
 
       <div className="card">
-        <button className="collapse-toggle" onClick={toggleAll}>
-          <span>전체 팟</span>
+        <button
+          className="collapse-toggle"
+          onClick={() => setAllOpen((open) => !open)}
+        >
+          <span>전체 팟{all && allOpen ? ` (${all.total})` : ""}</span>
           <span>{allOpen ? "접기 ▲" : "펼치기 ▼"}</span>
         </button>
         {allOpen &&
           (all === null ? (
             <p className="placeholder">불러오는 중...</p>
           ) : (
-            <PotTable pots={all} empty="팟이 없습니다." />
+            <>
+              <PotTable pots={all.items} empty="팟이 없습니다." />
+              <div className="pagination">
+                <button
+                  className="button secondary small"
+                  disabled={page === 0}
+                  onClick={() => setPage(page - 1)}
+                >
+                  이전
+                </button>
+                <span>
+                  {page + 1} / {totalPages}
+                </span>
+                <button
+                  className="button secondary small"
+                  disabled={page + 1 >= totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  다음
+                </button>
+              </div>
+            </>
           ))}
       </div>
     </>

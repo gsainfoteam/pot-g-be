@@ -3,7 +3,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { potRoom } from "../../../drizzle/schema/pot-room";
-import { and, asc, desc, eq, gte, lte, not, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, lte, not, or, sql } from "drizzle-orm";
 import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
 import { users } from "../../../drizzle/schema/users";
 import {
@@ -297,18 +297,23 @@ export class PotRoomRepository {
            ORDER BY pe.timestamp DESC LIMIT 1) as departure_time
   FROM pot_room as pr
     LEFT JOIN user_pot_room as upr ON pr.pk = upr.pot_room_fk
-  WHERE pr.is_archived = false   // overdueBefore 가 있는 경우에만
+  WHERE (pr.name ILIKE ?1 OR pr.pk::text ILIKE ?1)  // search 가 있는 경우에만
+    AND pr.is_archived = false   // overdueBefore 가 있는 경우에만
     AND pr.is_deleted = false    // overdueBefore 가 있는 경우에만
-    AND COALESCE(departure_time, pr.ends_at) < ?1  // overdueBefore 가 있는 경우에만
+    AND COALESCE(departure_time, pr.ends_at) < ?2  // overdueBefore 가 있는 경우에만
   GROUP BY pr.pk
-  ORDER BY pr.starts_at DESC;
+  ORDER BY pr.starts_at DESC
+  OFFSET ?3 LIMIT ?4;            // page 가 있는 경우에만
    */
-  async findAllWithDeparture(overdueBefore?: Date): Promise<PotRoomEntity[]> {
-    const departureTime = sql<
-      string | null
-    >`(SELECT (pe.data->>'departureTime')::timestamptz FROM pot_event AS pe WHERE pe.pot_fk = ${potRoom.pk} AND pe.type = 'departure_confirm_v1' ORDER BY pe.timestamp DESC LIMIT 1)`;
+  async findAllWithDeparture(params: {
+    search?: string;
+    overdueBefore?: Date;
+    page?: number;
+    size?: number;
+  }): Promise<PotRoomEntity[]> {
+    const departureTime = this.departureTimeSubquery();
 
-    const results = await this.dbService.db
+    const query = this.dbService.db
       .select({
         pk: potRoom.pk,
         routeFk: potRoom.routeFk,
@@ -327,16 +332,26 @@ export class PotRoomRepository {
       .from(potRoom)
       .leftJoin(userPotRoom, eq(potRoom.pk, userPotRoom.potRoomFk))
       .where(
-        overdueBefore
-          ? and(
-              eq(potRoom.isArchived, false),
-              eq(potRoom.isDeleted, false),
-              sql`COALESCE(${departureTime}, ${potRoom.endsAt}) < ${overdueBefore.toISOString()}::timestamptz`,
-            )
-          : undefined,
+        and(
+          this.getAdminSearchClause(params.search),
+          params.overdueBefore
+            ? and(
+                eq(potRoom.isArchived, false),
+                eq(potRoom.isDeleted, false),
+                sql`COALESCE(${departureTime}, ${potRoom.endsAt}) < ${params.overdueBefore.toISOString()}::timestamptz`,
+              )
+            : undefined,
+        ),
       )
       .groupBy(potRoom.pk)
-      .orderBy(desc(potRoom.startsAt));
+      // 같은 startsAt 이 있어도 페이지 사이에서 순서가 흔들리지 않도록 pk 로 한 번 더 정렬합니다.
+      .orderBy(desc(potRoom.startsAt), asc(potRoom.pk))
+      .$dynamic();
+
+    const results =
+      params.page !== undefined && params.size !== undefined
+        ? await query.offset(params.page * params.size).limit(params.size)
+        : await query;
 
     return results.map((result) => ({
       ...this.resultToPotRoomEntity(result),
@@ -344,6 +359,35 @@ export class PotRoomRepository {
         ? new Date(result.departureTime)
         : null,
     }));
+  }
+
+  /*
+  SELECT count(*) FROM pot_room as pr
+  WHERE (pr.name ILIKE ?1 OR pr.pk::text ILIKE ?1);  // search 가 있는 경우에만
+   */
+  async countForAdmin(search?: string): Promise<number> {
+    return await this.dbService.db.$count(
+      potRoom,
+      this.getAdminSearchClause(search),
+    );
+  }
+
+  private departureTimeSubquery() {
+    return sql<
+      string | null
+    >`(SELECT (pe.data->>'departureTime')::timestamptz FROM pot_event AS pe WHERE pe.pot_fk = ${potRoom.pk} AND pe.type = 'departure_confirm_v1' ORDER BY pe.timestamp DESC LIMIT 1)`;
+  }
+
+  // 팟 이름 또는 pk 에 검색어가 포함된 경우. LIKE 의 와일드카드 문자는 이스케이프 합니다.
+  private getAdminSearchClause(search?: string) {
+    const keyword = search?.trim();
+    if (!keyword) return undefined;
+
+    const pattern = `%${keyword.replace(/[\\%_]/g, "\\$&")}%`;
+    return or(
+      ilike(potRoom.name, pattern),
+      sql`${potRoom.pk}::text ILIKE ${pattern}`,
+    );
   }
 
   /*
