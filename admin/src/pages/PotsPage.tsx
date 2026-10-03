@@ -67,6 +67,42 @@ function PotTable({ pots, empty }: { pots: PotDto[]; empty: string }) {
   );
 }
 
+function Pagination({
+  page,
+  total,
+  size,
+  onChange,
+}: {
+  page: number;
+  total: number;
+  size: number;
+  onChange: (page: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / size));
+
+  return (
+    <div className="pagination">
+      <button
+        className="button secondary small"
+        disabled={page === 0}
+        onClick={() => onChange(page - 1)}
+      >
+        이전
+      </button>
+      <span>
+        {page + 1} / {totalPages}
+      </span>
+      <button
+        className="button secondary small"
+        disabled={page + 1 >= totalPages}
+        onClick={() => onChange(page + 1)}
+      >
+        다음
+      </button>
+    </div>
+  );
+}
+
 function loadError(err: unknown): string {
   return err instanceof ApiError
     ? `팟 목록을 불러오지 못했습니다. (${err.status})`
@@ -87,6 +123,8 @@ export function PotsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [overdue, setOverdue] = useState<PotDto[] | null>(null);
+  const [active, setActive] = useState<PotListDto | null>(null);
+  const [activePage, setActivePage] = useState(0);
   const [all, setAll] = useState<PotListDto | null>(null);
   const [allOpen, setAllOpen] = useState(false);
   const [page, setPage] = useState(0);
@@ -97,6 +135,7 @@ export function PotsPage() {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
       setPage(0);
+      setActivePage(0);
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [searchInput]);
@@ -118,6 +157,28 @@ export function PotsPage() {
       cancelled = true;
     };
   }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<PotListDto>(
+        `/api/manager/v1/pot/active?${new URLSearchParams({
+          search,
+          page: String(activePage),
+          size: String(PAGE_SIZE),
+        })}`,
+      )
+      .then((data) => {
+        if (!cancelled) {
+          setActive(data);
+          setError(null);
+        }
+      })
+      .catch((err) => !cancelled && setError(loadError(err)));
+    return () => {
+      cancelled = true;
+    };
+  }, [search, activePage]);
 
   // 접혀 있는 동안에는 전체 목록을 불러오지 않습니다.
   useEffect(() => {
@@ -142,8 +203,6 @@ export function PotsPage() {
       cancelled = true;
     };
   }, [allOpen, search, page]);
-
-  const totalPages = all ? Math.max(1, Math.ceil(all.total / all.size)) : 1;
 
   return (
     <>
@@ -171,6 +230,25 @@ export function PotsPage() {
         )}
       </div>
 
+      <div className="card" style={{ marginBottom: 16 }}>
+        <h3 style={{ marginTop: 0 }}>
+          진행 중인 팟 (미해산){active ? ` (${active.total})` : ""}
+        </h3>
+        {active === null ? (
+          <p className="placeholder">불러오는 중...</p>
+        ) : (
+          <>
+            <PotTable pots={active.items} empty="진행 중인 팟이 없습니다." />
+            <Pagination
+              page={activePage}
+              total={active.total}
+              size={active.size}
+              onChange={setActivePage}
+            />
+          </>
+        )}
+      </div>
+
       <div className="card">
         <button
           className="collapse-toggle"
@@ -185,25 +263,12 @@ export function PotsPage() {
           ) : (
             <>
               <PotTable pots={all.items} empty="팟이 없습니다." />
-              <div className="pagination">
-                <button
-                  className="button secondary small"
-                  disabled={page === 0}
-                  onClick={() => setPage(page - 1)}
-                >
-                  이전
-                </button>
-                <span>
-                  {page + 1} / {totalPages}
-                </span>
-                <button
-                  className="button secondary small"
-                  disabled={page + 1 >= totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  다음
-                </button>
-              </div>
+              <Pagination
+                page={page}
+                total={all.total}
+                size={all.size}
+                onChange={setPage}
+              />
             </>
           ))}
       </div>
