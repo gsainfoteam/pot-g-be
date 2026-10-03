@@ -40,20 +40,20 @@ export class AdminAccountController {
   @Patch("/:pk")
   @UseGuards(SuperAdminGuard)
   async updateRole(
-    @Param("pk", ParseUUIDPipe) pk: string,
+    @Param("pk", ParseUUIDPipe) adminPk: string,
     @Body() req: UpdateAdminAccountRoleRequestDto,
     @GetManager() managerCtx: ManagerContext,
   ): Promise<AdminAccountDto> {
-    return this.adminAccountService.updateRole(pk, req, managerCtx);
+    return this.adminAccountService.updateRole(adminPk, req, managerCtx);
   }
 
   @Delete("/:pk")
   @UseGuards(SuperAdminGuard)
   async remove(
-    @Param("pk", ParseUUIDPipe) pk: string,
+    @Param("pk", ParseUUIDPipe) adminPk: string,
     @GetManager() managerCtx: ManagerContext,
   ): Promise<BaseResultDto> {
-    await this.adminAccountService.remove(pk, managerCtx);
+    await this.adminAccountService.remove(adminPk, managerCtx);
     return BaseResultDto.OK;
   }
 }

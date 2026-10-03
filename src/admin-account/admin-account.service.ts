@@ -26,7 +26,7 @@ export class AdminAccountService {
 
   async list(): Promise<AdminAccountDto[]> {
     const adminAccounts = await this.adminAccountRepository.findAll();
-    return adminAccounts.map((entity) => this.toDto(entity));
+    return adminAccounts.map((entity) => this.adminAccountToDto(entity));
   }
 
   async create(req: CreateAdminAccountRequestDto): Promise<AdminAccountDto> {
@@ -53,11 +53,11 @@ export class AdminAccountService {
       );
     });
 
-    return this.toDto(inserted);
+    return this.adminAccountToDto(inserted);
   }
 
-  async remove(pk: string, managerCtx: ManagerContext): Promise<void> {
-    const target = await this.adminAccountRepository.findByPk(pk);
+  async remove(adminPk: string, managerCtx: ManagerContext): Promise<void> {
+    const target = await this.adminAccountRepository.findByPk(adminPk);
     if (!target) {
       throw new NotFoundException("Admin account not found.");
     }
@@ -73,16 +73,16 @@ export class AdminAccountService {
     }
 
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.adminAccountRepository.deleteByPk(pk, tx);
+      await this.adminAccountRepository.deleteByPk(adminPk, tx);
     });
   }
 
   async updateRole(
-    pk: string,
+    adminPk: string,
     req: UpdateAdminAccountRoleRequestDto,
     managerCtx: ManagerContext,
   ): Promise<AdminAccountDto> {
-    const target = await this.adminAccountRepository.findByPk(pk);
+    const target = await this.adminAccountRepository.findByPk(adminPk);
     if (!target) {
       throw new NotFoundException("Admin account not found.");
     }
@@ -98,14 +98,14 @@ export class AdminAccountService {
       );
     });
 
-    return this.toDto(updated);
+    return this.adminAccountToDto(updated);
   }
 
   private isSameEmail(a: string, b: string): boolean {
     return a.trim().toLowerCase() === b.trim().toLowerCase();
   }
 
-  private toDto(entity: AdminAccountEntity): AdminAccountDto {
+  private adminAccountToDto(entity: AdminAccountEntity): AdminAccountDto {
     return {
       pk: entity.pk,
       email: entity.email,
