@@ -51,7 +51,9 @@ export class AdminRouteService {
 
   async createRoute(req: CreateRouteRequestDto): Promise<AdminRouteDto[]> {
     if (req.from_stop_pk === req.to_stop_pk) {
-      throw new BadRequestException("출발/도착 정류장이 같을 수 없습니다.");
+      throw new BadRequestException(
+        "Departure and arrival stops must be different.",
+      );
     }
 
     const [fromStop, toStop] = await Promise.all([
@@ -60,10 +62,10 @@ export class AdminRouteService {
     ]);
 
     if (!fromStop) {
-      throw new BadRequestException("출발 정류장을 찾을 수 없습니다.");
+      throw new BadRequestException("Departure stop not found.");
     }
     if (!toStop) {
-      throw new BadRequestException("도착 정류장을 찾을 수 없습니다.");
+      throw new BadRequestException("Arrival stop not found.");
     }
 
     const [forward, backward] = await this.dbService.db.transaction(
@@ -115,7 +117,7 @@ export class AdminRouteService {
   ): Promise<AdminStopDto> {
     const existing = await this.stopsRepository.findByPk(pk);
     if (!existing) {
-      throw new BadRequestException("정류장을 찾을 수 없습니다.");
+      throw new BadRequestException("Stop not found.");
     }
 
     const updated = await this.dbService.db.transaction(async (tx: TxType) => {
@@ -141,7 +143,7 @@ export class AdminRouteService {
   ): Promise<AdminRouteDto> {
     const existing = await this.routeRepository.findByPk(pk);
     if (!existing) {
-      throw new BadRequestException("노선을 찾을 수 없습니다.");
+      throw new BadRequestException("Route not found.");
     }
 
     const updated = await this.dbService.db.transaction(async (tx: TxType) => {

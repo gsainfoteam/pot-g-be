@@ -34,13 +34,13 @@ export class AdminAccountService {
 
     if (!email.endsWith("@gm.gist.ac.kr")) {
       throw new BadRequestException(
-        "gm.gist.ac.kr 이메일만 등록할 수 있습니다.",
+        "Only gm.gist.ac.kr emails can be registered.",
       );
     }
 
     const existing = await this.adminAccountRepository.findByEmail(email);
     if (existing) {
-      throw new ConflictException("이미 등록된 관리자 이메일입니다.");
+      throw new ConflictException("This admin email is already registered.");
     }
 
     const inserted = await this.dbService.db.transaction(async (tx: TxType) => {
@@ -59,16 +59,16 @@ export class AdminAccountService {
   async remove(pk: string, managerCtx: ManagerContext): Promise<void> {
     const target = await this.adminAccountRepository.findByPk(pk);
     if (!target) {
-      throw new NotFoundException("존재하지 않는 관리자 계정입니다.");
+      throw new NotFoundException("Admin account not found.");
     }
 
     if (this.isSameEmail(target.email, managerCtx.email)) {
-      throw new ForbiddenException("자기 자신은 제거할 수 없습니다.");
+      throw new ForbiddenException("You cannot remove yourself.");
     }
 
     if (target.role === AdminAccountRole.superadmin) {
       throw new ForbiddenException(
-        "superadmin 계정은 제거할 수 없습니다. 먼저 admin으로 권한을 내려주세요.",
+        "Superadmin accounts cannot be removed. Demote to admin first.",
       );
     }
 
@@ -84,11 +84,11 @@ export class AdminAccountService {
   ): Promise<AdminAccountDto> {
     const target = await this.adminAccountRepository.findByPk(pk);
     if (!target) {
-      throw new NotFoundException("존재하지 않는 관리자 계정입니다.");
+      throw new NotFoundException("Admin account not found.");
     }
 
     if (this.isSameEmail(target.email, managerCtx.email)) {
-      throw new ForbiddenException("자기 자신의 권한은 변경할 수 없습니다.");
+      throw new ForbiddenException("You cannot change your own role.");
     }
 
     const updated = await this.dbService.db.transaction(async (tx: TxType) => {
