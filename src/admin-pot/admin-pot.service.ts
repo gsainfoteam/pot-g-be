@@ -31,13 +31,29 @@ export class AdminPotService {
   ) {}
 
   async listAll(req: AdminPotListReqDto): Promise<AdminPotListResDto> {
+    return this.listPage(req, false);
+  }
+
+  // 해산(아카이브)되지 않은 모든 팟을 조회합니다.
+  async listActive(req: AdminPotListReqDto): Promise<AdminPotListResDto> {
+    return this.listPage(req, true);
+  }
+
+  private async listPage(
+    req: AdminPotListReqDto,
+    activeOnly: boolean,
+  ): Promise<AdminPotListResDto> {
     const [potRooms, total] = await Promise.all([
       this.potRoomAdminRepository.findAllWithDeparture({
         search: req.search,
+        activeOnly,
         page: req.page,
         size: req.size,
       }),
-      this.potRoomAdminRepository.countForAdmin(req.search),
+      this.potRoomAdminRepository.countForAdmin({
+        search: req.search,
+        activeOnly,
+      }),
     ]);
 
     return {

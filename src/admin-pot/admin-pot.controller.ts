@@ -26,6 +26,13 @@ export class AdminPotController {
     return this.adminPotService.listAll(req);
   }
 
+  @Get("/active")
+  async listActive(
+    @Query() req: AdminPotListReqDto,
+  ): Promise<AdminPotListResDto> {
+    return this.adminPotService.listActive(req);
+  }
+
   @Get("/overdue")
   async listOverdue(
     @Query() req: AdminPotSearchReqDto,

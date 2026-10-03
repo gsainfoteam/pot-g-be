@@ -21,8 +21,8 @@ export class PotRoomAdminRepository {
   FROM pot_room as pr
     LEFT JOIN user_pot_room as upr ON pr.pk = upr.pot_room_fk
   WHERE (pr.name ILIKE ?1 OR pr.pk::text ILIKE ?1)  // search 가 있는 경우에만
-    AND pr.is_archived = false   // overdueBefore 가 있는 경우에만
-    AND pr.is_deleted = false    // overdueBefore 가 있는 경우에만
+    AND pr.is_archived = false   // activeOnly 또는 overdueBefore 가 있는 경우에만
+    AND pr.is_deleted = false    // activeOnly 또는 overdueBefore 가 있는 경우에만
     AND COALESCE(departure_time, pr.ends_at) < ?2  // overdueBefore 가 있는 경우에만
   GROUP BY pr.pk
   ORDER BY pr.starts_at DESC
@@ -30,7 +30,8 @@ export class PotRoomAdminRepository {
    */
   async findAllWithDeparture(params: {
     search?: string;
-    overdueBefore?: Date;
+    activeOnly?: boolean; // 해산/삭제되지 않은 팟만
+    overdueBefore?: Date; // 예정 출발 시간이 이 시각보다 이전인 팟만 (해산/삭제되지 않은 팟)
     page?: number;
     size?: number;
   }): Promise<PotRoomAdminEntity[]> {
@@ -57,12 +58,11 @@ export class PotRoomAdminRepository {
       .where(
         and(
           this.getAdminSearchClause(params.search),
+          params.activeOnly || params.overdueBefore
+            ? and(eq(potRoom.isArchived, false), eq(potRoom.isDeleted, false))
+            : undefined,
           params.overdueBefore
-            ? and(
-                eq(potRoom.isArchived, false),
-                eq(potRoom.isDeleted, false),
-                sql`COALESCE(${departureTime}, ${potRoom.endsAt}) < ${params.overdueBefore.toISOString()}::timestamptz`,
-              )
+            ? sql`COALESCE(${departureTime}, ${potRoom.endsAt}) < ${params.overdueBefore.toISOString()}::timestamptz`
             : undefined,
         ),
       )
@@ -86,12 +86,22 @@ export class PotRoomAdminRepository {
 
   /*
   SELECT count(*) FROM pot_room as pr
-  WHERE (pr.name ILIKE ?1 OR pr.pk::text ILIKE ?1);  // search 가 있는 경우에만
+  WHERE (pr.name ILIKE ?1 OR pr.pk::text ILIKE ?1)  // search 가 있는 경우에만
+    AND pr.is_archived = false                      // activeOnly 인 경우에만
+    AND pr.is_deleted = false;                      // activeOnly 인 경우에만
    */
-  async countForAdmin(search?: string): Promise<number> {
+  async countForAdmin(params: {
+    search?: string;
+    activeOnly?: boolean;
+  }): Promise<number> {
     return await this.dbService.db.$count(
       potRoom,
-      this.getAdminSearchClause(search),
+      and(
+        this.getAdminSearchClause(params.search),
+        params.activeOnly
+          ? and(eq(potRoom.isArchived, false), eq(potRoom.isDeleted, false))
+          : undefined,
+      ),
     );
   }
 
