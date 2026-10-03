@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
-import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
+import { PotRoomAdminEntity } from "@src/admin-database/entity/pot-room.admin.entity";
 import { potRoom } from "../../../drizzle/schema/pot-room";
 import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
 
@@ -33,7 +33,7 @@ export class PotRoomAdminRepository {
     overdueBefore?: Date;
     page?: number;
     size?: number;
-  }): Promise<PotRoomEntity[]> {
+  }): Promise<PotRoomAdminEntity[]> {
     const departureTime = this.departureTimeSubquery();
 
     const query = this.dbService.db
@@ -116,7 +116,7 @@ export class PotRoomAdminRepository {
   /*
   SELECT * FROM pot_room WHERE pk = ?1;
    */
-  async findByPk(potPk: string): Promise<PotRoomEntity | null> {
+  async findByPk(potPk: string): Promise<PotRoomAdminEntity | null> {
     const results = await this.dbService.db
       .select()
       .from(potRoom)
@@ -129,7 +129,7 @@ export class PotRoomAdminRepository {
     return this.resultToPotRoomEntity(results[0]);
   }
 
-  private resultToPotRoomEntity(result: any): PotRoomEntity {
+  private resultToPotRoomEntity(result: any): PotRoomAdminEntity {
     return {
       pk: result.pk,
       routeFk: result.routeFk,

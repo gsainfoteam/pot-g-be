@@ -12,7 +12,6 @@ export class PotRoomEntity {
   maxCapacity: number;
   startsAt: Date;
   endsAt: Date;
-  departureTime?: Date | null; // 확정된 출발 시간 (조인 쿼리 필요)
   createdAt: Date;
   updatedAt: Date;
   name: string;

@@ -6,7 +6,7 @@ import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { DatabaseModule } from "@src/database/database.module";
 import { InfoteamIdpModule } from "@lib/infoteam-idp";
-import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 
 describe("ManagerAuthService", () => {
   let service: ManagerAuthService;

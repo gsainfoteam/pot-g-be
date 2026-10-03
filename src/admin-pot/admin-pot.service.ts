@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { subDays } from "date-fns";
-import { PotRoomAdminRepository } from "@src/database/repository/pot-room.admin.repository";
-import { PotEventAdminRepository } from "@src/database/repository/pot-event.admin.repository";
+import { PotRoomAdminRepository } from "@src/admin-database/repository/pot-room.admin.repository";
+import { PotEventAdminRepository } from "@src/admin-database/repository/pot-event.admin.repository";
 import { RouteRepository } from "@src/database/repository/route.repository";
 import { UserRepository } from "@src/database/repository/user.repository";
-import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
+import { PotRoomAdminEntity } from "@src/admin-database/entity/pot-room.admin.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Pot } from "@src/pot/model/pot";
 import { AdminPotDto, AdminPotStatus } from "@src/admin-pot/dto/admin-pot.dto";
@@ -101,7 +101,7 @@ export class AdminPotService {
     };
   }
 
-  private async toDtos(potRooms: PotRoomEntity[]): Promise<AdminPotDto[]> {
+  private async toDtos(potRooms: PotRoomAdminEntity[]): Promise<AdminPotDto[]> {
     const routes = await this.routeRepository.findAllWithStops();
 
     return potRooms.map((potRoom) => ({
@@ -126,14 +126,14 @@ export class AdminPotService {
   }
 
   // 목록에서는 이벤트를 reduce 하지 않으므로 pot_room 컬럼만으로 판단합니다.
-  private resolveListStatus(potRoom: PotRoomEntity): AdminPotStatus {
+  private resolveListStatus(potRoom: PotRoomAdminEntity): AdminPotStatus {
     if (potRoom.isDeleted) return "DELETED";
     if (potRoom.isArchived) return "ARCHIVED";
     if (potRoom.isDepartureConfirmed) return "CONFIRMED";
     return "BEFORE_CONFIRMED";
   }
 
-  private resolveStatus(potRoom: PotRoomEntity, pot: Pot): AdminPotStatus {
+  private resolveStatus(potRoom: PotRoomAdminEntity, pot: Pot): AdminPotStatus {
     if (potRoom.isDeleted) return "DELETED";
     if (pot.isArchived || potRoom.isArchived) return "ARCHIVED";
     if (!pot.departureTime) return "BEFORE_CONFIRMED";

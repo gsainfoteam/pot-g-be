@@ -5,7 +5,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { ManagerContext } from "@src/auth/context/manager-context.entity";
-import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 
 /**
  * ManagerGuard 뒤에 붙여서 사용합니다. superadmin 권한을 가진 매니저만 통과시킵니다.
