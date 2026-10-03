@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { api, ApiError } from "./api";
 
 export type CurrentManager = { email: string; role: number };
@@ -14,7 +20,8 @@ export function CurrentManagerProvider({
   const [manager, setManager] = useState<CurrentManager | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setError(null);
     api
       .get<CurrentManager>("/api/manager/v1/auth/me")
       .then(setManager)
@@ -27,7 +34,20 @@ export function CurrentManagerProvider({
       );
   }, []);
 
-  if (error) return <p className="error-text">{error}</p>;
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (error) {
+    return (
+      <>
+        <p className="error-text">{error}</p>
+        <button className="button secondary small" onClick={load}>
+          다시 시도
+        </button>
+      </>
+    );
+  }
   if (!manager) return <p className="placeholder">불러오는 중...</p>;
 
   return (
