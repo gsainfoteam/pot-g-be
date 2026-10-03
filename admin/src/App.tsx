@@ -3,6 +3,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { CallbackPage } from "./pages/CallbackPage";
 import { DashboardLayout } from "./pages/DashboardLayout";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { PotsPage } from "./pages/PotsPage";
+import { PotDetailPage } from "./pages/PotDetailPage";
 import { RoutesPage } from "./pages/RoutesPage";
 import { VersionPage } from "./pages/VersionPage";
 import { isLoggedIn } from "./lib/auth";
@@ -28,7 +30,8 @@ export function App() {
         }
       >
         <Route index element={<PlaceholderPage title="현황" refreshable />} />
-        <Route path="pots" element={<PlaceholderPage title="팟 관리" />} />
+        <Route path="pots" element={<PotsPage />} />
+        <Route path="pots/:pk" element={<PotDetailPage />} />
         <Route path="routes" element={<RoutesPage />} />
         <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<PlaceholderPage title="사용자" />} />
