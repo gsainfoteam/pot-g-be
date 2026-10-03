@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
 import {
   AdminAccountEntity,
@@ -99,8 +99,16 @@ export class AdminAccountRepository {
     return this.resultToAdminAccountEntity(result[0]);
   }
 
-  async deleteByPk(pk: string, tx: TxType): Promise<void> {
-    await tx.delete(adminAccount).where(eq(adminAccount.pk, pk));
+  /*
+  DELETE FROM admin_account WHERE pk = ?1 AND role = 'admin' RETURNING pk;
+   */
+  async deleteAdminByPk(pk: string, tx: TxType): Promise<boolean> {
+    const result = await tx
+      .delete(adminAccount)
+      .where(and(eq(adminAccount.pk, pk), eq(adminAccount.role, "admin")))
+      .returning({ pk: adminAccount.pk });
+
+    return result.length > 0;
   }
 
   private resultToAdminAccountEntity(result: any): AdminAccountEntity {

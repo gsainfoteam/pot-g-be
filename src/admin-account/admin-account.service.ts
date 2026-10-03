@@ -73,7 +73,15 @@ export class AdminAccountService {
     }
 
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.adminAccountRepository.deleteByPk(adminPk, tx);
+      const deleted = await this.adminAccountRepository.deleteAdminByPk(
+        adminPk,
+        tx,
+      );
+      if (!deleted) {
+        throw new ForbiddenException(
+          "Superadmin accounts cannot be removed. Demote to admin first.",
+        );
+      }
     });
   }
 
