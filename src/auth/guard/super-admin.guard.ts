@@ -17,7 +17,7 @@ export class SuperAdminGuard implements CanActivate {
     const managerCtx: ManagerContext = req.user;
 
     if (!managerCtx || managerCtx.role !== AdminAccountRole.superadmin) {
-      throw new ForbiddenException("superadmin 권한이 필요합니다.");
+      throw new ForbiddenException("Superadmin privilege is required.");
     }
 
     return true;

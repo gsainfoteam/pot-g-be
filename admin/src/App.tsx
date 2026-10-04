@@ -3,6 +3,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { CallbackPage } from "./pages/CallbackPage";
 import { DashboardLayout } from "./pages/DashboardLayout";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { AdminAccountsPage } from "./pages/AdminAccountsPage";
 import { PotsPage } from "./pages/PotsPage";
 import { PotDetailPage } from "./pages/PotDetailPage";
 import { RoutesPage } from "./pages/RoutesPage";
@@ -38,7 +39,7 @@ export function App() {
         <Route path="stats" element={<PlaceholderPage title="통계" refreshable />} />
         <Route
           path="admin-accounts"
-          element={<PlaceholderPage title="관리자 계정" />}
+          element={<AdminAccountsPage />}
         />
       </Route>
     </Routes>

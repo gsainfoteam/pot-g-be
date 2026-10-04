@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  NotFoundException,
 } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
@@ -11,6 +13,8 @@ import {
 } from "@src/admin-database/entity/admin-account.entity";
 import { AdminAccountDto } from "@src/admin-account/dto/admin-account.dto";
 import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admin-account.dto";
+import { UpdateAdminAccountRoleRequestDto } from "@src/admin-account/dto/update-admin-account-role.dto";
+import { ManagerContext } from "@src/auth/context/manager-context.entity";
 import { TxType } from "@src/global/types/tx.types";
 
 @Injectable()
@@ -22,7 +26,7 @@ export class AdminAccountService {
 
   async list(): Promise<AdminAccountDto[]> {
     const adminAccounts = await this.adminAccountRepository.findAll();
-    return adminAccounts.map((entity) => this.toDto(entity));
+    return adminAccounts.map((entity) => this.adminAccountToDto(entity));
   }
 
   async create(req: CreateAdminAccountRequestDto): Promise<AdminAccountDto> {
@@ -30,13 +34,13 @@ export class AdminAccountService {
 
     if (!email.endsWith("@gm.gist.ac.kr")) {
       throw new BadRequestException(
-        "gm.gist.ac.kr 이메일만 등록할 수 있습니다.",
+        "Only gm.gist.ac.kr emails can be registered.",
       );
     }
 
     const existing = await this.adminAccountRepository.findByEmail(email);
     if (existing) {
-      throw new ConflictException("이미 등록된 관리자 이메일입니다.");
+      throw new ConflictException("This admin email is already registered.");
     }
 
     const inserted = await this.dbService.db.transaction(async (tx: TxType) => {
@@ -49,21 +53,73 @@ export class AdminAccountService {
       );
     });
 
-    return this.toDto(inserted);
+    return this.adminAccountToDto(inserted);
   }
 
-  async remove(pk: string): Promise<void> {
+  async remove(adminPk: string, managerCtx: ManagerContext): Promise<void> {
+    const target = await this.adminAccountRepository.findByPk(adminPk);
+    if (!target) {
+      throw new NotFoundException("Admin account not found.");
+    }
+
+    if (this.isSameEmail(target.email, managerCtx.email)) {
+      throw new ForbiddenException("You cannot remove yourself.");
+    }
+
+    if (target.role === AdminAccountRole.superadmin) {
+      throw new ForbiddenException(
+        "Superadmin accounts cannot be removed. Demote to admin first.",
+      );
+    }
+
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.adminAccountRepository.deleteByPk(pk, tx);
+      const deleted = await this.adminAccountRepository.deleteAdminByPk(
+        adminPk,
+        tx,
+      );
+      if (!deleted) {
+        throw new ForbiddenException(
+          "Superadmin accounts cannot be removed. Demote to admin first.",
+        );
+      }
     });
   }
 
-  private toDto(entity: AdminAccountEntity): AdminAccountDto {
+  async updateRole(
+    adminPk: string,
+    req: UpdateAdminAccountRoleRequestDto,
+    managerCtx: ManagerContext,
+  ): Promise<AdminAccountDto> {
+    const target = await this.adminAccountRepository.findByPk(adminPk);
+    if (!target) {
+      throw new NotFoundException("Admin account not found.");
+    }
+
+    if (this.isSameEmail(target.email, managerCtx.email)) {
+      throw new ForbiddenException("You cannot change your own role.");
+    }
+
+    const updated = await this.dbService.db.transaction(async (tx: TxType) => {
+      return this.adminAccountRepository.update(
+        { ...target, role: req.role },
+        tx,
+      );
+    });
+
+    return this.adminAccountToDto(updated);
+  }
+
+  private isSameEmail(a: string, b: string): boolean {
+    return a.trim().toLowerCase() === b.trim().toLowerCase();
+  }
+
+  private adminAccountToDto(entity: AdminAccountEntity): AdminAccountDto {
     return {
       pk: entity.pk,
       email: entity.email,
       role: entity.role,
       created_at: entity.createdAt,
+      updated_at: entity.updatedAt,
     };
   }
 }

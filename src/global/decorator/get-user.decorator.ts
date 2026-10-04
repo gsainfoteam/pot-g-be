@@ -5,7 +5,7 @@ export const GetUser = createParamDecorator(
   (data, ctx: ExecutionContext): UserContext => {
     const req = ctx.switchToHttp().getRequest();
     const userCtx: UserContext = req.user;
-    if (!userCtx) {
+    if (!userCtx || !(userCtx instanceof UserContext)) {
       throw new Error("User context is not available in the request");
     }
     return userCtx;

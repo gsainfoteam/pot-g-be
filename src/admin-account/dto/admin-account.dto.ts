@@ -5,4 +5,5 @@ export class AdminAccountDto {
   email: string;
   role: AdminAccountRole;
   created_at: Date;
+  updated_at: Date;
 }

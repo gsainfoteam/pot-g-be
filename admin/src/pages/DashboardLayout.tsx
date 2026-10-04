@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearAccessToken } from "../lib/auth";
+import { CurrentManagerProvider } from "../lib/current-manager";
 
 const NAV_ITEMS = [
   { to: "/", label: "현황", end: true },
@@ -40,7 +41,9 @@ export function DashboardLayout() {
         </button>
       </aside>
       <main className="main">
-        <Outlet />
+        <CurrentManagerProvider>
+          <Outlet />
+        </CurrentManagerProvider>
       </main>
     </div>
   );
