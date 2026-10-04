@@ -7,6 +7,7 @@ import { UserJwtStrategy } from "@src/auth/strategy/user-jwt.strategy";
 import { JwtModule } from "@nestjs/jwt";
 import { DatabaseModule } from "@src/database/database.module";
 import { AdminDatabaseModule } from "@src/admin-database/admin-database.module";
+import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt.strategy";
@@ -42,12 +43,16 @@ import { ManagerAuthController } from "@src/auth/manager-auth.controller";
     },
     {
       provide: ManagerJwtStrategy,
-      useFactory: async (keyPairService: KeyPairService) => {
+      useFactory: async (
+        keyPairService: KeyPairService,
+        adminAccountRepository: AdminAccountRepository,
+      ) => {
         return new ManagerJwtStrategy(
           (await keyPairService.getKeyPair()).publicKey,
+          adminAccountRepository,
         );
       },
-      inject: [KeyPairService],
+      inject: [KeyPairService, AdminAccountRepository],
     },
     RefreshTokenCleanupScheduler,
   ],
