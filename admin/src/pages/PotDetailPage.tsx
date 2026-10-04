@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, ApiError } from "../lib/api";
+import { useFetch } from "../lib/use-fetch";
 import { formatDateTime } from "../lib/format";
 import { PotStatusBadge } from "../components/PotStatusBadge";
 import { EVENT_TYPE_LABEL } from "../lib/pot";
@@ -44,21 +43,10 @@ const UUID_PATTERN =
 
 export function PotDetailPage() {
   const { pk } = useParams();
-  const [pot, setPot] = useState<PotDetailDto | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    api
-      .get<PotDetailDto>(`/api/manager/v1/pot/${pk}`)
-      .then(setPot)
-      .catch((err) =>
-        setError(
-          err instanceof ApiError
-            ? `팟 정보를 불러오지 못했습니다. (${err.status})`
-            : "팟 정보를 불러오지 못했습니다.",
-        ),
-      );
-  }, [pk]);
+  const { data: pot, error } = useFetch<PotDetailDto>(
+    pk ? `/api/manager/v1/pot/${pk}` : null,
+    "팟 정보를 불러오지 못했습니다.",
+  );
 
   const nameOf = (userPk: string | null) =>
     userPk ? (pot?.users[userPk] ?? userPk) : "-";
