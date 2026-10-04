@@ -32,7 +32,7 @@ export class ManagerAuthService {
 
     const adminAccount = await this.adminAccountRepository.findByEmail(email);
     if (!adminAccount) {
-      throw new ForbiddenException("허용되지 않은 관리자 계정입니다.");
+      throw new ForbiddenException("This account is not allowed as a manager.");
     }
 
     return this.createNewJwtToken(email, adminAccount.role);
