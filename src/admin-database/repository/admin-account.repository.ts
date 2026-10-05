@@ -5,7 +5,7 @@ import { DatabaseService } from "@src/database/database.service";
 import {
   AdminAccountEntity,
   AdminAccountRole,
-} from "@src/database/entity/admin-account.entity";
+} from "@src/admin-database/entity/admin-account.entity";
 import { adminAccount } from "../../../drizzle/schema/admin-account";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 import { TxType } from "@src/global/types/tx.types";

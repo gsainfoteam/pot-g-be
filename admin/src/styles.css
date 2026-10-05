@@ -368,3 +368,150 @@ th {
   border-color: #c5deA0;
   color: var(--primary-pressed);
 }
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: var(--light-grey);
+}
+
+.collapse-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  cursor: pointer;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.info-grid dt {
+  color: var(--text-grey);
+  font-weight: 600;
+}
+
+.info-grid dd {
+  margin: 0;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.event-data {
+  font-size: 12px;
+  color: var(--text-grey);
+  word-break: break-all;
+}
+
+a.button {
+  text-decoration: none;
+}
+
+.search-input {
+  width: 360px;
+  max-width: 100%;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-grey-2);
+  background: var(--field-grey);
+  color: var(--text-grey);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* 출발 확정 전 */
+.status-before_confirmed {
+  background: #eef2f7;
+  border-color: #cfd8e3;
+  color: #44546a;
+}
+
+/* 출발 확정 */
+.status-confirmed {
+  background: #eef6e0;
+  border-color: #c5dea0;
+  color: var(--primary-pressed);
+}
+
+/* 출발함 (정산 요청 전) */
+.status-departed {
+  background: #fff4dc;
+  border-color: #f0d28a;
+  color: #8a5a00;
+}
+
+/* 정산 대기 중 */
+.status-wait_accounting {
+  background: #ffe9d6;
+  border-color: #f2b98a;
+  color: #a14a00;
+}
+
+/* 정산 완료 */
+.status-accounting_done {
+  background: #e0f3f1;
+  border-color: #9fd6d0;
+  color: #0b6b63;
+}
+
+/* 해산됨 */
+.status-archived {
+  background: var(--field-grey);
+  border-color: var(--border-grey-2);
+  color: var(--grey);
+}
+
+/* 삭제됨 */
+.status-deleted {
+  background: #fde8e8;
+  border-color: #f0b3b4;
+  color: var(--warning);
+}
+
+.table-link {
+  color: var(--dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.table-link:hover,
+.table-link:focus-visible {
+  text-decoration: underline;
+}

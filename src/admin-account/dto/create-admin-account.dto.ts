@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsOptional } from "class-validator";
-import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 import { Transform } from "class-transformer";
 
 export class CreateAdminAccountRequestDto {

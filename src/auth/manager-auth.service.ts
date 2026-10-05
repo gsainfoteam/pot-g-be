@@ -3,9 +3,9 @@ import { JwtService } from "@nestjs/jwt";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { StringValue } from "ms";
 import { ManagerAccessTokenJwtPayload } from "@src/auth/jwt/manager-jwt.payload";
-import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 import { InfoteamIdpService } from "@lib/infoteam-idp";
-import { AdminAccountRepository } from "@src/database/repository/admin-account.repository";
+import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
 
 @Injectable()
 export class ManagerAuthService {

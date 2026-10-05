@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString } from "class-validator";
-import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 
 export class ManagerLoginRequestDto {
   @IsString()

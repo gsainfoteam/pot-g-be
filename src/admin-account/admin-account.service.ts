@@ -6,11 +6,11 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { AdminAccountRepository } from "@src/database/repository/admin-account.repository";
+import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
 import {
   AdminAccountEntity,
   AdminAccountRole,
-} from "@src/database/entity/admin-account.entity";
+} from "@src/admin-database/entity/admin-account.entity";
 import { AdminAccountDto } from "@src/admin-account/dto/admin-account.dto";
 import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admin-account.dto";
 import { UpdateAdminAccountRoleRequestDto } from "@src/admin-account/dto/update-admin-account-role.dto";

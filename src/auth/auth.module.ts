@@ -6,7 +6,8 @@ import { UserGuard } from "@src/auth/guard/user.guard";
 import { UserJwtStrategy } from "@src/auth/strategy/user-jwt.strategy";
 import { JwtModule } from "@nestjs/jwt";
 import { DatabaseModule } from "@src/database/database.module";
-import { AdminAccountRepository } from "@src/database/repository/admin-account.repository";
+import { AdminDatabaseModule } from "@src/admin-database/admin-database.module";
+import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { ManagerJwtStrategy } from "@src/auth/strategy/manager-jwt.strategy";
@@ -23,6 +24,7 @@ import { ManagerAuthController } from "@src/auth/manager-auth.controller";
     InfoteamIdpModule,
     JwtModule,
     DatabaseModule,
+    AdminDatabaseModule,
     KeyPairModule,
   ],
   controllers: [ManagerAuthController],

@@ -5,8 +5,9 @@ import { ManagerAuthService } from "@src/auth/manager-auth.service";
 import { KeyPairService } from "@src/keypair/key-pair.service";
 import { KeyPairModule } from "@src/keypair/key-pair.module";
 import { DatabaseModule } from "@src/database/database.module";
+import { AdminDatabaseModule } from "@src/admin-database/admin-database.module";
 import { InfoteamIdpModule } from "@lib/infoteam-idp";
-import { AdminAccountRole } from "@src/database/entity/admin-account.entity";
+import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 
 describe("ManagerAuthService", () => {
   let service: ManagerAuthService;
@@ -24,6 +25,7 @@ describe("ManagerAuthService", () => {
         JwtModule.register({}),
         KeyPairModule,
         DatabaseModule,
+        AdminDatabaseModule,
         InfoteamIdpModule,
       ],
       providers: [ManagerAuthService],
