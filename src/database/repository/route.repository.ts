@@ -17,7 +17,7 @@ export class RouteRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
   /*
-  SELECT r.pk, r.short_name_kor, r.short_name_eng,
+  SELECT r.pk, r.short_name_kor, r.short_name_eng, r.is_deleted,
          fs.pk, fs.name_kor, fs.name_eng, fs.lat, fs.lng,
          ts.pk, ts.name_kor, ts.name_eng, ts.lat, ts.lng
   FROM route as r
@@ -30,6 +30,7 @@ export class RouteRepository {
         routePk: route.pk,
         shortNameKor: route.shortNameKor,
         shortNameEng: route.shortNameEng,
+        isDeleted: route.isDeleted,
         fromStopFk: fromStop.pk,
         fromStopNameKor: fromStop.nameKor,
         fromStopNameEng: fromStop.nameEng,
@@ -49,7 +50,7 @@ export class RouteRepository {
   }
 
   /*
-  SELECT r.pk, r.short_name_kor, r.short_name_eng,
+  SELECT r.pk, r.short_name_kor, r.short_name_eng, r.is_deleted,
          fs.pk, fs.name_kor, fs.name_eng, fs.lat, fs.lng,
          ts.pk, ts.name_kor, ts.name_eng, ts.lat, ts.lng
   FROM route as r
@@ -63,6 +64,7 @@ export class RouteRepository {
         routePk: route.pk,
         shortNameKor: route.shortNameKor,
         shortNameEng: route.shortNameEng,
+        isDeleted: route.isDeleted,
         fromStopFk: fromStop.pk,
         fromStopNameKor: fromStop.nameKor,
         fromStopNameEng: fromStop.nameEng,
@@ -140,6 +142,7 @@ export class RouteRepository {
       pk: result.routePk,
       shortNameKor: result.shortNameKor,
       shortNameEng: result.shortNameEng,
+      isDeleted: result.isDeleted,
       fromStopFk: result.fromStopFk,
       fromStop: {
         pk: result.fromStopFk,
