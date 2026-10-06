@@ -1,13 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { randomUUID } from "node:crypto";
 import { DatabaseService } from "@src/database/database.service";
 import { stops } from "../../../drizzle/schema/stops";
 import { RouteEntity } from "@src/database/entity/route.entity";
 import { route } from "../../../drizzle/schema/route";
 import { eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { PotgDBError } from "@src/global/exceptions/potg-db.error";
-import { TxType } from "@src/global/types/tx.types";
 
 const fromStop = alias(stops, "fs");
 const toStop = alias(stops, "ts");
@@ -86,55 +83,6 @@ export class RouteRepository {
     }
 
     return this.resultToRouteEntity(results[0]);
-  }
-
-  async insert(routeEntity: RouteEntity, tx: TxType): Promise<RouteEntity> {
-    const result = await tx
-      .insert(route)
-      .values({
-        pk: routeEntity.pk || randomUUID(),
-        fromStopFk: routeEntity.fromStopFk,
-        toStopFk: routeEntity.toStopFk,
-        shortNameKor: routeEntity.shortNameKor,
-        shortNameEng: routeEntity.shortNameEng,
-      })
-      .returning();
-
-    if (result.length === 0) {
-      throw new PotgDBError("Failed to insert route");
-    }
-
-    return {
-      pk: result[0].pk,
-      fromStopFk: result[0].fromStopFk,
-      toStopFk: result[0].toStopFk,
-      shortNameKor: result[0].shortNameKor,
-      shortNameEng: result[0].shortNameEng,
-    };
-  }
-
-  async updateName(routeEntity: RouteEntity, tx: TxType): Promise<RouteEntity> {
-    const result = await tx
-      .update(route)
-      .set({
-        shortNameKor: routeEntity.shortNameKor,
-        shortNameEng: routeEntity.shortNameEng,
-        updatedAt: new Date(),
-      })
-      .where(eq(route.pk, routeEntity.pk))
-      .returning();
-
-    if (result.length === 0) {
-      throw new PotgDBError("Failed to update route");
-    }
-
-    return {
-      pk: result[0].pk,
-      fromStopFk: result[0].fromStopFk,
-      toStopFk: result[0].toStopFk,
-      shortNameKor: result[0].shortNameKor,
-      shortNameEng: result[0].shortNameEng,
-    };
   }
 
   private resultToRouteEntity(result: any): RouteEntity {
