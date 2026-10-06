@@ -36,11 +36,11 @@ export function App() {
         <Route path="routes" element={<RoutesPage />} />
         <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<PlaceholderPage title="사용자" />} />
-        <Route path="stats" element={<PlaceholderPage title="통계" refreshable />} />
         <Route
-          path="admin-accounts"
-          element={<AdminAccountsPage />}
+          path="stats"
+          element={<PlaceholderPage title="통계" refreshable />}
         />
+        <Route path="admin-accounts" element={<AdminAccountsPage />} />
       </Route>
     </Routes>
   );

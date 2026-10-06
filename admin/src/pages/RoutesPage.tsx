@@ -431,7 +431,10 @@ export function RoutesPage() {
                     ) : (
                       <>
                         {stop.name_kor}
-                        <span className="text-secondary"> ({stop.name_eng})</span>
+                        <span className="text-secondary">
+                          {" "}
+                          ({stop.name_eng})
+                        </span>
                         <button
                           className="link-button"
                           onClick={() => startEditStop(stop)}
@@ -454,10 +457,7 @@ export function RoutesPage() {
 
         {hasLoadedOnce && (
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              className="card"
-              style={{ padding: 0, overflow: "hidden" }}
-            >
+            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
               <MapContainer
                 ref={mapRef}
                 center={center}
@@ -499,14 +499,22 @@ export function RoutesPage() {
                     key={`selected-${stop.pk}`}
                     center={[stop.lat, stop.lng]}
                     radius={14}
-                    pathOptions={{ color: "#ba0407", weight: 3, fillOpacity: 0 }}
+                    pathOptions={{
+                      color: "#ba0407",
+                      weight: 3,
+                      fillOpacity: 0,
+                    }}
                   />
                 ))}
                 {editingStopPk && editStopPosition && (
                   <CircleMarker
                     center={[editStopPosition.lat, editStopPosition.lng]}
                     radius={16}
-                    pathOptions={{ color: "#0066ff", weight: 3, fillOpacity: 0 }}
+                    pathOptions={{
+                      color: "#0066ff",
+                      weight: 3,
+                      fillOpacity: 0,
+                    }}
                   />
                 )}
                 {pendingStop && (
@@ -588,7 +596,8 @@ export function RoutesPage() {
                   <>
                     <div className="inline-form">
                       <span style={{ minWidth: 140 }}>
-                        {routeSelection[0].name_kor} → {routeSelection[1].name_kor}
+                        {routeSelection[0].name_kor} →{" "}
+                        {routeSelection[1].name_kor}
                       </span>
                       <input
                         placeholder="한글 이름"
@@ -613,7 +622,8 @@ export function RoutesPage() {
                     </div>
                     <div className="inline-form">
                       <span style={{ minWidth: 140 }}>
-                        {routeSelection[1].name_kor} → {routeSelection[0].name_kor}
+                        {routeSelection[1].name_kor} →{" "}
+                        {routeSelection[0].name_kor}
                       </span>
                       <input
                         placeholder="한글 이름"
@@ -734,7 +744,10 @@ export function RoutesPage() {
                   ) : (
                     <>
                       {route.short_name_kor}
-                      <span className="text-secondary"> ({route.short_name_eng})</span>
+                      <span className="text-secondary">
+                        {" "}
+                        ({route.short_name_eng})
+                      </span>
                       <button
                         className="link-button"
                         onClick={() => startEditRoute(route)}

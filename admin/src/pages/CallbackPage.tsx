@@ -42,7 +42,9 @@ export function CallbackPage() {
         navigate("/", { replace: true });
       })
       .catch(() => {
-        setError("로그인에 실패했습니다. 관리자 계정으로 등록되어 있는지 확인해주세요.");
+        setError(
+          "로그인에 실패했습니다. 관리자 계정으로 등록되어 있는지 확인해주세요.",
+        );
       });
   }, [navigate]);
 
