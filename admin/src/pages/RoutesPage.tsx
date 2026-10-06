@@ -41,6 +41,7 @@ type AdminRouteDto = {
   pk: string;
   short_name_kor: string;
   short_name_eng: string;
+  is_deleted: boolean;
   from_stop: AdminStopDto;
   to_stop: AdminStopDto;
 };
@@ -61,6 +62,44 @@ function PlusIcon() {
     >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   );
 }
@@ -118,6 +157,7 @@ export function RoutesPage() {
   });
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [togglingRoutePk, setTogglingRoutePk] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -336,6 +376,25 @@ export function RoutesPage() {
     }
   };
 
+  const toggleRouteDeleted = async (route: AdminRouteDto) => {
+    setTogglingRoutePk(route.pk);
+    setEditError(null);
+    try {
+      await api.patch(`/api/manager/v1/route/${route.pk}/deleted`, {
+        is_deleted: !route.is_deleted,
+      });
+      load();
+    } catch (err) {
+      setEditError(
+        err instanceof ApiError
+          ? `노선 숨김 상태를 변경하지 못했습니다. (${err.status})`
+          : "노선 숨김 상태를 변경하지 못했습니다.",
+      );
+    } finally {
+      setTogglingRoutePk(null);
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -533,9 +592,21 @@ export function RoutesPage() {
                       [route.from_stop.lat, route.from_stop.lng],
                       [route.to_stop.lat, route.to_stop.lng],
                     ]}
-                    pathOptions={{ color: "#418501", weight: 3, opacity: 0.6 }}
+                    pathOptions={
+                      route.is_deleted
+                        ? {
+                            color: "#999999",
+                            weight: 3,
+                            opacity: 0.5,
+                            dashArray: "6 8",
+                          }
+                        : { color: "#418501", weight: 3, opacity: 0.6 }
+                    }
                   >
-                    <Tooltip sticky>{route.short_name_kor}</Tooltip>
+                    <Tooltip sticky>
+                      {route.short_name_kor}
+                      {route.is_deleted && " (숨김)"}
+                    </Tooltip>
                   </Polyline>
                 ))}
               </MapContainer>
@@ -698,11 +769,15 @@ export function RoutesPage() {
               <th>이름</th>
               <th>출발</th>
               <th>도착</th>
+              <th>노출</th>
             </tr>
           </thead>
           <tbody>
             {routes.map((route) => (
-              <tr key={route.pk}>
+              <tr
+                key={route.pk}
+                style={route.is_deleted ? { opacity: 0.55 } : undefined}
+              >
                 <td>
                   {editingRoutePk === route.pk ? (
                     <div className="inline-form compact">
@@ -759,11 +834,28 @@ export function RoutesPage() {
                 </td>
                 <td>{route.from_stop.name_kor}</td>
                 <td>{route.to_stop.name_kor}</td>
+                <td>
+                  <button
+                    className="button secondary icon-button"
+                    disabled={togglingRoutePk === route.pk}
+                    onClick={() => toggleRouteDeleted(route)}
+                    title={
+                      route.is_deleted
+                        ? "숨김 상태 (클릭해서 보이기)"
+                        : "노출 중 (클릭해서 숨기기)"
+                    }
+                    aria-label={
+                      route.is_deleted ? "노선 보이기" : "노선 숨기기"
+                    }
+                  >
+                    {route.is_deleted ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </td>
               </tr>
             ))}
             {!loading && routes.length === 0 && (
               <tr>
-                <td colSpan={3} className="placeholder">
+                <td colSpan={4} className="placeholder">
                   등록된 노선이 없습니다.
                 </td>
               </tr>
