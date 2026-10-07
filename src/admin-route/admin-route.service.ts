@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { RouteRepository } from "@src/database/repository/route.repository";
 import { StopsRepository } from "@src/database/repository/stops.repository";
+import { RouteAdminRepository } from "@src/admin-database/repository/route.admin.repository";
 import { RouteEntity } from "@src/database/entity/route.entity";
 import { StopsEntity } from "@src/database/entity/stops.entity";
 import { RouteService } from "@src/discovery/route.service";
@@ -11,6 +12,7 @@ import { CreateStopRequestDto } from "@src/admin-route/dto/create-stop.dto";
 import { CreateRouteRequestDto } from "@src/admin-route/dto/create-route.dto";
 import { UpdateStopRequestDto } from "@src/admin-route/dto/update-stop.dto";
 import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
+import { UpdateRouteDeletedRequestDto } from "@src/admin-route/dto/update-route-deleted.dto";
 import { TxType } from "@src/global/types/tx.types";
 
 @Injectable()
@@ -18,6 +20,7 @@ export class AdminRouteService {
   constructor(
     private readonly dbService: DatabaseService,
     private readonly routeRepository: RouteRepository,
+    private readonly routeAdminRepository: RouteAdminRepository,
     private readonly stopsRepository: StopsRepository,
     private readonly discoveryRouteService: RouteService,
   ) {}
@@ -70,7 +73,7 @@ export class AdminRouteService {
 
     const [forward, backward] = await this.dbService.db.transaction(
       async (tx: TxType) => {
-        const forwardRoute = await this.routeRepository.insert(
+        const forwardRoute = await this.routeAdminRepository.insert(
           {
             fromStopFk: fromStop.pk,
             toStopFk: toStop.pk,
@@ -79,7 +82,7 @@ export class AdminRouteService {
           },
           tx,
         );
-        const backwardRoute = await this.routeRepository.insert(
+        const backwardRoute = await this.routeAdminRepository.insert(
           {
             fromStopFk: toStop.pk,
             toStopFk: fromStop.pk,
@@ -98,6 +101,7 @@ export class AdminRouteService {
         pk: forward.pk,
         short_name_kor: forward.shortNameKor,
         short_name_eng: forward.shortNameEng,
+        is_deleted: forward.isDeleted,
         from_stop: this.stopToDto(fromStop),
         to_stop: this.stopToDto(toStop),
       },
@@ -105,6 +109,7 @@ export class AdminRouteService {
         pk: backward.pk,
         short_name_kor: backward.shortNameKor,
         short_name_eng: backward.shortNameEng,
+        is_deleted: backward.isDeleted,
         from_stop: this.stopToDto(toStop),
         to_stop: this.stopToDto(fromStop),
       },
@@ -147,7 +152,7 @@ export class AdminRouteService {
     }
 
     const updated = await this.dbService.db.transaction(async (tx: TxType) => {
-      return this.routeRepository.updateName(
+      return this.routeAdminRepository.updateName(
         {
           pk,
           fromStopFk: existing.fromStopFk,
@@ -164,6 +169,41 @@ export class AdminRouteService {
       pk: updated.pk,
       short_name_kor: updated.shortNameKor,
       short_name_eng: updated.shortNameEng,
+      is_deleted: updated.isDeleted,
+      from_stop: this.stopToDto(existing.fromStop),
+      to_stop: this.stopToDto(existing.toStop),
+    };
+  }
+
+  async updateRouteDeleted(
+    pk: string,
+    req: UpdateRouteDeletedRequestDto,
+  ): Promise<AdminRouteDto> {
+    const existing = await this.routeRepository.findByPk(pk);
+    if (!existing) {
+      throw new BadRequestException("Route not found.");
+    }
+
+    const updated = await this.dbService.db.transaction(async (tx: TxType) => {
+      return this.routeAdminRepository.updateIsDeleted(
+        {
+          pk,
+          fromStopFk: existing.fromStopFk,
+          toStopFk: existing.toStopFk,
+          shortNameKor: existing.shortNameKor,
+          shortNameEng: existing.shortNameEng,
+          isDeleted: req.is_deleted,
+        },
+        tx,
+      );
+    });
+    await this.discoveryRouteService.cacheData();
+
+    return {
+      pk: updated.pk,
+      short_name_kor: updated.shortNameKor,
+      short_name_eng: updated.shortNameEng,
+      is_deleted: updated.isDeleted,
       from_stop: this.stopToDto(existing.fromStop),
       to_stop: this.stopToDto(existing.toStop),
     };
@@ -174,6 +214,7 @@ export class AdminRouteService {
       pk: route.pk,
       short_name_kor: route.shortNameKor,
       short_name_eng: route.shortNameEng,
+      is_deleted: route.isDeleted,
       from_stop: this.stopToDto(route.fromStop),
       to_stop: this.stopToDto(route.toStop),
     };

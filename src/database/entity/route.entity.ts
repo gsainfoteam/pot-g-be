@@ -8,6 +8,7 @@ export class RouteEntity {
   toStop?: StopsEntity;
   shortNameKor: string;
   shortNameEng: string;
+  isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

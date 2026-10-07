@@ -16,6 +16,7 @@ import { CreateStopRequestDto } from "@src/admin-route/dto/create-stop.dto";
 import { CreateRouteRequestDto } from "@src/admin-route/dto/create-route.dto";
 import { UpdateStopRequestDto } from "@src/admin-route/dto/update-stop.dto";
 import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
+import { UpdateRouteDeletedRequestDto } from "@src/admin-route/dto/update-route-deleted.dto";
 
 @Controller("/api/manager/v1/route")
 @UseGuards(ManagerGuard)
@@ -50,6 +51,14 @@ export class AdminRouteController {
     @Body() req: UpdateStopRequestDto,
   ): Promise<AdminStopDto> {
     return this.adminRouteService.updateStop(pk, req);
+  }
+
+  @Patch("/:pk/deleted")
+  async updateRouteDeleted(
+    @Param("pk", ParseUUIDPipe) pk: string,
+    @Body() req: UpdateRouteDeletedRequestDto,
+  ): Promise<AdminRouteDto> {
+    return this.adminRouteService.updateRouteDeleted(pk, req);
   }
 
   @Patch("/:pk")
