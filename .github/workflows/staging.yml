@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'dev-v*'
+    branches:
+      - jihoon0918/pgb-83
 
 env:
   REGISTRY: ghcr.io
@@ -91,4 +93,4 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
           git commit -am "Update image $REPOSITORY:$IMAGE_TAG"
-          git push -u origin develop
+          git push -u origin main
