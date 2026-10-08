@@ -18,12 +18,6 @@ services:
       - TZ=Asia/Seoul
       - PGTZ=Asia/Seoul
 
-  potg-redis:
-    image: redis:7-alpine
-    restart: always
-    networks:
-      - potg-network
-
   potg-migrate:
     image: potg-backend:latest
     container_name: potg-migrate
