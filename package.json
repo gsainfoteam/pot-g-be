@@ -46,7 +46,6 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.45.3",
     "firebase-admin": "^13.5.0",
-    "ioredis": "^5.7.0",
     "nest-winston": "^1.10.2",
     "nestjs-slack": "^2.0.0",
     "passport-http-bearer": "^1.0.1",
