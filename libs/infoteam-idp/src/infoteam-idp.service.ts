@@ -8,6 +8,8 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
+  AuthorizationCodeTokenRequest,
+  AuthorizationCodeTokenResponse,
   ClientAccessTokenRequest,
   ClientAccessTokenResponse,
   IdpUserInfoRes,
@@ -136,6 +138,47 @@ export class InfoteamIdpService implements OnModuleInit {
       .catch(() => {
         return null;
       });
+  }
+
+  /**
+   * this method exchanges an authorization code (obtained by a confidential
+   * client, e.g. a web app, via the OAuth authorization code grant) for an
+   * access token, using this server's client_id/client_secret.
+   * @param code the authorization code returned by the idp's authorize endpoint
+   * @param redirectUri the redirect_uri used in the authorize request (must match exactly)
+   * @param codeVerifier the PKCE code_verifier matching the code_challenge sent to /authorize
+   * @returns the idp access token
+   */
+  async exchangeAuthorizationCode(
+    code: string,
+    redirectUri: string,
+    codeVerifier?: string,
+  ): Promise<string> {
+    const tokenResponse = await firstValueFrom(
+      this.httpService
+        .post<AuthorizationCodeTokenResponse, AuthorizationCodeTokenRequest>(
+          this.idpUrl + "/oauth/token",
+          {
+            grant_type: "authorization_code",
+            client_id: this.configService.getOrThrow<string>("IDP_CLIENT_ID"),
+            client_secret:
+              this.configService.getOrThrow<string>("IDP_CLIENT_SECRET"),
+            code,
+            redirect_uri: redirectUri,
+            code_verifier: codeVerifier,
+          },
+        )
+        .pipe(
+          catchError((err: AxiosError) => {
+            this.logger.error("Error exchanging authorization code", err);
+            throw new UnauthorizedException(
+              "Failed to exchange authorization code",
+            );
+          }),
+        ),
+    );
+
+    return tokenResponse.data.access_token;
   }
 
   /**

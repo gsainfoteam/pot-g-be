@@ -35,9 +35,29 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
+    - name: Set admin build args
+      run: |
+        # admin 프론트(Vite)는 빌드 시점에 VITE_* 값이 번들에 박히므로 환경(dev/prod)별 값이 필요합니다.
+        if [[ ${{ github.ref_name }} == dev-* ]]; then
+          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.DEV_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
+          echo "VITE_IDP_CLIENT_ID=${{ vars.DEV_IDP_CLIENT_ID }}" >> $GITHUB_ENV
+        else
+          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.PROD_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
+          echo "VITE_IDP_CLIENT_ID=${{ vars.PROD_IDP_CLIENT_ID }}" >> $GITHUB_ENV
+        fi
+
     - name: Build Docker image
       run: |
-        docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+        # 값이 비어 있으면 로그인 버튼이 깨진 admin 이 배포되므로 빌드 전에 실패시킵니다.
+        if [ -z "$VITE_IDP_AUTHORIZE_URL" ] || [ -z "$VITE_IDP_CLIENT_ID" ]; then
+          echo "::error::VITE_IDP_AUTHORIZE_URL / VITE_IDP_CLIENT_ID 값이 비어 있습니다. GitHub repository variables 를 확인하세요."
+          exit 1
+        fi
+
+        docker build \
+          --build-arg VITE_IDP_AUTHORIZE_URL="$VITE_IDP_AUTHORIZE_URL" \
+          --build-arg VITE_IDP_CLIENT_ID="$VITE_IDP_CLIENT_ID" \
+          -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Push to ECR

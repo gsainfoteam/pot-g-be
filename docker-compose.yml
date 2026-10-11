@@ -20,14 +20,6 @@ services:
     ports:
       - "5432:5432"
 
-  potg-redis:
-    image: redis:7-alpine
-    restart: always
-    networks:
-      - potg-network
-    ports:
-      - "6379:6379"
-
   potg-backend:
     image: potg-backend:latest
     restart: always
@@ -46,6 +38,9 @@ services:
       - TZ=Asia/Seoul
     build:
       context: .
+      args:
+        VITE_IDP_AUTHORIZE_URL: ${IDP_AUTHORIZE_URL}
+        VITE_IDP_CLIENT_ID: ${IDP_CLIENT_ID}
     ports:
       - "3000:3000"
 

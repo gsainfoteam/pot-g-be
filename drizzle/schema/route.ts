@@ -1,4 +1,11 @@
-import { index, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  pgTable,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { potRoom } from "./pot-room";
 import { stops } from "./stops";
@@ -10,6 +17,7 @@ CREATE TABLE "route" (
     "to_stop_fk"     uuid                     NOT NULL,
     "short_name_kor" varchar(64)              NOT NULL,
     "short_name_eng" varchar(64)              NOT NULL,
+    "is_deleted"     boolean                  NOT NULL DEFAULT FALSE,
     "created_at"     timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at"     timestamp with time zone NOT NULL DEFAULT NOW()
 );
@@ -26,6 +34,7 @@ export const route = pgTable(
       .references(() => stops.pk),
     shortNameKor: varchar("short_name_kor", { length: 64 }).notNull(),
     shortNameEng: varchar("short_name_eng", { length: 64 }).notNull(),
+    isDeleted: boolean("is_deleted").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

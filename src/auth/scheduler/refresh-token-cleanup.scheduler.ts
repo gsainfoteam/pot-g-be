@@ -23,7 +23,7 @@ export class RefreshTokenCleanupScheduler {
     try {
       const count = await this.dbService.db.transaction(async (tx: TxType) => {
         return await this.refreshTokenRepository.deleteExpiredTokens(tx);
-    });
+      });
       this.logger.log(
         `[RefreshTokenCleanupScheduler] Cleanup Finished. count: ${count}`,
       );

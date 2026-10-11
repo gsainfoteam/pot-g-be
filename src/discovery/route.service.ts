@@ -10,6 +10,7 @@ import { StopDto } from "@src/discovery/dto/stop.dto";
 export class RouteService implements OnModuleInit {
   private cachedStops: StopsEntity[] = [];
   private cachedRoutesWithStops: RouteEntity[] = [];
+  private cachedAllRoutesWithStops: RouteEntity[] = [];
 
   constructor(
     private readonly routeRepository: RouteRepository,
@@ -22,7 +23,11 @@ export class RouteService implements OnModuleInit {
 
   async cacheData(): Promise<void> {
     this.cachedStops = await this.stopsRepository.findAll();
-    this.cachedRoutesWithStops = await this.routeRepository.findAllWithStops();
+    this.cachedAllRoutesWithStops =
+      await this.routeRepository.findAllWithStops();
+    this.cachedRoutesWithStops = this.cachedAllRoutesWithStops.filter(
+      (route) => !route.isDeleted,
+    );
   }
 
   getStops() {
@@ -34,7 +39,8 @@ export class RouteService implements OnModuleInit {
   }
 
   getRouteById(routeId: string): RouteEntity | undefined {
-    return this.cachedRoutesWithStops.find((route) => route.pk === routeId);
+    // 삭제된 route 도 기존 pot 조회를 위해 찾을 수 있어야 하므로 전체 캐시에서 조회
+    return this.cachedAllRoutesWithStops.find((route) => route.pk === routeId);
   }
 
   routeEntityToDto(route: RouteEntity): RouteDto {

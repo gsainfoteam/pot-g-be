@@ -23,7 +23,7 @@ export type IdTokenPayload = {
 
 /** Client credential api request type to infoteam idp */
 export type ClientAccessTokenRequest = {
-  grant_type: 'client_credentials';
+  grant_type: "client_credentials";
   client_id: string;
   client_secret: string;
   scope?: string;
@@ -31,6 +31,24 @@ export type ClientAccessTokenRequest = {
 
 /** Client credential api response type from infoteam idp */
 export type ClientAccessTokenResponse = {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  scope: string;
+};
+
+/** Authorization code grant api request type to infoteam idp */
+export type AuthorizationCodeTokenRequest = {
+  grant_type: "authorization_code";
+  client_id: string;
+  client_secret: string;
+  code: string;
+  redirect_uri: string;
+  code_verifier?: string;
+};
+
+/** Authorization code grant api response type from infoteam idp */
+export type AuthorizationCodeTokenResponse = {
   access_token: string;
   token_type: string;
   expires_in: number;

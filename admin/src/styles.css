@@ -1,0 +1,517 @@
+/* pot-g-flutter의 lib/app/values/{palette,text_styles,theme}.dart, widgets/pot_button.dart,
+   pot_text_field.dart, pot_app_bar.dart 기준으로 맞춘 팔레트/타이포/셰이프입니다. */
+:root {
+  color-scheme: light;
+  --primary: #418501;
+  --primary-pressed: #346405;
+  --primary-light: #fbfff1;
+  --warning: #ba0407;
+  --dark: #252525;
+  --white: #ffffff;
+  --light-grey: #f8f8f8;
+  --field-grey: #f5f5f5;
+  --border-grey: #e8e8e8;
+  --border-grey-2: #d6d6d6;
+  --grey: #b3b3b3;
+  --text-grey: #515151;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--light-grey);
+  color: var(--dark);
+  font-family:
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--light-grey);
+}
+
+.login-card {
+  background: var(--white);
+  border: 1px solid var(--border-grey);
+  border-radius: 10px;
+  padding: 40px;
+  text-align: center;
+  min-width: 320px;
+  box-shadow:
+    3px 1px 8px 0 rgba(0, 0, 0, 0.078),
+    1px 3px 8px 0 rgba(0, 0, 0, 0.078);
+}
+
+.login-card h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.login-card p {
+  color: var(--text-grey);
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--primary-light);
+  padding: 15px 20px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 50ms ease-in-out;
+}
+
+.button:hover {
+  background: var(--primary-pressed);
+}
+
+.button.secondary {
+  background: var(--white);
+  color: var(--text-grey);
+  border-color: var(--border-grey);
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 25px;
+}
+
+.button.secondary:hover {
+  background: var(--light-grey);
+}
+
+.button.danger {
+  background: var(--warning);
+  color: var(--white);
+}
+
+.button.danger:hover {
+  background: #8f0305;
+}
+
+.button.small {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--white);
+  border-right: 1px solid var(--border-grey-2);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--dark);
+  padding: 0 8px 20px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.sidebar-nav a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--text-grey);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.sidebar-nav a:hover {
+  background: var(--light-grey);
+}
+
+.sidebar-nav a.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 32px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border-grey);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow:
+    3px 1px 8px 0 rgba(0, 0, 0, 0.078),
+    1px 3px 8px 0 rgba(0, 0, 0, 0.078);
+}
+
+.placeholder {
+  color: var(--grey);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.text-secondary {
+  color: var(--grey);
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.map-container {
+  height: 420px;
+  width: 100%;
+}
+
+.link-button {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.icon-button {
+  padding: 8px;
+  line-height: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-grey);
+}
+
+th {
+  color: var(--text-grey);
+  font-weight: 600;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.inline-form input,
+.inline-form select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-grey);
+  border-radius: 10px;
+  background: var(--field-grey);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--dark);
+}
+
+.inline-form input:focus,
+.inline-form select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.inline-form.compact {
+  margin-bottom: 0;
+  gap: 6px;
+  align-items: center;
+}
+
+.inline-form.compact input {
+  width: 90px;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.inline-form.compact .button,
+.inline-form.compact .button.secondary {
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.error-text {
+  color: var(--warning);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.version-form {
+  align-items: flex-end;
+}
+
+.version-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-grey);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.version-form .button {
+  padding: 8px 18px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+.role-badge,
+.role-select {
+  display: inline-block;
+  border-radius: 999px;
+  border: 1px solid var(--border-grey-2);
+  background: var(--field-grey);
+  color: var(--text-grey);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.role-badge {
+  padding: 5px 12px;
+}
+
+.role-select {
+  appearance: none;
+  padding: 5px 30px 5px 12px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23515151' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition:
+    border-color 80ms ease-in-out,
+    box-shadow 80ms ease-in-out;
+}
+
+.role-select:hover:not(:disabled) {
+  border-color: var(--grey);
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(65, 133, 1, 0.15);
+}
+
+.role-select:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.role-badge.superadmin,
+.role-select.superadmin {
+  background-color: #eef6e0;
+  border-color: #c5dea0;
+  color: var(--primary-pressed);
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: var(--light-grey);
+}
+
+.collapse-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  cursor: pointer;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.info-grid dt {
+  color: var(--text-grey);
+  font-weight: 600;
+}
+
+.info-grid dd {
+  margin: 0;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.event-data {
+  font-size: 12px;
+  color: var(--text-grey);
+  word-break: break-all;
+}
+
+a.button {
+  text-decoration: none;
+}
+
+.search-input {
+  width: 360px;
+  max-width: 100%;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-grey-2);
+  background: var(--field-grey);
+  color: var(--text-grey);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* 출발 확정 전 */
+.status-before_confirmed {
+  background: #eef2f7;
+  border-color: #cfd8e3;
+  color: #44546a;
+}
+
+/* 출발 확정 */
+.status-confirmed {
+  background: #eef6e0;
+  border-color: #c5dea0;
+  color: var(--primary-pressed);
+}
+
+/* 출발함 (정산 요청 전) */
+.status-departed {
+  background: #fff4dc;
+  border-color: #f0d28a;
+  color: #8a5a00;
+}
+
+/* 정산 대기 중 */
+.status-wait_accounting {
+  background: #ffe9d6;
+  border-color: #f2b98a;
+  color: #a14a00;
+}
+
+/* 정산 완료 */
+.status-accounting_done {
+  background: #e0f3f1;
+  border-color: #9fd6d0;
+  color: #0b6b63;
+}
+
+/* 해산됨 */
+.status-archived {
+  background: var(--field-grey);
+  border-color: var(--border-grey-2);
+  color: var(--grey);
+}
+
+/* 삭제됨 */
+.status-deleted {
+  background: #fde8e8;
+  border-color: #f0b3b4;
+  color: var(--warning);
+}
+
+.table-link {
+  color: var(--dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.table-link:hover,
+.table-link:focus-visible {
+  text-decoration: underline;
+}
