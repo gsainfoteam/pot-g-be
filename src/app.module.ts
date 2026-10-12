@@ -31,7 +31,6 @@ import { ConfigService } from "@nestjs/config";
     DatabaseModule,
     UserModule,
     AuthModule,
-    // RedisModule,
     KeyPairModule,
     DiscoveryModule,
     AccountingModule,
