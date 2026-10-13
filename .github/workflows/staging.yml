@@ -19,6 +19,9 @@ jobs:
       contents: read
       packages: write
 
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,7 +83,7 @@ jobs:
 
       - name: Update Kubernetes Manifest
         run: |
-          sed -i "s|tag:.*|tag: $IMAGE_TAG|g" infoteam/service/pot-g/values.stg.yaml
+          sed -i "s|tag:.*|tag: ${{ needs.build.outputs.image_tag }}|g" infoteam/service-v2/pot-g/staging/values.yaml
 
       - name: Commit and Push
         run: |

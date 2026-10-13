@@ -48,4 +48,4 @@ USER nestjs
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:app"]
+CMD ["npm", "run", "start:prod"]
