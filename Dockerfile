@@ -23,7 +23,12 @@ ENV VITE_IDP_AUTHORIZE_URL=$VITE_IDP_AUTHORIZE_URL
 ENV VITE_IDP_CLIENT_ID=$VITE_IDP_CLIENT_ID
 RUN npm run build --prefix admin
 
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
+
+RUN apk update \
+    && apk upgrade --no-cache \
+    && apk add --no-cache tzdata
+
 
 RUN apk add --no-cache tzdata
 
