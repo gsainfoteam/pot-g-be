@@ -6,8 +6,8 @@ COPY package*.json ./
 
 RUN apk add --no-cache git
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc cd /temp/dev && bun install --frozen-lockfile
-RUN npm install --force
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+  npm install --force
 
 COPY admin/package*.json ./admin/
 
@@ -24,12 +24,13 @@ ARG VITE_IDP_AUTHORIZE_URL
 ARG VITE_IDP_CLIENT_ID
 ENV VITE_IDP_AUTHORIZE_URL=$VITE_IDP_AUTHORIZE_URL
 ENV VITE_IDP_CLIENT_ID=$VITE_IDP_CLIENT_ID
-RUN npm run build --prefix admin
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \ 
+  npm run build --prefix admin
 
 FROM node:20-alpine AS production
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc cd /temp/dev && bun install --frozen-lockfile
-RUN apk add --no-cache tzdata git
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \ 
+  apk add --no-cache tzdata git
 
 WORKDIR /app
 
