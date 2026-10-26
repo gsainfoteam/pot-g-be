@@ -11,7 +11,8 @@ RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
 
 COPY admin/package*.json ./admin/
 
-RUN npm install --force --prefix admin
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \ 
+  npm install --force --prefix admin
 
 COPY . .
 
@@ -24,8 +25,7 @@ ARG VITE_IDP_AUTHORIZE_URL
 ARG VITE_IDP_CLIENT_ID
 ENV VITE_IDP_AUTHORIZE_URL=$VITE_IDP_AUTHORIZE_URL
 ENV VITE_IDP_CLIENT_ID=$VITE_IDP_CLIENT_ID
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \ 
-  npm run build --prefix admin
+RUN npm run build --prefix admin
 
 FROM node:20-alpine AS production
 
