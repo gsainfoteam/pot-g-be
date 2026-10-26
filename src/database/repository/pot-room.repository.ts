@@ -14,13 +14,11 @@ import { Pot } from "@src/pot/model/pot";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotEventFactory } from "@src/pot/event/pot-event";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
-import { LoggerService } from "@src/global/logger/logger.service";
 
 @Injectable()
 export class PotRoomRepository {
   constructor(
     private readonly dbService: DatabaseService,
-    private readonly loggerService: LoggerService,
   ) {}
 
   async insert(
@@ -95,8 +93,6 @@ export class PotRoomRepository {
       .offset(offset * limit)
       .limit(limit)
       .orderBy(asc(potRoom.startsAt));
-
-    this.loggerService.queryTimeLog("searchPotList", startTime);
     return results.map((result) => this.resultToPotRoomEntity(result));
   }
 
@@ -205,8 +201,6 @@ export class PotRoomRepository {
       )
       .groupBy(potRoom.pk, potEvent.potFk, potEvent.timestamp, potEvent.id)
       .orderBy(asc(potEvent.timestamp));
-
-    this.loggerService.queryTimeLog("getUserPotRoomList", startTime);
 
     // 타입 체크를 위해 따로 함수로 분리하지 않습니다. (분리할 경우 타입 명시 해줘야 해서 코드가 더러워짐)
     return results.reduce((acc, curr) => {
