@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { ConfigService } from "@nestjs/config";
 import { Trace } from "@gsainfoteam/nest-observability";
-
+import { instrumentDrizzleClient } from '@kubiks/otel-drizzle';
 @Trace()
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -19,6 +19,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       connectionString: this.configService.get<string>("DATABASE_URL"),
     });
     this.db = drizzle(this.pool);
+     instrumentDrizzleClient(this.db);
   }
 
   async onModuleInit() {
