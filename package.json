@@ -23,7 +23,7 @@
   },
   "engines": {
     "npm": ">=10.0.0",
-    "node": ">=20.0.0"
+    "node": ">=24.22.1"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
@@ -69,7 +69,7 @@
     "@swc/core": "^1.10.8",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.10.7",
+    "@types/node": "^24.19.2",
     "@types/passport-http-bearer": "^1.0.41",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.11.14",
