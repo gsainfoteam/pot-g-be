@@ -26,7 +26,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@gsainfoteam/nest-observability": "github:gsainfoteam/observability",
+    "@gsainfoteam/nest-observability": "^0.0.10",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
