@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { customMessageParser } from "@src/websocket/websocket.utils";
 import { WsExceptionFilter } from "./global/filters/ws-exception.filter";
@@ -8,6 +8,7 @@ import { AllExceptionsFilter } from "./global/filters/all-exception.filter";
 import { LoggerService } from "@src/global/logger/logger.service";
 import { HttpLoggingInterceptor } from "@src/global/interceptors/http-logging.interceptor";
 import { SlackService } from "nestjs-slack";
+import { initializeMetrics, MetricsInterceptor } from "@gsainfoteam/nest-observability";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,7 +27,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new HttpLoggingInterceptor());
+  app.useGlobalInterceptors(new HttpLoggingInterceptor(), new MetricsInterceptor(),);
   app.useGlobalFilters(
     new WsExceptionFilter(),
     new AllExceptionsFilter(slackService),
@@ -36,6 +37,20 @@ async function bootstrap() {
   wsAdapter.setMessageParser(customMessageParser);
   app.useWebSocketAdapter(wsAdapter);
 
+
   await app.listen(3000);
 }
-bootstrap();
+
+const bootstrapWithOTEL = async () => {
+  const logger = new Logger('Bootstrap');
+  try {
+    const serviceName = process.env.OTEL_SERVICE_NAME ?? 'potg-be';
+    initializeMetrics(serviceName);
+    await bootstrap();
+  } catch (error) {
+    logger.error('Failed to bootstrap application', error);
+    process.exit(1);
+  }
+};
+
+void bootstrapWithOTEL();

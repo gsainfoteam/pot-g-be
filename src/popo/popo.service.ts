@@ -29,7 +29,9 @@ import {
   subscribeOn,
 } from "rxjs";
 import { SlackService } from "nestjs-slack";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class PopoService implements OnModuleInit {
   private readonly logger = new Logger(PopoService.name);

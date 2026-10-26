@@ -14,7 +14,9 @@ import { UpdateStopRequestDto } from "@src/admin-route/dto/update-stop.dto";
 import { UpdateRouteNameRequestDto } from "@src/admin-route/dto/update-route-name.dto";
 import { UpdateRouteDeletedRequestDto } from "@src/admin-route/dto/update-route-deleted.dto";
 import { TxType } from "@src/global/types/tx.types";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class AdminRouteService {
   constructor(

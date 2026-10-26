@@ -19,7 +19,9 @@ import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat
 import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class BroadcastingService {
   private readonly logger = new Logger(BroadcastingService.name);

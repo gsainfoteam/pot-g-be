@@ -5,7 +5,9 @@ import { VersionDto } from "@src/app-version/dto/version.dto";
 import { VersionUpdateDto } from "@src/app-version/dto/version.update.dto";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class AppVersionService implements OnModuleInit {
   private cachedAppVersion: AppVersionEntity;

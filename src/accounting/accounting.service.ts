@@ -27,7 +27,9 @@ import { Pot } from "@src/pot/model/pot";
 import { addMinutes, getUnixTime } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
 import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-accounting.dto";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class AccountingService implements OnModuleInit {
   private readonly ACCOUNT_REGEX = new RegExp(/^(\d{5,20})$/);

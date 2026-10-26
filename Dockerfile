@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
+RUN apk add --no-cache git
+
 RUN npm install --force
 
 COPY admin/package*.json ./admin/
@@ -25,7 +27,7 @@ RUN npm run build --prefix admin
 
 FROM node:20-alpine AS production
 
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata git
 
 WORKDIR /app
 

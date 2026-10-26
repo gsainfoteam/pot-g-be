@@ -6,7 +6,9 @@ import { ConfigService } from "@nestjs/config";
 import { DefaultLogger } from "drizzle-orm";
 import { QueryLogWriter } from "@src/database/query.log.writer";
 import { LoggerService } from "@src/global/logger/logger.service";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DatabaseService.name);
