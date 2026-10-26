@@ -29,8 +29,7 @@ RUN npm run build --prefix admin
 
 FROM node:20-alpine AS production
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \ 
-  apk add --no-cache tzdata git
+RUN apk add --no-cache tzdata git
 
 WORKDIR /app
 
