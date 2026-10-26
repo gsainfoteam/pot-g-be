@@ -29,7 +29,7 @@ RUN npm run build --prefix admin
 
 FROM node:20-alpine AS production
 
-RUN apk add --no-cache tzdata git
+RUN apk add --no-cache tzdata
 
 WORKDIR /app
 
