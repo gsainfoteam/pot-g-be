@@ -5,7 +5,7 @@
     "": {
       "name": "potg-server",
       "dependencies": {
-        "@gsainfoteam/nest-observability": "github:gsainfoteam/observability#40680d4",
+        "@gsainfoteam/nest-observability": "github:gsainfoteam/observability",
         "@nestjs/axios": "^4.0.1",
         "@nestjs/common": "^11.0.1",
         "@nestjs/config": "^4.0.2",

@@ -6,6 +6,7 @@ COPY package*.json ./
 
 RUN apk add --no-cache git
 
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc cd /temp/dev && bun install --frozen-lockfile
 RUN npm install --force
 
 COPY admin/package*.json ./admin/
@@ -27,6 +28,7 @@ RUN npm run build --prefix admin
 
 FROM node:20-alpine AS production
 
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc cd /temp/dev && bun install --frozen-lockfile
 RUN apk add --no-cache tzdata git
 
 WORKDIR /app
