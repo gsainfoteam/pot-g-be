@@ -5,7 +5,6 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { customMessageParser } from "@src/websocket/websocket.utils";
 import { WsExceptionFilter } from "./global/filters/ws-exception.filter";
 import { AllExceptionsFilter } from "./global/filters/all-exception.filter";
-import { HttpLoggingInterceptor } from "@src/global/interceptors/http-logging.interceptor";
 import { SlackService } from "nestjs-slack";
 import { initializeMetrics, MetricsInterceptor } from "@gsainfoteam/nest-observability";
 
@@ -23,7 +22,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new HttpLoggingInterceptor(), new MetricsInterceptor(),);
+  app.useGlobalInterceptors(new MetricsInterceptor());
   app.useGlobalFilters(
     new WsExceptionFilter(),
     new AllExceptionsFilter(slackService),
