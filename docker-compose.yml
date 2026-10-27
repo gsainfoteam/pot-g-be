@@ -46,7 +46,7 @@ services:
 
 secrets:
   npmrc:
-    file: ~/.npmrc
+    file: ./.npmrc
 
 
 volumes:

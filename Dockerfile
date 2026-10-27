@@ -11,7 +11,7 @@ RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
 
 COPY admin/package*.json ./admin/
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \ 
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
   npm install --force --prefix admin
 
 COPY . .
