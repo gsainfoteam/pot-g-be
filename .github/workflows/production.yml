@@ -50,8 +50,8 @@ jobs:
 
       - name: Set admin build args
         run: |
-          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.DEV_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
-          echo "VITE_IDP_CLIENT_ID=${{ vars.DEV_IDP_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.PROD_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
+          echo "VITE_IDP_CLIENT_ID=${{ vars.PROD_IDP_CLIENT_ID }}" >> $GITHUB_ENV
 
       - name: Validate admin build args
         run: |
