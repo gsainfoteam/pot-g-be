@@ -3,15 +3,16 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
+COPY .npmrc .npmrc
 
 RUN apk add --no-cache git
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
   npm install --force
 
 COPY admin/package*.json ./admin/
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
   npm install --force --prefix admin
 
 COPY . .
@@ -37,8 +38,9 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nestjs -u 1001
 
 COPY package*.json ./
+COPY .npmrc .npmrc
 
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
   npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/drizzle ./drizzle

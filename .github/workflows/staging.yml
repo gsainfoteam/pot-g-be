@@ -43,11 +43,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: create .npmrc
-        run: 'echo -e "//npm.pkg.github.com/:_authToken=$GITHUB_TOKEN\n@gsainfoteam:registry=https://npm.pkg.github.com/" > "$RUNNER_TEMP/.secret_npmrc"'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Set admin build args
         run: |
           echo "VITE_IDP_AUTHORIZE_URL=${{ vars.DEV_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
@@ -73,8 +68,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          secret-files: |
-            "npmrc=${{ runner.temp }}/.secret_npmrc"
+          secrets: |
+            npm_token=${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     name: Update Git Repository
