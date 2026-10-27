@@ -38,7 +38,8 @@ RUN adduser -S nestjs -u 1001
 
 COPY package*.json ./
 
-RUN npm install --omit=dev --force
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+  npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/drizzle ./drizzle
 
