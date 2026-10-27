@@ -26,7 +26,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@gsainfoteam/nest-observability": "^0.0.10",
+    "@gsainfoteam/nest-observability": "^0.0.9",
     "@kubiks/otel-drizzle": "^2.1.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
