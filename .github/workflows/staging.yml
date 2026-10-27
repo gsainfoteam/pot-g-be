@@ -74,7 +74,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           secret-files: |
-            "npmrc=${{RUNNER_TEMP}}/.secret_npmrc"
+            "npmrc=${{ runner.temp }}/.secret_npmrc"
 
   deploy:
     name: Update Git Repository
