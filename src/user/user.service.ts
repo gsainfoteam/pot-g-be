@@ -31,7 +31,9 @@ import { RefreshTokenRepository } from "@src/database/repository/refresh-token.r
 import { UserBankRepository } from "@src/database/repository/user-bank.repository";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotService } from "@src/pot/pot.service";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class UserService {
   constructor(
