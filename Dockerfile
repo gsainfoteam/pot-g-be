@@ -11,6 +11,8 @@ RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
   npm install --force
 
 COPY admin/package*.json ./admin/
+# npm --prefix admin 은 루트 .npmrc 가 아니라 admin/.npmrc 를 읽습니다.
+COPY admin/.npmrc ./admin/.npmrc
 
 RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
   npm install --force --prefix admin
@@ -22,10 +24,10 @@ RUN npm run build
 # Vite bakes VITE_* vars into the bundle at build time, so they must be
 # passed in as build args (see docker-compose.yml) rather than read from
 # a runtime .env.
-ARG VITE_IDP_AUTHORIZE_URL
-ARG VITE_IDP_CLIENT_ID
-ENV VITE_IDP_AUTHORIZE_URL=$VITE_IDP_AUTHORIZE_URL
-ENV VITE_IDP_CLIENT_ID=$VITE_IDP_CLIENT_ID
+ARG VITE_ACCOUNT_ISSUER
+ARG VITE_ACCOUNT_CLIENT_ID
+ENV VITE_ACCOUNT_ISSUER=$VITE_ACCOUNT_ISSUER
+ENV VITE_ACCOUNT_CLIENT_ID=$VITE_ACCOUNT_CLIENT_ID
 RUN npm run build --prefix admin
 
 FROM node:24.22.1-alpine AS production

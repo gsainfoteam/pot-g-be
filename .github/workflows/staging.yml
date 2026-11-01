@@ -45,13 +45,13 @@ jobs:
 
       - name: Set admin build args
         run: |
-          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.DEV_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
-          echo "VITE_IDP_CLIENT_ID=${{ vars.DEV_IDP_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "VITE_ACCOUNT_ISSUER=${{ vars.DEV_ACCOUNT_ISSUER }}" >> $GITHUB_ENV
+          echo "VITE_ACCOUNT_CLIENT_ID=${{ vars.DEV_IDP_CLIENT_ID }}" >> $GITHUB_ENV
 
       - name: Validate admin build args
         run: |
-          if [[ -z "$VITE_IDP_AUTHORIZE_URL" || -z "$VITE_IDP_CLIENT_ID" ]]; then
-            echo "::error::VITE_IDP_AUTHORIZE_URL / VITE_IDP_CLIENT_ID 값이 비어 있습니다. GitHub repository variables 를 확인하세요."
+          if [[ -z "$VITE_ACCOUNT_ISSUER" || -z "$VITE_ACCOUNT_CLIENT_ID" ]]; then
+            echo "::error::VITE_ACCOUNT_ISSUER / VITE_ACCOUNT_CLIENT_ID 값이 비어 있습니다. GitHub repository variables 를 확인하세요."
             exit 1
           fi
 
@@ -61,8 +61,8 @@ jobs:
         with:
           context: .
           build-args: |
-            VITE_IDP_AUTHORIZE_URL=${{ env.VITE_IDP_AUTHORIZE_URL }}
-            VITE_IDP_CLIENT_ID=${{ env.VITE_IDP_CLIENT_ID }}
+            VITE_ACCOUNT_ISSUER=${{ env.VITE_ACCOUNT_ISSUER }}
+            VITE_ACCOUNT_CLIENT_ID=${{ env.VITE_ACCOUNT_CLIENT_ID }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

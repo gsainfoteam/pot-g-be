@@ -37,8 +37,8 @@ services:
     build:
       context: .
       args:
-        VITE_IDP_AUTHORIZE_URL: ${IDP_AUTHORIZE_URL}
-        VITE_IDP_CLIENT_ID: ${IDP_CLIENT_ID}
+        VITE_ACCOUNT_ISSUER: ${ACCOUNT_ISSUER}
+        VITE_ACCOUNT_CLIENT_ID: ${IDP_CLIENT_ID}
       secrets:
         - npm_token
     ports:
