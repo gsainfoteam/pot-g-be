@@ -45,7 +45,8 @@ jobs:
 
       - name: Set admin build args
         run: |
-          echo "VITE_ACCOUNT_ISSUER=${{ vars.DEV_ACCOUNT_ISSUER }}" >> $GITHUB_ENV
+          # 기존 staging 도 운영 IdP(account.gistory.me)와 같은 client 를 썼습니다. staging IdP 로 옮길 때만 변수를 둡니다.
+          echo "VITE_ACCOUNT_ISSUER=${{ vars.DEV_ACCOUNT_ISSUER || 'production' }}" >> $GITHUB_ENV
           echo "VITE_ACCOUNT_CLIENT_ID=${{ vars.DEV_IDP_CLIENT_ID }}" >> $GITHUB_ENV
 
       - name: Validate admin build args
