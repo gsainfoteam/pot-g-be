@@ -5,7 +5,6 @@ import {
 } from "@gsainfoteam/account-nest";
 import { z } from "zod";
 
-// 앱(Flutter) 사용자 세션. access token 에 로그인한 기기를 함께 싣습니다.
 export const userAccount = defineAccount({
   requiredScopes: ["name", "email"],
   session: {
@@ -25,7 +24,6 @@ export type UserAccountService = InstanceType<typeof UserAccountService>;
 export type UserSession = SessionOf<typeof userAccount>;
 export type IdpUser = UserInfo<"name" | "email">;
 
-// 관리자 웹 세션. subject 는 관리자 이메일입니다.
 export const managerAccount = defineAccount({
   requiredScopes: ["email"],
   session: {

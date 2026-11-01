@@ -21,7 +21,6 @@ jobs:
           - 5432:5432
         options: --health-cmd "pg_isready -U potg" --health-interval 5s --health-retries 10
     env:
-      # .npmrc 가 이 값으로 GitHub Packages(@gsainfoteam)에 인증합니다.
       NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       DATABASE_URL: postgresql://potg@localhost:5432/potg
     steps:

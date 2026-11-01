@@ -1,7 +1,6 @@
 import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import type { SessionRecord } from "@gsainfoteam/account-nest";
 
-// @gsainfoteam/account-nest 세션의 refresh token(해시)을 저장합니다.
 export const accountSession = pgTable(
   "account_session",
   {

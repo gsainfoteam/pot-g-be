@@ -45,7 +45,6 @@ export class UserSessionService {
   ): Promise<{ user: UserEntity; device: DeviceEntity }> {
     const user = await this.userRepository.findUserByIdpSub(sub);
     if (!user) {
-      // 사용자가 존재하지 않는 경우, 새로 생성합니다.
       const created = await this.createNewUser(sub, name, email, tx);
       return {
         user: created,
@@ -89,7 +88,6 @@ export class UserSessionService {
     deviceId: string,
     tx: TxType,
   ) {
-    // insert device
     const device = await this.deviceRepository.insert(
       {
         userFk: user.pk,
@@ -102,7 +100,6 @@ export class UserSessionService {
       tx,
     );
 
-    // insert user_alarm_setting
     await this.userAlarmSettingRepository.insert(
       {
         deviceFk: device.pk,
