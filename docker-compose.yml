@@ -39,10 +39,17 @@ services:
     build:
       context: .
       args:
-        VITE_IDP_AUTHORIZE_URL: ${IDP_AUTHORIZE_URL}
-        VITE_IDP_CLIENT_ID: ${IDP_CLIENT_ID}
+        VITE_ACCOUNT_ISSUER: ${ACCOUNT_ISSUER}
+        VITE_ACCOUNT_CLIENT_ID: ${ACCOUNT_CLIENT_ID}
+      # @gsainfoteam 패키지(GitHub Packages) 설치용. ~/.npmrc 에 @gsainfoteam registry 와 토큰이 있어야 합니다.
+      secrets:
+        - npmrc
     ports:
       - "3000:3000"
+
+secrets:
+  npmrc:
+    file: ${HOME}/.npmrc
 
 volumes:
   potg-db-data:

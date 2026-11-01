@@ -16,3 +16,4 @@ test
 .nyc_output
 flake.lock
 flake.nix
+**/.npmrc

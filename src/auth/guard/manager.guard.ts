@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class ManagerGuard extends AuthGuard("manager-jwt") {
+export class ManagerGuard extends AuthGuard("manager-session") {
   handleRequest(err: any, user: any, info: any, _) {
     if (err || !user) {
       if (info?.name === "TokenExpiredError") {

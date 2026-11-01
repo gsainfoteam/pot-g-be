@@ -13,6 +13,9 @@ env:
 jobs:
   build-and-push:
     runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: read
     outputs:
       image-uri: ${{ steps.build-info.outputs.image-uri }}
     
@@ -39,24 +42,33 @@ jobs:
       run: |
         # admin 프론트(Vite)는 빌드 시점에 VITE_* 값이 번들에 박히므로 환경(dev/prod)별 값이 필요합니다.
         if [[ ${{ github.ref_name }} == dev-* ]]; then
-          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.DEV_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
-          echo "VITE_IDP_CLIENT_ID=${{ vars.DEV_IDP_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "VITE_ACCOUNT_ISSUER=${{ vars.DEV_ACCOUNT_ISSUER }}" >> $GITHUB_ENV
+          echo "VITE_ACCOUNT_CLIENT_ID=${{ vars.DEV_ACCOUNT_CLIENT_ID }}" >> $GITHUB_ENV
         else
-          echo "VITE_IDP_AUTHORIZE_URL=${{ vars.PROD_IDP_AUTHORIZE_URL }}" >> $GITHUB_ENV
-          echo "VITE_IDP_CLIENT_ID=${{ vars.PROD_IDP_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "VITE_ACCOUNT_ISSUER=${{ vars.PROD_ACCOUNT_ISSUER }}" >> $GITHUB_ENV
+          echo "VITE_ACCOUNT_CLIENT_ID=${{ vars.PROD_ACCOUNT_CLIENT_ID }}" >> $GITHUB_ENV
         fi
 
     - name: Build Docker image
+      env:
+        DOCKER_BUILDKIT: 1
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # 값이 비어 있으면 로그인 버튼이 깨진 admin 이 배포되므로 빌드 전에 실패시킵니다.
-        if [ -z "$VITE_IDP_AUTHORIZE_URL" ] || [ -z "$VITE_IDP_CLIENT_ID" ]; then
-          echo "::error::VITE_IDP_AUTHORIZE_URL / VITE_IDP_CLIENT_ID 값이 비어 있습니다. GitHub repository variables 를 확인하세요."
+        if [ -z "$VITE_ACCOUNT_ISSUER" ] || [ -z "$VITE_ACCOUNT_CLIENT_ID" ]; then
+          echo "::error::VITE_ACCOUNT_ISSUER / VITE_ACCOUNT_CLIENT_ID 값이 비어 있습니다. GitHub repository variables 를 확인하세요."
           exit 1
         fi
 
+        # @gsainfoteam 패키지(GitHub Packages)를 받을 npmrc 입니다. secret 으로만 넘겨 이미지에 남기지 않습니다.
+        npmrc="$RUNNER_TEMP/npmrc"
+        printf '@gsainfoteam:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > "$npmrc"
+        trap 'rm -f "$npmrc"' EXIT
+
         docker build \
-          --build-arg VITE_IDP_AUTHORIZE_URL="$VITE_IDP_AUTHORIZE_URL" \
-          --build-arg VITE_IDP_CLIENT_ID="$VITE_IDP_CLIENT_ID" \
+          --secret id=npmrc,src="$npmrc" \
+          --build-arg VITE_ACCOUNT_ISSUER="$VITE_ACCOUNT_ISSUER" \
+          --build-arg VITE_ACCOUNT_CLIENT_ID="$VITE_ACCOUNT_CLIENT_ID" \
           -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 

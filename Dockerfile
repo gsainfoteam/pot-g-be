@@ -4,11 +4,12 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --force
+# @gsainfoteam 패키지는 GitHub Packages 에 있으므로 토큰이 든 npmrc 를 secret 으로 받습니다. 이미지에는 남지 않습니다.
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --force
 
 COPY admin/package*.json ./admin/
 
-RUN npm install --force --prefix admin
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --force --prefix admin
 
 COPY . .
 
@@ -17,10 +18,10 @@ RUN npm run build
 # Vite bakes VITE_* vars into the bundle at build time, so they must be
 # passed in as build args (see docker-compose.yml) rather than read from
 # a runtime .env.
-ARG VITE_IDP_AUTHORIZE_URL
-ARG VITE_IDP_CLIENT_ID
-ENV VITE_IDP_AUTHORIZE_URL=$VITE_IDP_AUTHORIZE_URL
-ENV VITE_IDP_CLIENT_ID=$VITE_IDP_CLIENT_ID
+ARG VITE_ACCOUNT_ISSUER
+ARG VITE_ACCOUNT_CLIENT_ID
+ENV VITE_ACCOUNT_ISSUER=$VITE_ACCOUNT_ISSUER
+ENV VITE_ACCOUNT_CLIENT_ID=$VITE_ACCOUNT_CLIENT_ID
 RUN npm run build --prefix admin
 
 FROM node:20-alpine AS production
@@ -34,7 +35,7 @@ RUN adduser -S nestjs -u 1001
 
 COPY package*.json ./
 
-RUN npm install --omit=dev --force
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/drizzle ./drizzle
 

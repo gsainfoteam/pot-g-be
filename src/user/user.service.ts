@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from "@nestjs/common";
 import { LoginRequestDto, LoginResponseDto } from "@src/user/dto/login.dto";
@@ -10,7 +11,9 @@ import { SetDeviceInfoRequestDto } from "@src/user/dto/set-fcm.dto";
 import { UserInfoDto } from "@src/user/dto/user-info.dto";
 import { PushSettingDto } from "@src/user/dto/push-setting.dto";
 import { UserContext } from "@src/auth/context/user-context.entity";
-import { InfoteamIdpService } from "@lib/infoteam-idp";
+import { UserAccountService } from "@src/auth/account";
+import { UserSessionService } from "@src/user-session/user-session.service";
+import { AccountSessionRepository } from "@src/database/repository/account-session.repository";
 import { UserRepository } from "@src/database/repository/user.repository";
 import { UserAuthService } from "@src/auth/user-auth.service";
 import { DatabaseService } from "@src/database/database.service";
@@ -21,8 +24,6 @@ import {
   RefreshRequestDto,
   RefreshResponseDto,
 } from "@src/user/dto/refresh.dto";
-import { DeviceEntity } from "@src/database/entity/device.entity";
-import { UserEntity } from "@src/database/entity/user.entity";
 import { UpdateConsentDto } from "@src/user/dto/update-consent.dto";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
@@ -34,9 +35,13 @@ import { PotService } from "@src/pot/pot.service";
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     private readonly dbService: DatabaseService,
-    private readonly idpService: InfoteamIdpService,
+    private readonly account: UserAccountService,
+    private readonly userSessionService: UserSessionService,
+    private readonly accountSessionRepository: AccountSessionRepository,
     private readonly authService: UserAuthService,
     private readonly userRepository: UserRepository,
     private readonly deviceRepository: DeviceRepository,
@@ -48,35 +53,21 @@ export class UserService {
     private readonly potService: PotService,
   ) {}
 
+  // SDK 이전 앱이 IdP 에서 직접 받은 access token 으로 로그인합니다. 구 버전 앱이 강제 업데이트로 사라지면 지웁니다.
   async login(
     req: LoginRequestDto,
   ): Promise<LoginResponseDto & { refresh_token: string }> {
-    const idpToken = req.token;
-    const {
-      uuid: sub,
-      name,
-      email,
-    } = await this.idpService.validateAccessToken(idpToken);
-
-    let user = await this.userRepository.findUserByIdpSub(sub);
-    let device: DeviceEntity;
+    const { sub, name, email } = await this.legacyIdpUserInfo(req.token);
 
     const { accessToken, refreshToken } = await this.dbService.db.transaction(
       async (tx: TxType) => {
-        if (!user) {
-          // 사용자가 존재하지 않는 경우, 새로 생성합니다.
-          user = await this.createNewUser(sub, name, email, tx);
-          device = await this.createNewDevice(user, req.device_id, tx);
-        } else {
-          device = await this.deviceRepository.findByDeviceIdAndUserFk(
-            req.device_id,
-            user.pk,
-          );
-          if (!device) {
-            device = await this.createNewDevice(user, req.device_id, tx);
-          }
-        }
-
+        const { user, device } = await this.userSessionService.findOrCreate(
+          sub,
+          name,
+          email,
+          req.device_id,
+          tx,
+        );
         return await this.authService.createNewJwtToken(user, device, tx);
       },
     );
@@ -85,6 +76,23 @@ export class UserService {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
+  }
+
+  private async legacyIdpUserInfo(
+    accessToken: string,
+  ): Promise<{ sub: string; name: string; email: string }> {
+    const { userinfoEndpoint } = await this.account.metadata();
+    const res = await fetch(userinfoEndpoint, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.status === 401) {
+      throw new UnauthorizedException();
+    }
+    if (!res.ok) {
+      this.logger.error(`IdP userinfo responded ${res.status}`);
+      throw new InternalServerErrorException();
+    }
+    return res.json();
   }
 
   async refresh(req: RefreshRequestDto): Promise<RefreshResponseDto> {
@@ -258,6 +266,9 @@ export class UserService {
       }
     }
 
+    // SDK 세션 저장소는 트랜잭션에 참여하지 않으므로 탈퇴가 확정된 뒤 지웁니다.
+    await this.accountSessionRepository.deleteSubject(userCtx.userId);
+
     try {
       // 사용자의 ws 연결 모두 해제
       this.broadcastingService.disconnectUser(userCtx.userId);
@@ -323,68 +334,16 @@ export class UserService {
     device.loggedIn = false;
 
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.refreshTokenRepository.deleteByOpaqueHash(
-        req.refresh_token,
-        tx,
-      );
+      // SDK 세션은 refresh token 을 보내지 않고, 세션 종료는 /api/v1/auth/logout 이 맡습니다.
+      if (req.refresh_token) {
+        await this.refreshTokenRepository.deleteByOpaqueHash(
+          req.refresh_token,
+          tx,
+        );
+      }
       await this.deviceRepository.update(device, tx);
     });
 
     return BaseResultDto.OK;
-  }
-
-  private async createNewUser(
-    sub: string,
-    name: string,
-    email: string,
-    tx: TxType,
-  ) {
-    const user = await this.userRepository.insert(
-      {
-        isDeleted: false,
-        idpSub: sub,
-        name,
-        email,
-      },
-      tx,
-    );
-
-    if (!user) {
-      throw new InternalServerErrorException("Failed to create new user");
-    }
-
-    return user;
-  }
-
-  private async createNewDevice(
-    user: UserEntity,
-    deviceId: string,
-    tx: TxType,
-  ) {
-    // insert device
-    const device = await this.deviceRepository.insert(
-      {
-        userFk: user.pk,
-        fcmToken: "", // 초기값은 빈 문자열로 설정
-        deviceId: deviceId,
-        os: "", // OS 정보는 추후에 업데이트 필요
-        version: "", // 초기 버전 정보
-        loggedIn: false,
-      },
-      tx,
-    );
-
-    // insert user_alarm_setting
-    await this.userAlarmSettingRepository.insert(
-      {
-        deviceFk: device.pk,
-        chatPush: true,
-        marketingPush: true,
-        potInOutPush: true,
-      },
-      tx,
-    );
-
-    return device;
   }
 }

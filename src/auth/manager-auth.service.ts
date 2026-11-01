@@ -1,63 +1,24 @@
-import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { KeyPairService } from "@src/keypair/key-pair.service";
-import { StringValue } from "ms";
-import { ManagerAccessTokenJwtPayload } from "@src/auth/jwt/manager-jwt.payload";
-import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
-import { InfoteamIdpService } from "@lib/infoteam-idp";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
+import { ManagerIdpUser } from "@src/auth/account";
 
 @Injectable()
 export class ManagerAuthService {
-  private readonly logger = new Logger(ManagerAuthService.name);
-  private readonly accessTokenExpiresIn: StringValue = "1d";
-
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly keyPairService: KeyPairService,
-    private readonly infoteamIdpService: InfoteamIdpService,
     private readonly adminAccountRepository: AdminAccountRepository,
   ) {}
 
-  async login(code: string, redirectUri: string, codeVerifier: string) {
-    const idpAccessToken =
-      await this.infoteamIdpService.exchangeAuthorizationCode(
-        code,
-        redirectUri,
-        codeVerifier,
-      );
-    const { email: idpEmail } =
-      await this.infoteamIdpService.validateAccessToken(idpAccessToken);
-    const email = idpEmail.trim().toLowerCase();
+  async resolveSession(user: ManagerIdpUser) {
+    const email = user.email.trim().toLowerCase();
+    if (!email.endsWith("@gm.gist.ac.kr")) {
+      throw new ForbiddenException();
+    }
 
     const adminAccount = await this.adminAccountRepository.findByEmail(email);
     if (!adminAccount) {
       throw new ForbiddenException("This account is not allowed as a manager.");
     }
 
-    return this.createNewJwtToken(email, adminAccount.role);
-  }
-
-  async createNewJwtToken(email: string, role: AdminAccountRole) {
-    if (!email.endsWith("@gm.gist.ac.kr")) {
-      throw new ForbiddenException();
-    }
-    const payload: ManagerAccessTokenJwtPayload = {
-      email: email,
-      role: role,
-    };
-
-    const { privateKey } = await this.keyPairService.getKeyPair();
-
-    const accessToken = this.jwtService.sign(payload, {
-      issuer: "PotG-Manager",
-      algorithm: "RS256",
-      privateKey: privateKey,
-      expiresIn: this.accessTokenExpiresIn,
-    });
-
-    return {
-      accessToken,
-    };
+    return { subject: email };
   }
 }

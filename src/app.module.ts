@@ -19,6 +19,11 @@ import { AdminPotModule } from "@src/admin-pot/admin-pot.module";
 import { LoggerModule } from "@src/global/logger/logger.module";
 import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
+import { ManagerAccountModule, UserAccountModule } from "@src/auth/account";
+import { UserSessionModule } from "@src/user-session/user-session.module";
+import { UserSessionService } from "@src/user-session/user-session.service";
+import { AccountSessionRepository } from "@src/database/repository/account-session.repository";
+import { ManagerAuthService } from "@src/auth/manager-auth.service";
 
 @Module({
   imports: [
@@ -29,6 +34,45 @@ import { ConfigService } from "@nestjs/config";
     }),
     ConfigModule,
     DatabaseModule,
+    UserAccountModule.forRootAsync({
+      isGlobal: true,
+      imports: [DatabaseModule, UserSessionModule],
+      inject: [ConfigService, AccountSessionRepository, UserSessionService],
+      useFactory: (
+        config: ConfigService,
+        store: AccountSessionRepository,
+        userSession: UserSessionService,
+      ) => ({
+        ...accountOptions(config),
+        session: {
+          secret: config.getOrThrow<string>("SESSION_SECRET"),
+          store,
+          // SDK 이전과 같은 access token 수명입니다. WebSocket 인증도 이 만료 시각을 따릅니다.
+          accessTtl: 6 * 60 * 60,
+          resolve: (user, { body }) => userSession.resolveSession(user, body),
+        },
+      }),
+    }),
+    ManagerAccountModule.forRootAsync({
+      isGlobal: true,
+      imports: [DatabaseModule, AuthModule],
+      inject: [ConfigService, AccountSessionRepository, ManagerAuthService],
+      useFactory: (
+        config: ConfigService,
+        store: AccountSessionRepository,
+        managerAuth: ManagerAuthService,
+      ) => ({
+        ...accountOptions(config),
+        session: {
+          // 사용자 세션과 다른 키로 서명해야 사용자 access token 이 관리자 API 를 통과하지 못합니다.
+          secret: `${config.getOrThrow<string>("SESSION_SECRET")}:manager`,
+          store,
+          // SDK 이전처럼 하루 동안 쓰지 않으면 다시 로그인합니다.
+          refreshTtl: 24 * 60 * 60,
+          resolve: (user) => managerAuth.resolveSession(user),
+        },
+      }),
+    }),
     UserModule,
     AuthModule,
     KeyPairModule,
@@ -67,3 +111,13 @@ import { ConfigService } from "@nestjs/config";
   providers: [],
 })
 export class AppModule {}
+
+function accountOptions(config: ConfigService) {
+  return {
+    issuer: config.getOrThrow<string>("ACCOUNT_ISSUER"),
+    clientId: config.getOrThrow<string>("ACCOUNT_CLIENT_ID"),
+    clientSecret: config.getOrThrow<string>("ACCOUNT_CLIENT_SECRET"),
+    // shortcut: 구 버전 앱이 client secret 없이 code 를 교환하므로 client 는 강제 업데이트 전까지 none 으로 남습니다. client_secret_post 로 바꾼 뒤 이 줄을 지웁니다.
+    verifyRegistration: "warn" as const,
+  };
+}

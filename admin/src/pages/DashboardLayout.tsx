@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { clearAccessToken } from "../lib/auth";
+import { account } from "../lib/account";
 import { CurrentManagerProvider } from "../lib/current-manager";
 
 const NAV_ITEMS = [
@@ -15,8 +15,8 @@ const NAV_ITEMS = [
 export function DashboardLayout() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    clearAccessToken();
+  const handleLogout = async () => {
+    await account.logout();
     navigate("/login", { replace: true });
   };
 

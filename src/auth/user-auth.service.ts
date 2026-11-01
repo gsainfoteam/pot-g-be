@@ -10,6 +10,7 @@ import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { createHash, getRandomValues } from "node:crypto";
 import { StringValue } from "ms";
+import { UserAccountService } from "@src/auth/account";
 
 @Injectable()
 export class UserAuthService {
@@ -21,6 +22,7 @@ export class UserAuthService {
     private readonly jwtService: JwtService,
     private readonly keyPairService: KeyPairService,
     private readonly refreshTokenRepository: RefreshTokenRepository,
+    private readonly account: UserAccountService,
   ) {}
 
   async createNewJwtToken(user: UserEntity, device: DeviceEntity, tx: TxType) {
@@ -123,6 +125,17 @@ export class UserAuthService {
   }
 
   async validateAccessToken(accessToken: string) {
+    const session = await this.account.verifySession(accessToken);
+    if (session) {
+      const { exp } = this.jwtService.decode<{ exp: number }>(accessToken);
+      return {
+        userId: session.sub,
+        devicePk: session.devicePk,
+        validUntil: new Date(exp * 1000),
+      };
+    }
+
+    // SDK 이전 앱이 받은 토큰입니다. 구 버전 앱이 강제 업데이트로 사라지면 지웁니다.
     try {
       const { publicKey } = await this.keyPairService.getKeyPair();
 

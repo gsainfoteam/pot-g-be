@@ -19,6 +19,7 @@ import { AppVersionRepository } from "@src/database/repository/app-version.repos
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { LoggerModule } from "@src/global/logger/logger.module";
 import { ReportRepository } from "@src/database/repository/report.repository";
+import { AccountSessionRepository } from "@src/database/repository/account-session.repository";
 
 @Module({
   imports: [ConfigModule, LoggerModule],
@@ -41,6 +42,7 @@ import { ReportRepository } from "@src/database/repository/report.repository";
     AppVersionRepository,
     UserConsentRepository,
     ReportRepository,
+    AccountSessionRepository,
   ],
   exports: [
     DatabaseService,
@@ -61,6 +63,7 @@ import { ReportRepository } from "@src/database/repository/report.repository";
     AppVersionRepository,
     UserConsentRepository,
     ReportRepository,
+    AccountSessionRepository,
   ],
 })
 export class DatabaseModule {}
