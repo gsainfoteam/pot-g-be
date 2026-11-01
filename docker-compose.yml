@@ -40,13 +40,13 @@ services:
         VITE_ACCOUNT_ISSUER: ${ACCOUNT_ISSUER}
         VITE_ACCOUNT_CLIENT_ID: ${IDP_CLIENT_ID}
       secrets:
-        - npm_token
+        - NODE_AUTH_TOKEN
     ports:
       - "3000:3000"
 
 secrets:
-  npm_token:
-    environment: NPM_TOKEN
+  NODE_AUTH_TOKEN:
+    environment: NODE_AUTH_TOKEN
 
 
 volumes:

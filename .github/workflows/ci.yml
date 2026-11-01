@@ -21,17 +21,22 @@ jobs:
           - 5432:5432
         options: --health-cmd "pg_isready -U potg" --health-interval 5s --health-retries 10
     env:
-      NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       DATABASE_URL: postgresql://potg@localhost:5432/potg
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@gsainfoteam"
       - run: bun install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: bun install --frozen-lockfile
         working-directory: admin
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npx tsc --noEmit
       - run: npm run build
       - run: npm run build

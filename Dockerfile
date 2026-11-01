@@ -7,14 +7,14 @@ COPY .npmrc .npmrc
 
 RUN apk add --no-cache git
 
-RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN \
   npm install --force
 
 COPY admin/package*.json ./admin/
 # npm --prefix admin 은 루트 .npmrc 가 아니라 admin/.npmrc 를 읽습니다.
 COPY admin/.npmrc ./admin/.npmrc
 
-RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN \
   npm install --force --prefix admin
 
 COPY . .
@@ -42,7 +42,7 @@ RUN adduser -S nestjs -u 1001
 COPY package*.json ./
 COPY .npmrc .npmrc
 
-RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN \
   npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/drizzle ./drizzle
