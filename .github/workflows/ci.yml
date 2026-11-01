@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: potg
+          POSTGRES_DB: potg
+          # 작업이 끝나면 사라지는 DB 라 비밀번호 없이 접속합니다.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U potg" --health-interval 5s --health-retries 10
+    env:
+      # .npmrc 가 이 값으로 GitHub Packages(@gsainfoteam)에 인증합니다.
+      NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DATABASE_URL: postgresql://potg@localhost:5432/potg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile
+        working-directory: admin
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - run: npm run build
+        working-directory: admin
+      - run: npm run db:migrate
+      - run: npm run test:e2e
