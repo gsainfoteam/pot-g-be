@@ -10,7 +10,6 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  // account.fetch 가 access token 을 붙이고, 401 이면 refresh 한 뒤 한 번 다시 보냅니다.
   const res = await account.fetch(path, {
     ...init,
     headers: {

@@ -7,10 +7,10 @@ import { PotsPage } from "./pages/PotsPage";
 import { PotDetailPage } from "./pages/PotDetailPage";
 import { RoutesPage } from "./pages/RoutesPage";
 import { VersionPage } from "./pages/VersionPage";
-import { useAccountState } from "./lib/account";
+import { useAccount } from "@gsainfoteam/account-react";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { status } = useAccountState();
+  const { status } = useAccount();
 
   if (status === "loading") {
     return <p className="placeholder">불러오는 중...</p>;

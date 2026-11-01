@@ -1,8 +1,8 @@
 import { Navigate } from "react-router-dom";
-import { account, useAccountState } from "../lib/account";
+import { useAccount } from "@gsainfoteam/account-react";
 
 export function LoginPage() {
-  const { status, error } = useAccountState();
+  const { status, error, login } = useAccount();
 
   if (status === "authenticated") {
     return <Navigate to="/" replace />;
@@ -21,7 +21,7 @@ export function LoginPage() {
         <button
           className="button"
           disabled={status === "loading"}
-          onClick={() => account.login({ returnTo: "/" })}
+          onClick={() => login({ returnTo: "/" })}
         >
           Infoteam IDP로 로그인
         </button>
