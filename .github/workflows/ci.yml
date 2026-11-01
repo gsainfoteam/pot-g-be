@@ -14,15 +14,16 @@ jobs:
         image: postgres:17
         env:
           POSTGRES_USER: potg
-          POSTGRES_PASSWORD: potg
           POSTGRES_DB: potg
+          # 작업이 끝나면 사라지는 DB 라 비밀번호 없이 접속합니다.
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
         options: --health-cmd "pg_isready -U potg" --health-interval 5s --health-retries 10
     env:
       # .npmrc 가 이 값으로 GitHub Packages(@gsainfoteam)에 인증합니다.
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DATABASE_URL: postgresql://potg:potg@localhost:5432/potg
+      DATABASE_URL: postgresql://potg@localhost:5432/potg
       LOG_PATH: ./logs
     steps:
       - uses: actions/checkout@v4
