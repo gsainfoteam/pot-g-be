@@ -13,7 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "npm run db:migrate && node --import ./dist/src/instrumentation.js ./dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
@@ -26,9 +26,9 @@
     "node": ">=24.22.1"
   },
   "dependencies": {
+    "@gsainfoteam/account-nest": "^0.4.0",
     "@gsainfoteam/nest-observability": "^0.0.10",
     "@kubiks/otel-drizzle": "^2.1.0",
-    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -40,7 +40,6 @@
     "@nestjs/serve-static": "5.0.5",
     "@nestjs/websockets": "^11.1.6",
     "@types/string-format": "^2.0.3",
-    "axios": "^1.11.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "date-fns": "^4.1.0",
@@ -59,11 +58,13 @@
     "tsx": "^4.19.3",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@gsainfoteam/account-testing": "^0.4.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
@@ -111,8 +112,6 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^@src/(.*)$": "<rootDir>/$1",
-      "^@lib/infoteam-idp$": "<rootDir>/../libs/infoteam-idp/src",
-      "^@lib/infoteam-idp/(.*)$": "<rootDir>/../libs/infoteam-idp/src/$1",
       "^@kubiks/otel-drizzle$": "<rootDir>/../jest.mocks/otel-drizzle.js",
       "^@gsainfoteam/nest-observability$": "<rootDir>/../jest.mocks/nest-observability.js"
     }

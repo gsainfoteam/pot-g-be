@@ -1,4 +1,4 @@
-import { clearAccessToken, getAccessToken } from "./auth";
+import { account } from "./account";
 
 export class ApiError extends Error {
   constructor(
@@ -10,19 +10,16 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = getAccessToken();
-
-  const res = await fetch(path, {
+  // account.fetch 가 access token 을 붙이고, 401 이면 refresh 한 뒤 한 번 다시 보냅니다.
+  const res = await account.fetch(path, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
   });
 
   if (res.status === 401) {
-    clearAccessToken();
     window.location.href = "/login";
     throw new ApiError(401, "Unauthorized");
   }

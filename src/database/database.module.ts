@@ -18,6 +18,7 @@ import { RefreshTokenRepository } from "@src/database/repository/refresh-token.r
 import { AppVersionRepository } from "@src/database/repository/app-version.repository";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { ReportRepository } from "@src/database/repository/report.repository";
+import { AccountSessionRepository } from "@src/database/repository/account-session.repository";
 
 @Module({
   imports: [ConfigModule],
@@ -40,6 +41,7 @@ import { ReportRepository } from "@src/database/repository/report.repository";
     AppVersionRepository,
     UserConsentRepository,
     ReportRepository,
+    AccountSessionRepository,
   ],
   exports: [
     DatabaseService,
@@ -60,6 +62,7 @@ import { ReportRepository } from "@src/database/repository/report.repository";
     AppVersionRepository,
     UserConsentRepository,
     ReportRepository,
+    AccountSessionRepository,
   ],
 })
 export class DatabaseModule {}

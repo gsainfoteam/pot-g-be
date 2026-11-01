@@ -19,8 +19,8 @@
 ### 설치
 
 ```bash
-# 의존성 설치
-bun install
+# 의존성 설치. @gsainfoteam 패키지는 GitHub Packages 에 있어서 read:packages 권한이 있는 토큰이 필요합니다
+NPM_TOKEN=$(gh auth token) bun install
 ```
 
 ### 환경 설정

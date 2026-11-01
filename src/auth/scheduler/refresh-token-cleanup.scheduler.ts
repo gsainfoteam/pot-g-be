@@ -3,6 +3,7 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
+import { AccountSessionRepository } from "@src/database/repository/account-session.repository";
 
 @Injectable()
 export class RefreshTokenCleanupScheduler {
@@ -11,6 +12,7 @@ export class RefreshTokenCleanupScheduler {
   constructor(
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly dbService: DatabaseService,
+    private readonly accountSessionRepository: AccountSessionRepository,
   ) {}
 
   // TODO: When scaling horizontally, multiple server instances will execute this scheduler simultaneously.
@@ -22,7 +24,10 @@ export class RefreshTokenCleanupScheduler {
     this.logger.log("[RefreshTokenCleanupScheduler] Cleanup Started");
     try {
       const count = await this.dbService.db.transaction(async (tx: TxType) => {
-        return await this.refreshTokenRepository.deleteExpiredTokens(tx);
+        return (
+          (await this.refreshTokenRepository.deleteExpiredTokens(tx)) +
+          (await this.accountSessionRepository.deleteExpired(tx))
+        );
       });
       this.logger.log(
         `[RefreshTokenCleanupScheduler] Cleanup Finished. count: ${count}`,
