@@ -5,7 +5,7 @@
     "": {
       "name": "potg-server",
       "dependencies": {
-        "@gsainfoteam/account-nest": "^0.4.0",
+        "@gsainfoteam/account-nest": "^0.5.0",
         "@gsainfoteam/nest-observability": "^0.0.10",
         "@kubiks/otel-drizzle": "^2.1.0",
         "@nestjs/common": "^11.0.1",
@@ -43,7 +43,7 @@
       "devDependencies": {
         "@eslint/eslintrc": "^3.2.0",
         "@eslint/js": "^9.18.0",
-        "@gsainfoteam/account-testing": "^0.4.0",
+        "@gsainfoteam/account-testing": "^0.5.0",
         "@nestjs/cli": "^11.0.0",
         "@nestjs/schematics": "^11.0.0",
         "@nestjs/testing": "^11.0.1",
@@ -278,13 +278,13 @@
 
     "@gsainfoteam/account-contract": ["@gsainfoteam/account-contract@0.2.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-contract/0.2.0/ab0d792d46b8610a570b728c2922836e84fdedd3", {}, "sha512-C6CXSavpgfUc3EnTs2tJcSEMIZ+BITX5NDcFr+MHd2ANz6wytxICBczI69GKwlULoClPnNbT00TYxxtKlMwxyw=="],
 
-    "@gsainfoteam/account-core": ["@gsainfoteam/account-core@0.4.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-core/0.4.0/921c4ceeab5321a90a01b44771ae7548a959404c", { "dependencies": { "@gsainfoteam/account-contract": "^0.2.0", "es-toolkit": "^1.52.0", "jose": "^6.2.12", "oauth4webapi": "^3.8.8" }, "peerDependencies": { "zod": "^4.0.0" } }, "sha512-CduXirKzrzYO3daRtWfjGB+FrzFd4ceBzcKA1JKlDmQyfkODkFzyoO0w798AHLziKMBcdm8ShfOaMhZdpPPnuw=="],
+    "@gsainfoteam/account-core": ["@gsainfoteam/account-core@0.5.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-core/0.5.0/a3c4a27c36af2578b161f98b1ad9aae0373408fb", { "dependencies": { "@gsainfoteam/account-contract": "^0.2.0", "es-toolkit": "^1.52.0", "jose": "^6.2.12", "oauth4webapi": "^3.8.8" }, "peerDependencies": { "zod": "^4.0.0" } }, "sha512-m+ovZTLdNuuAvJO2vzJn3e5Ad9gavzGxfZnIv2m0pSj10rYJLm41UOs5N00rMfHS/4dACmMhrP0olIRDUl+iNA=="],
 
-    "@gsainfoteam/account-nest": ["@gsainfoteam/account-nest@0.4.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-nest/0.4.0/9d0158f31eb776459119667472e3f1ca669ad30f", { "dependencies": { "@gsainfoteam/account-core": "^0.4.0", "@gsainfoteam/account-server": "^0.4.0", "cookie": "^1.1.1", "jose": "^6.2.12" }, "peerDependencies": { "@nestjs/common": "^10.0.0 || ^11.0.0 || ^12.0.0", "zod": "^4.0.0" } }, "sha512-kopYHS0bYJ6UxL/E9HOIrrmO5KGNu13PS6Ex2SWJuGJ5F29wZ7x+zuqiPvTY0w5XoNy9BjRD+GtUv1KkDMwwrg=="],
+    "@gsainfoteam/account-nest": ["@gsainfoteam/account-nest@0.5.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-nest/0.5.0/b5b75558b094e9362b400211470c8462a7390f6e", { "dependencies": { "@gsainfoteam/account-core": "^0.5.0", "@gsainfoteam/account-server": "^0.5.0", "cookie": "^1.1.1", "jose": "^6.2.12" }, "peerDependencies": { "@nestjs/common": "^10.0.0 || ^11.0.0 || ^12.0.0", "drizzle-orm": "^0.45.0", "zod": "^4.0.0" } }, "sha512-vOeSSyrsLj4XQrxPT55HmdR81kvnQhYsoa8XUbaOot7BUnhbrA0xs4pl8tSAtJFRhYiJIHisvtN7PpFZjEuntg=="],
 
-    "@gsainfoteam/account-server": ["@gsainfoteam/account-server@0.4.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-server/0.4.0/58b894a7371df91238cdd6ab7b172f911ca21068", { "dependencies": { "@gsainfoteam/account-core": "^0.4.0", "es-toolkit": "^1.52.0" }, "peerDependencies": { "zod": "^4.0.0" } }, "sha512-WfLb/7dKz6oTcG1iSXNfTd0p3zuSGfZCDokCpI34KurlPRmJZZQPfCwjMOfJqREV3yXoegh34I85jk+l+Eyq1Q=="],
+    "@gsainfoteam/account-server": ["@gsainfoteam/account-server@0.5.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-server/0.5.0/70e725aae8269e0faf8aef10cd0a0759b7c6452b", { "dependencies": { "@gsainfoteam/account-core": "^0.5.0", "es-toolkit": "^1.52.0" }, "peerDependencies": { "zod": "^4.0.0" } }, "sha512-Mr8+XacOJaXUaQyH60xNUBSAXOaB14aZp3QaWJn92+FHEA4hLpeXKxL6oteD1X5XjMl898x2edUFRMe3gtn04g=="],
 
-    "@gsainfoteam/account-testing": ["@gsainfoteam/account-testing@0.4.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-testing/0.4.0/d790c20ad4413124f1cb8f7f9a0a1abbdf0543c0", { "dependencies": { "@faker-js/faker": "^9.9.0", "@gsainfoteam/account-contract": "^0.2.0", "jose": "^6.2.12", "oauth4webapi": "^3.8.8" } }, "sha512-PzuVwFlUQTPnWFiPm5p1TKWaSta4tyBQ4t+cscXyZjefSZIjlZNuRRHCaLlQb1i54aGqwnKrfPapdZX2H41yzw=="],
+    "@gsainfoteam/account-testing": ["@gsainfoteam/account-testing@0.5.0", "https://npm.pkg.github.com/download/@gsainfoteam/account-testing/0.5.0/6af5aa56ac8e02f546432a940768e128fabce2c2", { "dependencies": { "@faker-js/faker": "^9.9.0", "@gsainfoteam/account-contract": "^0.2.0", "jose": "^6.2.12", "oauth4webapi": "^3.8.8" } }, "sha512-yILf9m6kAMhjlvzXVv9+W1xohvXuhOkac03kZON7ouZUuf1G0gjYwaDEhyBCXm/E3Kst7SimUTs7+fIBwamM9g=="],
 
     "@gsainfoteam/nest-observability": ["@gsainfoteam/nest-observability@0.0.10", "https://npm.pkg.github.com/download/@gsainfoteam/nest-observability/0.0.10/a0988013d8bbe1ed929c7406fb96842d92a5e4d4", { "dependencies": { "@opentelemetry/api": "^1.9.1", "@opentelemetry/auto-instrumentations-node": "^0.80.0", "@opentelemetry/core": "^2.11.0", "@opentelemetry/exporter-prometheus": "^0.222.0", "@opentelemetry/exporter-trace-otlp-http": "^0.222.0", "@opentelemetry/resources": "^2.11.0", "@opentelemetry/sdk-node": "^0.222.0", "@opentelemetry/semantic-conventions": "^1.43.0", "class-transformer": "^0.5.1", "class-validator": "^0.14.1", "rxjs": "^7.8.1" }, "peerDependencies": { "@nestjs/common": "^10 || ^11", "@nestjs/core": "^10 || ^11", "@prisma/client": "^5 || ^6 || ^7", "@prisma/instrumentation": "^5 || ^6 || ^7" } }, "sha512-SNVGFuLDDExIpZ/OsdGB7kWtPOlT5n5OhlrI3E0NaNmSwKQUxN22ZGy3o9p6am7s95326Tn+sGBjC2F0f0iNBA=="],
 

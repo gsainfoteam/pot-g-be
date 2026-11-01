@@ -269,7 +269,7 @@ export class UserService {
     }
 
     // SDK 세션 저장소는 트랜잭션에 참여하지 않으므로 탈퇴가 확정된 뒤 지웁니다.
-    await this.accountSessionRepository.deleteSubject(userCtx.userId);
+    await this.accountSessionRepository.store.deleteSubject(userCtx.userId);
 
     try {
       // 사용자의 ws 연결 모두 해제

@@ -11,7 +11,11 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      // moduleResolution 기본값(node10)은 package exports 의 하위 경로를 못 찾습니다. 확장자를 빼야 drizzle-kit 이 .d.ts 대신 .js 를 엽니다.
+      "@gsainfoteam/account-nest/drizzle": [
+        "node_modules/@gsainfoteam/account-nest/dist/drizzle"
+      ]
     },
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
