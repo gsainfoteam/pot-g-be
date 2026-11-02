@@ -17,11 +17,10 @@ import { PopoChatReservationRepository } from "@src/database/repository/popo-cha
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 import { AppVersionRepository } from "@src/database/repository/app-version.repository";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
-import { LoggerModule } from "@src/global/logger/logger.module";
 import { ReportRepository } from "@src/database/repository/report.repository";
 
 @Module({
-  imports: [ConfigModule, LoggerModule],
+  imports: [ConfigModule],
   providers: [
     DatabaseService,
     BankRepository,

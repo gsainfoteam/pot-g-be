@@ -6,7 +6,9 @@ import { ManagerAccessTokenJwtPayload } from "@src/auth/jwt/manager-jwt.payload"
 import { AdminAccountRole } from "@src/admin-database/entity/admin-account.entity";
 import { InfoteamIdpService } from "@lib/infoteam-idp";
 import { AdminAccountRepository } from "@src/admin-database/repository/admin-account.repository";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class ManagerAuthService {
   private readonly logger = new Logger(ManagerAuthService.name);

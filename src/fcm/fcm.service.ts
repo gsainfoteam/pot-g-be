@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as admin from "firebase-admin";
 import { BulkPushMessageDto, PushMessageDto } from "./dto/push-message.dto";
+import { Trace } from "@gsainfoteam/nest-observability";
 
 export interface FcmResult {
   success: boolean;
@@ -17,6 +18,7 @@ export interface BulkFcmResult {
   totalFailed: number;
 }
 
+@Trace()
 @Injectable()
 export class FcmService implements OnModuleInit {
   private readonly logger = new Logger(FcmService.name);

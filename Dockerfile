@@ -1,14 +1,19 @@
-FROM node:20-alpine AS builder
+FROM node:24.22.1-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
+COPY .npmrc .npmrc
 
-RUN npm install --force
+RUN apk add --no-cache git
+
+RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
+  npm install --force
 
 COPY admin/package*.json ./admin/
 
-RUN npm install --force --prefix admin
+RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
+  npm install --force --prefix admin
 
 COPY . .
 
@@ -23,7 +28,7 @@ ENV VITE_IDP_AUTHORIZE_URL=$VITE_IDP_AUTHORIZE_URL
 ENV VITE_IDP_CLIENT_ID=$VITE_IDP_CLIENT_ID
 RUN npm run build --prefix admin
 
-FROM node:20-alpine AS production
+FROM node:24.22.1-alpine AS production
 
 RUN apk add --no-cache tzdata
 
@@ -33,8 +38,10 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nestjs -u 1001
 
 COPY package*.json ./
+COPY .npmrc .npmrc
 
-RUN npm install --omit=dev --force
+RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN \
+  npm install --omit=dev --force
 
 COPY --from=builder --chown=nestjs:nodejs /app/drizzle ./drizzle
 
@@ -48,4 +55,4 @@ USER nestjs
 
 EXPOSE 3000
 
-CMD ["node", "dist/src/main"]
+CMD ["npm", "run", "start:prod"]

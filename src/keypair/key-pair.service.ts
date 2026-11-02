@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { generateKeyPairSync } from "node:crypto";
 import { JwtKeyPairRepository } from "@src/database/repository/jwt-key-pair.repository";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class KeyPairService {
   private jwtPublicKey: string;

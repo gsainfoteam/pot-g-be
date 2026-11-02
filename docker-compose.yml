@@ -32,8 +32,6 @@ services:
     env_file:
       - .env
     environment:
-      - REDIS_HOST=potg-redis
-      - REDIS_PORT=6379
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@potg-db:5432/${POSTGRES_DB}
       - TZ=Asia/Seoul
     build:
@@ -41,8 +39,15 @@ services:
       args:
         VITE_IDP_AUTHORIZE_URL: ${IDP_AUTHORIZE_URL}
         VITE_IDP_CLIENT_ID: ${IDP_CLIENT_ID}
+      secrets:
+        - npm_token
     ports:
       - "3000:3000"
+
+secrets:
+  npm_token:
+    environment: NPM_TOKEN
+
 
 volumes:
   potg-db-data:

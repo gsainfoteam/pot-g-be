@@ -18,7 +18,9 @@ import { WsSendChatReqDto } from "@src/websocket/dto/ws.send-chat.dto";
 import { PotService } from "@src/pot/pot.service";
 import { BaseResultDto } from "@src/global/dto/base-result.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class WebsocketService implements OnModuleDestroy {
   private readonly AUTHORIZATION_TIMEOUT_MS = 30 * 1000; // 30초

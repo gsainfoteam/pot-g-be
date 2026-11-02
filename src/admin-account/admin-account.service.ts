@@ -16,7 +16,9 @@ import { CreateAdminAccountRequestDto } from "@src/admin-account/dto/create-admi
 import { UpdateAdminAccountRoleRequestDto } from "@src/admin-account/dto/update-admin-account-role.dto";
 import { ManagerContext } from "@src/auth/context/manager-context.entity";
 import { TxType } from "@src/global/types/tx.types";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class AdminAccountService {
   constructor(

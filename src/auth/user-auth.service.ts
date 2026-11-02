@@ -10,7 +10,9 @@ import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
 import { TxType } from "@src/global/types/tx.types";
 import { createHash, getRandomValues } from "node:crypto";
 import { StringValue } from "ms";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class UserAuthService {
   private readonly logger = new Logger(UserAuthService.name);

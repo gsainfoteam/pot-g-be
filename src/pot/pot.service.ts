@@ -57,7 +57,9 @@ import { ReportUserReqDto } from "@src/pot/dto/report-user.pot.dto";
 import { ReportEntity } from "@src/database/entity/report.entity";
 import { ReportRepository } from "@src/database/repository/report.repository";
 import { SlackService } from "nestjs-slack";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class PotService {
   private readonly logger = new Logger(PotService.name);

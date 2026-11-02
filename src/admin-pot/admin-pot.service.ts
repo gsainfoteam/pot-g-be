@@ -17,10 +17,12 @@ import {
   AdminPotAccountingDto,
   AdminPotDetailDto,
 } from "@src/admin-pot/dto/admin-pot-detail.dto";
+import { Trace } from "@gsainfoteam/nest-observability";
 
 const UUID_PATTERN =
   /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
+@Trace()
 @Injectable()
 export class AdminPotService {
   constructor(

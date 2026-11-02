@@ -5,7 +5,9 @@ import { StopsEntity } from "@src/database/entity/stops.entity";
 import { RouteEntity } from "@src/database/entity/route.entity";
 import { RouteDto } from "@src/discovery/dto/route.dto";
 import { StopDto } from "@src/discovery/dto/stop.dto";
+import { Trace } from "@gsainfoteam/nest-observability";
 
+@Trace()
 @Injectable()
 export class RouteService implements OnModuleInit {
   private cachedStops: StopsEntity[] = [];
