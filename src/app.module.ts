@@ -18,6 +18,7 @@ import { AdminRouteModule } from "@src/admin-route/admin-route.module";
 import { AdminPotModule } from "@src/admin-pot/admin-pot.module";
 import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ConfigService } from "@nestjs/config";
     AdminAccountModule,
     AdminRouteModule,
     AdminPotModule,
+    HealthModule,
     SlackModule.forRootAsync({
       imports: [ConfigModule],
       isGlobal: true,
