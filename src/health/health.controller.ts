@@ -4,7 +4,6 @@ import {
   HealthCheck,
   HealthCheckService,
   MemoryHealthIndicator,
-  PrismaHealthIndicator,
 } from "@nestjs/terminus";
 import { DrizzleHealthIndicator } from "./drizzle.health";
 
