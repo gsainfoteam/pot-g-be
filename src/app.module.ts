@@ -46,7 +46,6 @@ import { ManagerAuthService } from "@src/auth/manager-auth.service";
         session: {
           secret: config.getOrThrow<string>("SESSION_SECRET"),
           store: store.store,
-          // SDK 이전과 같은 access token 수명입니다. WebSocket 인증도 이 만료 시각을 따릅니다.
           accessTtl: 6 * 60 * 60,
           resolve: (user, { body }) => userSession.resolveSession(user, body),
         },
@@ -66,7 +65,6 @@ import { ManagerAuthService } from "@src/auth/manager-auth.service";
           // 사용자 세션과 다른 키로 서명해야 사용자 access token 이 관리자 API 를 통과하지 못합니다.
           secret: `${config.getOrThrow<string>("SESSION_SECRET")}:manager`,
           store: store.store,
-          // SDK 이전처럼 하루 동안 쓰지 않으면 다시 로그인합니다.
           refreshTtl: 24 * 60 * 60,
           resolve: (user) => managerAuth.resolveSession(user),
         },
