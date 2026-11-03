@@ -22,7 +22,7 @@ export class HealthController {
   async check() {
     return await this.health.check([
       () => this.drizzleIndicator.pingCheck("database", this.drizzleService),
-      () => this.memoryIndicator.checkRSS("memory_rss", 1024 * 1024 * 200),
+      () => this.memoryIndicator.checkRSS("memory_rss", 1024 * 1024 * 400),
     ]);
   }
 }
