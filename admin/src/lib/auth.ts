@@ -29,21 +29,33 @@ export function isLoggedIn(): boolean {
   return !!getAccessToken();
 }
 
-function generateCodeVerifier(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
+function base64UrlEncode(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 }
 
-export function buildIdpAuthorizeUrl(): string {
+function generateCodeVerifier(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return base64UrlEncode(bytes);
+}
+
+async function generateCodeChallenge(codeVerifier: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(codeVerifier),
+  );
+  return base64UrlEncode(new Uint8Array(digest));
+}
+
+export async function buildIdpAuthorizeUrl(): Promise<string> {
   const authorizeUrl = import.meta.env.VITE_IDP_AUTHORIZE_URL;
   const clientId = import.meta.env.VITE_IDP_CLIENT_ID;
 
-  // 이 IDP는 code_challenge_method=plain을 쓰므로 code_verifier를 그대로
-  // code_challenge로 보내고, 콜백에서 같은 값을 code_verifier로 다시 보냅니다.
+  // code_challenge_method=S256: code_verifier의 SHA-256 해시를 code_challenge로
+  // 보내고, 콜백에서 원본 code_verifier를 다시 보냅니다.
   const codeVerifier = generateCodeVerifier();
   try {
     sessionStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
@@ -56,8 +68,8 @@ export function buildIdpAuthorizeUrl(): string {
     client_id: clientId,
     redirect_uri: getRedirectUri(),
     scope: "profile email",
-    code_challenge: codeVerifier,
-    code_challenge_method: "plain",
+    code_challenge: await generateCodeChallenge(codeVerifier),
+    code_challenge_method: "S256",
   });
 
   return `${authorizeUrl}?${params.toString()}`;
