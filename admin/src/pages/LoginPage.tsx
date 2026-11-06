@@ -1,8 +1,8 @@
 import { buildIdpAuthorizeUrl } from "../lib/auth";
 
 export function LoginPage() {
-  const handleLogin = () => {
-    window.location.href = buildIdpAuthorizeUrl();
+  const handleLogin = async () => {
+    window.location.href = await buildIdpAuthorizeUrl();
   };
 
   return (
