@@ -62,7 +62,7 @@ export class DeviceRepository {
   async findFcmTokensByUserFks(userFks: string[]) {
     return await this.dbService.db
       .select({
-        deviceID: device.deviceId,
+        deviceId: device.deviceId,
         loggedIn: device.loggedIn,
         fcmToken: device.fcmToken,
         chatPush: userAlarmSetting.chatPush,

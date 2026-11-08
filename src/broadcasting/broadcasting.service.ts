@@ -99,7 +99,7 @@ export class BroadcastingService {
         }
 
         this.logger.debug(
-          `[Broadcast] WebSocket message sent. eventId=${potEventDto.id}`,
+          `[Broadcast] WebSocket sent starting. eventId=${potEventDto.id}`,
         );
         targetClient.sendMessage(potEventReceiveDto);
         // TODO: targetClient 하나하나마다 10초 후에 ack 확인하는 비동기 작업을 시작하는게
@@ -226,8 +226,9 @@ export class BroadcastingService {
     );
     this.logger.debug(
       `[Broadcast] set target. ${targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.chatPush)
         .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceID: ${token.deviceID}`,
+          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
         )
         .join(",")}`,
     );
@@ -254,8 +255,9 @@ export class BroadcastingService {
     );
     this.logger.debug(
       `[Broadcast] set target. ${targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.chatPush)
         .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceID: ${token.deviceID}`,
+          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
         )
         .join(",")}`,
     );
@@ -282,8 +284,9 @@ export class BroadcastingService {
     );
     this.logger.debug(
       `[Broadcast] set target. ${targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
         .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceID: ${token.deviceID}`,
+          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
         )
         .join(",")}`,
     );
@@ -314,8 +317,9 @@ export class BroadcastingService {
     );
     this.logger.debug(
       `[Broadcast] set target except for leaved user. ${targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
         .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceID: ${token.deviceID}`,
+          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
         )
         .join(",")}`,
     );
@@ -345,8 +349,9 @@ export class BroadcastingService {
     );
     this.logger.debug(
       `[Broadcast] set target except for leaved user. ${targetFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
         .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceID: ${token.deviceID}`,
+          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
         )
         .join(",")}`,
     );
@@ -355,8 +360,9 @@ export class BroadcastingService {
     ]);
     this.logger.debug(
       `[Broadcast] set target to leaved user. ${kickedUserFcmTokens
+        .filter((tokenInfo) => tokenInfo.potInOutPush)
         .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceID: ${token.deviceID}`,
+          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
         )
         .join(",")}`,
     );
@@ -391,7 +397,7 @@ export class BroadcastingService {
       (tokenInfo) => {
         if (tokenInfo.fcmToken !== null && tokenInfo.fcmToken !== "") {
           this.logger.debug(
-            `[FCM] Device has token. devicedId=${tokenInfo.deviceID}, loggedIn = ${tokenInfo.loggedIn}`,
+            `[FCM] Device has token. deviceId=${tokenInfo.deviceId}, loggedIn = ${tokenInfo.loggedIn}`,
           );
           return true;
         }
@@ -401,12 +407,12 @@ export class BroadcastingService {
           tokenInfo.potInOutPush
         ) {
           this.logger.debug(
-            `[FCM] Device doesn't have token, but agrees pushing alarm. deviceID=${tokenInfo.deviceID}, loggedIn = ${tokenInfo.loggedIn}`,
+            `[FCM] Device doesn't have token, but agrees pushing alarm. deviceId=${tokenInfo.deviceId}, loggedIn = ${tokenInfo.loggedIn}`,
           );
           return true;
         }
         this.logger.debug(
-          `[FCM] Device doesn't have token and agree pushing alarm. DeviceId=${tokenInfo.deviceID}, loggedIn=${tokenInfo.loggedIn}`,
+          `[FCM] Device has no token and no enabled push settings. deviceId=${tokenInfo.deviceId}, loggedIn=${tokenInfo.loggedIn}`,
         );
       },
     );
@@ -434,7 +440,8 @@ export class BroadcastingService {
       });
     } catch (e) {
       this.logger.error(
-        `Failed to send FCM notification for ${potEventDto.event_type}. errorCode=${errorCode}`,
+        `Failed to send FCM notification for ${potEventDto.event_type}:.`,
+        e,
       );
     }
   }
