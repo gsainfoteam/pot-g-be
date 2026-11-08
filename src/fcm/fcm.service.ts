@@ -213,6 +213,7 @@ export class FcmService implements OnModuleInit {
         actionButtonText: actionButtonText || "",
       },
     };
+    this.logger.debug(`[FCM] set message. fcmToken=${fcmTokens}`);
 
     const response = await admin
       .messaging()
@@ -233,9 +234,11 @@ export class FcmService implements OnModuleInit {
       this.logger.error(
         `FCM messages failed to send (Success: ${response.successCount}, Failed: ${response.failureCount}). Details:`,
       );
-      results.forEach((res) => {
+      response.responses.forEach((res) => {
         if (!res.success) {
-          this.logger.error(`FCM Token: ${res.fcmToken}, Error: ${res.error}`);
+          this.logger.error(
+            `[FCM] Message failed. errorCode=${res.error?.code ?? "unknown"}`,
+          );
         }
       });
     }
