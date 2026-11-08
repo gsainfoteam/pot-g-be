@@ -1,15 +1,15 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { iFcmService } from "./fcm.interface";
+import { IFcmService } from "./fcm.interface";
 import { PushMessageDto, BulkPushMessageDto } from "./dto/push-message.dto";
 import { FcmResult, BulkFcmResult } from "./fcm.service";
 
 @Injectable()
-export class FcmLocalService implements iFcmService {
+export class FcmLocalService implements IFcmService {
   private readonly logger = new Logger(FcmLocalService.name);
   async sendPushNotification(pushMessage: PushMessageDto): Promise<FcmResult> {
     const { fcmToken, title, body } = pushMessage;
     this.logger.log(
-      `[Local FCM] 단일 push message -> Token: ${fcmToken}, title: ${title}, body: ${body}`,
+      `[Local FCM] Single push message -> Token: ${fcmToken}, title: ${title}, body: ${body}`,
     );
     return {
       success: true,
@@ -23,7 +23,7 @@ export class FcmLocalService implements iFcmService {
   ): Promise<BulkFcmResult> {
     const { fcmTokens, title, body } = bulkPushMessage;
     this.logger.log(
-      `[Local FCM] 다중 push message -> ${fcmTokens.length}명, title: ${title}, body: ${body}`,
+      `[Local FCM] Multiple push message -> ${fcmTokens.length}명, title: ${title}, body: ${body}`,
     );
 
     const results: FcmResult[] = fcmTokens.map((token, index) => ({
@@ -45,7 +45,7 @@ export class FcmLocalService implements iFcmService {
       return false;
     }
     this.logger.debug(
-      `[Local FCM] 토큰 유효성 검증 통과 -> Token: ${fcmToken}`,
+      `[Local FCM] Token validation passed -> Token: ${fcmToken}`,
     );
     return true;
   }
