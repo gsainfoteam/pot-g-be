@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import * as admin from "firebase-admin";
 import { BulkPushMessageDto, PushMessageDto } from "./dto/push-message.dto";
 import { Trace } from "@gsainfoteam/nest-observability";
-import { iFcmService } from "./fcm.interface";
+import { IFcmService } from "./fcm.interface";
 
 export interface FcmResult {
   success: boolean;
@@ -21,7 +21,7 @@ export interface BulkFcmResult {
 
 @Trace()
 @Injectable()
-export class FcmService implements OnModuleInit, iFcmService {
+export class FcmService implements OnModuleInit, IFcmService {
   private readonly logger = new Logger(FcmService.name);
   private firebaseApp: admin.app.App;
 
