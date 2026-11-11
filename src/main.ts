@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { ValidationPipe, Logger, filterLogLevels } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { customMessageParser } from "@src/websocket/websocket.utils";
 import { WsExceptionFilter } from "./global/filters/ws-exception.filter";
@@ -9,7 +9,7 @@ import { SlackService } from "nestjs-slack";
 import { initializeMetrics, MetricsInterceptor } from "@gsainfoteam/nest-observability";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {logger: filterLogLevels(process.env.LOG_LEVEL)});
+  const app = await NestFactory.create(AppModule);
 
   const slackService: SlackService = app.get(SlackService);
 

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { StagingLogger } from "../global/logger/staging.logger";
+import { Injectable } from "@nestjs/common";
 import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
@@ -24,7 +25,7 @@ import { Trace } from "@gsainfoteam/nest-observability";
 @Trace()
 @Injectable()
 export class BroadcastingService {
-  private readonly logger = new Logger(BroadcastingService.name);
+  private readonly logger = new StagingLogger(BroadcastingService.name);
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -39,7 +40,7 @@ export class BroadcastingService {
     senderName?: string,
   ) {
     this.logger.debug(
-      `[Broadcast] Event received. eventType=${potEventDto.event_type}, potPk=${potEventDto.pot_pk}, eventId=${potEventDto.id}, targetUserCount=${userPks.length}`,
+      `[asyncBroadcastPotEvent] ${potName ?? potEventDto.pot_pk} ${potEventDto.event_type}, users=${userPks.join(",")}`,
     );
     if (userPks.length === 0) {
       return;
@@ -51,7 +52,7 @@ export class BroadcastingService {
         subscribeOn(asyncScheduler),
         catchError((err) => {
           this.logger.error(
-            `Broadcast failed for event type ${potEventDto.event_type}:`,
+            `[asyncBroadcastPotEvent] Broadcast failed for event type ${potEventDto.event_type}:`,
             err,
           );
           return EMPTY;
@@ -82,9 +83,7 @@ export class BroadcastingService {
       if (targetClients.length === 0) {
         // 오프라인 상태 -> 푸시 알람 발송
         pushAlarmTargetUserPks.push(userPk);
-        this.logger.debug(
-          `[Broadcast] WebSocket delivery skipped. eventId=${potEventDto.id}, reason=offline`,
-        );
+        this.logger.debug(`[broadcastPotEvent] user=${userPk} offline -> push`);
         return;
       }
 
@@ -93,13 +92,13 @@ export class BroadcastingService {
           // 인증되지 않은 상태 -> 대기열 추가
           targetClient.addMessageToQueue(potEventReceiveDto);
           this.logger.debug(
-            `[Broadcast] WebSocket message queued. eventId=${potEventDto.id}, reason=not-authorized`,
+            `[broadcastPotEvent] user=${userPk} not authorized -> queued (no push fallback)`,
           );
           return;
         }
 
         this.logger.debug(
-          `[Broadcast] WebSocket sent starting. eventId=${potEventDto.id}`,
+          `[broadcastPotEvent] user=${userPk} sent -> waiting for ACK`,
         );
         targetClient.sendMessage(potEventReceiveDto);
         // TODO: targetClient 하나하나마다 10초 후에 ack 확인하는 비동기 작업을 시작하는게
@@ -119,7 +118,7 @@ export class BroadcastingService {
             ),
             catchError((err) => {
               this.logger.error(
-                `Error checking ack for event type ${potEventDto.event_type}:`,
+                `[broadcastPotEvent] Error checking ack for event type ${potEventDto.event_type}:`,
                 err,
               );
               return EMPTY;
@@ -152,7 +151,7 @@ export class BroadcastingService {
     ) {
       // ack 가 도착했음
       this.logger.debug(
-        `[Ws] Ack received. eventType=${potEventDto.event_type}, eventId=${potEventDto.id}, requestId=${potEventReceiveDto.request_id}`,
+        `[checkPotEventAck] user=${targetClient.getUserId()} ACK received -> skip push`,
       );
       return;
     }
@@ -165,7 +164,7 @@ export class BroadcastingService {
 
     // 10초 대기 후에도 ack 가 오지 않는 경우 푸시 알람 발송
     this.logger.debug(
-      `[Ws] Ack timeout. eventType=${potEventDto.event_type}, eventId=${potEventDto.id}, requestId=${potEventReceiveDto.request_id}`,
+      `[checkPotEventAck] user=${targetClient.getUserId()} ACK timeout -> push`,
     );
     await this.sendPotEventPush(
       potEventDto,
@@ -220,17 +219,9 @@ export class BroadcastingService {
     potName?: string,
     senderName?: string,
   ) {
-    this.logger.debug(`[Broadcast] start send chat push.`);
     const targetFcmTokens = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
-    );
-    this.logger.debug(
-      `[Broadcast] set target. ${targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.chatPush)
-        .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
-        )
-        .join(",")}`,
+      "chatPush",
     );
 
     const potEventChatV1Dto = potEventDto.data as PotEventChatV1Dto;
@@ -249,17 +240,9 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
   ) {
-    this.logger.debug(`[Broadcast] start send popo's chat push.`);
     const targetFcmTokens = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
-    );
-    this.logger.debug(
-      `[Broadcast] set target. ${targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.chatPush)
-        .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
-        )
-        .join(",")}`,
+      "chatPush",
     );
 
     const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
@@ -278,17 +261,9 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
   ) {
-    this.logger.debug(`[Broadcast] start send userIn push.`);
     const targetFcmTokens = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
-    );
-    this.logger.debug(
-      `[Broadcast] set target. ${targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
-        )
-        .join(",")}`,
+      "potInOutPush",
     );
 
     await this.sendPushToUser(
@@ -306,7 +281,6 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
   ) {
-    this.logger.debug(`[Broadcast] start send userLeave push.`);
     const potEventUserLeaveV1Dto = potEventDto.data as PotEventUserLeaveV1Dto;
 
     // 채팅방을 퇴장한 유저는 제외하고 푸시 알림 발송
@@ -314,14 +288,7 @@ export class BroadcastingService {
       pushAlarmTargetUserPks.filter(
         (userPk) => userPk !== potEventUserLeaveV1Dto.user_pk,
       ),
-    );
-    this.logger.debug(
-      `[Broadcast] set target except for leaved user. ${targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
-        )
-        .join(",")}`,
+      "potInOutPush",
     );
 
     await this.sendPushToUser(
@@ -339,32 +306,17 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
   ) {
-    this.logger.debug(`[Broadcast] start send userKick push.`);
     const potEventUserKickV1Dto = potEventDto.data as PotEventUserKickV1Dto;
 
     const targetFcmTokens = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks.filter(
         (userPk) => userPk !== potEventUserKickV1Dto.kicked_user_pk,
       ),
+      "potInOutPush",
     );
-    this.logger.debug(
-      `[Broadcast] set target except for leaved user. ${targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
-        )
-        .join(",")}`,
-    );
-    const kickedUserFcmTokens = await this.getFcmTokensForUsers([
-      potEventUserKickV1Dto.kicked_user_pk,
-    ]);
-    this.logger.debug(
-      `[Broadcast] set target to leaved user. ${kickedUserFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map(
-          (token) => `FcmToken: ${token.fcmToken}, deviceId: ${token.deviceId}`,
-        )
-        .join(",")}`,
+    const kickedUserFcmTokens = await this.getFcmTokensForUsers(
+      [potEventUserKickV1Dto.kicked_user_pk],
+      "potInOutPush",
     );
 
     await this.sendPushToUser(
@@ -386,36 +338,39 @@ export class BroadcastingService {
     );
   }
 
-  private async getFcmTokensForUsers(userPks: string[]) {
+  private async getFcmTokensForUsers(
+    userPks: string[],
+    setting: "chatPush" | "potInOutPush",
+  ) {
     if (userPks.length === 0) {
       return [];
     }
 
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
-    return (await this.deviceRepository.findFcmTokensByUserFks(userPks)).filter(
-      (tokenInfo) => {
-        if (tokenInfo.fcmToken !== null && tokenInfo.fcmToken !== "") {
-          this.logger.debug(
-            `[FCM] Device has token. deviceId=${tokenInfo.deviceId}, loggedIn = ${tokenInfo.loggedIn}`,
-          );
-          return true;
-        }
-        if (
-          tokenInfo.chatPush ||
-          tokenInfo.marketingPush ||
-          tokenInfo.potInOutPush
-        ) {
-          this.logger.debug(
-            `[FCM] Device doesn't have token, but agrees pushing alarm. deviceId=${tokenInfo.deviceId}, loggedIn = ${tokenInfo.loggedIn}`,
-          );
-          return true;
-        }
+    const devices = await this.deviceRepository.findFcmTokensByUserFks(userPks);
+    for (const userPk of userPks) {
+      if (!devices.some((device) => device.userFk === userPk)) {
         this.logger.debug(
-          `[FCM] Device has no token and no enabled push settings. deviceId=${tokenInfo.deviceId}, loggedIn=${tokenInfo.loggedIn}`,
+          `[getFcmTokensForUsers] user=${userPk} no logged-in devices (unregistered or logged out)`,
         );
-      },
-    );
+      }
+    }
+    return devices.filter((tokenInfo) => {
+      this.logger.debug(
+        `[getFcmTokensForUsers] user=${tokenInfo.userFk} device=${tokenInfo.deviceId} token=${StagingLogger.tokenId(tokenInfo.fcmToken)} ${setting}=${tokenInfo[setting]} -> ${tokenInfo[setting] == null ? "skip: missing settings" : !tokenInfo[setting] ? "skip: disabled" : "enabled"}`,
+      );
+      if (tokenInfo.fcmToken !== null && tokenInfo.fcmToken !== "") {
+        return true;
+      }
+      if (
+        tokenInfo.chatPush ||
+        tokenInfo.marketingPush ||
+        tokenInfo.potInOutPush
+      ) {
+        return true;
+      }
+    });
   }
 
   private async sendPushToUser(
@@ -424,13 +379,16 @@ export class BroadcastingService {
     title: string,
     body: string,
   ) {
-    this.logger.debug(
-      `[FCM] Push dispatch. eventType=${potEventDto.event_type}, recipientCount=${fcmTokens.length}`,
-    );
     if (fcmTokens.length === 0) {
+      this.logger.debug(
+        `[sendPushToUser] ${title} no eligible devices -> skip`,
+      );
       return;
     }
 
+    this.logger.debug(
+      `[sendPushToUser] ${title} ${potEventDto.event_type}, targets=${fcmTokens.length}`,
+    );
     try {
       await this.fcmService.sendBulkPushNotification({
         fcmTokens: fcmTokens,
@@ -440,7 +398,7 @@ export class BroadcastingService {
       });
     } catch (e) {
       this.logger.error(
-        `Failed to send FCM notification for ${potEventDto.event_type}:.`,
+        `[sendPushToUser] Failed to send FCM notification for ${potEventDto.event_type}:.`,
         e,
       );
     }
