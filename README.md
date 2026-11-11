@@ -13,8 +13,10 @@
 
 ### 필수 조건
 
-- Bun >= 1.0.0
-- PostgreSQL >= 14.0
+- bun >= 1.0.0
+- npm >=10.0.0
+- node >=24.22.1
+- PostgreSQL >= 17.0
 
 ### 설치
 
@@ -55,11 +57,13 @@ NPM_TOKEN=CHANGE_TO_YOUR_NPM_TOKEN
 
 IDP 관련 환경 변수 중 IDP_CLIENT_ID와 IDP_CLIENT_SECRET은 따로 발급받아야 합니다. 두 환경 변수는 다음의 과정을 통해 발급받을 수 있습니다.
 
-1.  idp.gistory.me 접속
-2.  개발자 센터에서 새로운 서비스 추가
-3.  서비스 이름 입력 후 생성
-4.  서비스 상세에서 client id와 client secret 발급
-5.  발급받은 값을 각각 IDP_CLIENT_ID와 IDP_CLIENT_SECRET에 입력
+1. account.gistory.me 접속
+2. 개발자 센터에서 새로운 서비스 추가
+3. 서비스 이름 입력 후 생성 (임의로 설정해도 상관 없음)
+4. 서비스 상세에서 client id와 client secret 발급
+5. 발급받은 값을 각각 IDP_CLIENT_ID와 IDP_CLIENT_SECRET에 입력
+
+#### NPM Token 발급 방법
 
 NPM Token은 다음의 과정을 통해 발급받을 수 있습니다.
 
@@ -70,16 +74,16 @@ NPM Token은 다음의 과정을 통해 발급받을 수 있습니다.
 
 (github CLI가 설치되어 있지 않은 경우)
 
-1.  github.com 접속
-2.  로그인 후 프로필에서 Settings로 이동
-3.  좌측 Open Menu 클릭 후, 목록 아래의 Developer settings로 이동
-4.  Personal access tokens 선택 후 Tokens (classic) 선택
-5.  repo, read:packages 체크 후 Generate Token
-6.  발급된 Token을 NPM_TOKEN에 입력
+1. github.com 접속
+2. 로그인 후 프로필에서 Settings로 이동
+3. 좌측 Open Menu 클릭 후, 목록 아래의 Developer settings로 이동
+4. Personal access tokens 선택 후 Tokens (classic) 선택
+5. repo, read:packages 체크 후 Generate Token
+6. 발급된 Token을 NPM_TOKEN에 입력
 
 ### Docker 실행
 
-로컬에서 별도로 postgreSQL을 다운받아 데이터베이스를 구동할 수 있지만, 기본적으로는 Docker 사용을 권장합니다.
+로컬에서 별도로 PostgreSQL을 설치해 데이터베이스를 구동할 수는 있지만, 기본적으로는 Docker 사용을 **강력히** 권장합니다.
 
 `.env` 파일에 설정된 POSTGRES 환경 변수 값을 바탕으로 로컬 DB 컨테이너가 자동으로 생성됩니다.
 
@@ -88,26 +92,21 @@ NPM Token은 다음의 과정을 통해 발급받을 수 있습니다.
 docker compose up -d potg-db
 ```
 
-### 데이터베이스 마이그레이션
+### 데이터베이스 마이그레이션 및 개발을 위한 세팅
 
 ```bash
-# 마이그레이션 생성
-bunx drizzle-kit generate
+bun run db:migrate
+```
 
-# 마이그레이션 적용
-bunx drizzle-kit push
+어드민 페이지의 경우 db 에 로그인이 가능한 idp 계정 리스트가 저장되어 있어야 합니다. (화이트리스트 개념)
+따라서 아래 명령어를 실행시켜야 본인의 idp 계정을 통해 어드민 페이지로 접속이 가능합니다.
+
+```bash
+bun run db:seed-admin -- <email>@gm.gist.ac.kr superadmin
 ```
 
 ### 개발 서버 실행
 
 ```bash
-# 개발 모드
 bun run start:dev
-
-# 프로덕션 모드
-bun run start:prod
 ```
-
-## 라이선스
-
-MIT
