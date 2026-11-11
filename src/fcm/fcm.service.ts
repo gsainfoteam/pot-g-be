@@ -244,6 +244,13 @@ export class FcmService implements OnModuleInit {
       this.logger.error(
         `[sendBulkPushNotification] FCM send failed for ${response.failureCount} device(s)`,
       );
+      response.responses.forEach((result, index) => {
+        if (!result.success) {
+          this.logger.error(
+            `[sendBulkPushNotification] token=${StagingLogger.tokenId(fcmTokens[index])} failed: ${result.error?.code ?? "unknown"}`,
+          );
+        }
+      });
     }
 
     return {
