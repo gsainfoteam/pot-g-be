@@ -40,11 +40,11 @@ bun install
 POSTGRES_PASSWORD=password
 POSTGRES_USER=potg
 POSTGRES_DB=potg
-DATABASE_URL=postgresql://username:password@localhost:5432/potg
+DATABASE_URL=postgresql://potg:password@localhost:5432/potg
 # (Postgres 관련 환경 변수는 모두 수정 불필요)
 
 # IDP Server
-IDP_URL=https://api.idp.gistory.me # (수정 불필요)
+IDP_URL=https://api.account.gistory.me # (수정 불필요)
 IDP_CLIENT_ID=CHANGE_TO_YOUR_IDP_CLIENT_ID
 IDP_CLIENT_SECRET=CHANGE_TO_YOUR_IDP_CLIENT_SECRET
 IDP_AUTHORIZE_URL=https://account.gistory.me/authorize # (수정 불필요)
@@ -60,8 +60,9 @@ IDP 관련 환경 변수 중 IDP_CLIENT_ID와 IDP_CLIENT_SECRET은 따로 발급
 1. account.gistory.me 접속
 2. 개발자 센터에서 새로운 서비스 추가
 3. 서비스 이름 입력 후 생성 (임의로 설정해도 상관 없음)
-4. 서비스 상세에서 client id와 client secret 발급
-5. 발급받은 값을 각각 IDP_CLIENT_ID와 IDP_CLIENT_SECRET에 입력
+4. 서비스 상세-연결에서 Redirect URIs에 http://localhost:3000/callback을 입력
+5. 서비스 상세-일반에서 client id와 client secret 발급
+6. 발급받은 값을 각각 IDP_CLIENT_ID와 IDP_CLIENT_SECRET에 입력
 
 #### NPM Token 발급 방법
 
@@ -78,7 +79,7 @@ NPM Token은 다음의 과정을 통해 발급받을 수 있습니다.
 2. 로그인 후 프로필에서 Settings로 이동
 3. 좌측 Open Menu 클릭 후, 목록 아래의 Developer settings로 이동
 4. Personal access tokens 선택 후 Tokens (classic) 선택
-5. repo, read:packages 체크 후 Generate Token
+5. read:packages 체크 후 Generate Token
 6. 발급된 Token을 NPM_TOKEN에 입력
 
 ### Docker 실행
@@ -103,6 +104,32 @@ bun run db:migrate
 
 ```bash
 bun run db:seed-admin -- <email>@gm.gist.ac.kr superadmin
+```
+
+### Admin 프론트엔드 설정 및 빌드
+
+potG 백엔드 서버는 `admin/dist` directory의 파일을 통해 관리자 화면을 제공합니다.
+`admin` 폴더 안에 `.env-template`을 복사하여 `.env` 파일을 생성합니다.
+VITE_IDP_CLIENT_ID 환경 변수에 이전에 발급받은 IDP_CLIENT_ID 값을 넣습니다.
+
+```env
+# VITE_IDP_AUTHORIZE_URL은 수정 불필요
+VITE_IDP_AUTHORIZE_URL=[https://account.gistory.me/authorize](https://account.gistory.me/authorize)
+VITE_IDP_CLIENT_ID=CHANGE_TO_YOUR_IDP_CLIENT_ID
+```
+
+```bash
+# admin 폴더로 이동
+cd admin
+
+# admin 의존성 패키지 설치
+bun install
+
+# admin/dist 생성
+bun run build
+
+# 프로젝트 루트 폴더로 복귀
+cd ..
 ```
 
 ### 개발 서버 실행
