@@ -1,4 +1,37 @@
+import { ApiProperty } from "@nestjs/swagger";
 export class BaseResultDto {
+  @ApiProperty({
+    enum: [
+      "OK",
+      "UNKNOWN",
+      "PotNotExist",
+      "AfterDepartureConfirmed",
+      "PotAlreadyClosed",
+      "PotFull",
+      "NotAccountingRequester",
+      "AlreadyRequested",
+      "NotYetRequested",
+      "UserNotInPot",
+      "NotYetPaymentConfirmed",
+      "NotYetPaymentCompleted",
+      "NotAHost",
+      "NotAParticipant",
+      "CannotKickSelf",
+      "BeforeNow",
+      "BeforeDeparture",
+      "NotInAvailableTimeRange",
+      "AccountInfoNotSet",
+      "CostPerUserMismatch",
+      "CostCannotBeNegative",
+      "InvalidCapacity",
+      "DepartureAvailableBeforeNow",
+      "InvalidDepartureAvailableTime",
+      "TooFarDepartureAvailableTime",
+    ],
+    example: "OK",
+    description:
+      "업무 처리 결과. OK 외의 코드는 HTTP 성공 상태에서도 실패 사유를 나타냅니다.",
+  })
   result: string;
 
   static OK: BaseResultDto = {
