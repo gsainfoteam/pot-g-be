@@ -1,5 +1,37 @@
 # PotG Backend
 
+## API 문서 (Swagger)
+
+서버 실행 후 다음 경로에서 현재 HTTP API 명세를 확인할 수 있습니다.
+
+- Swagger UI: <http://localhost:3000/api/docs>
+- OpenAPI JSON: <http://localhost:3000/api/docs-json>
+- OpenAPI YAML: <http://localhost:3000/api/docs-yaml>
+
+사용자·관리자 API 및 `/health`를 포함합니다. WebSocket 메시지는 별도 프로토콜이므로 이 HTTP 명세에 포함하지 않습니다.
+
+Swagger UI의 **Authorize**에 `Bearer` 접두사 없이 액세스 토큰을 입력합니다.
+`user-access-token`은 `/api/v1/user/login`으로 발급한 사용자 토큰,
+`manager-access-token`은 `/api/manager/v1/auth/login`으로 발급한 관리자 토큰입니다.
+관리자 계정 생성·권한 변경·삭제에는 `superadmin` 권한이 필요합니다.
+
+POST의 기본 성공 상태는 **201**입니다. `result` 필드가 있는 API는 HTTP 성공 상태에서도
+`OK` 이외의 업무 오류 코드를 반환할 수 있으므로 응답 본문을 함께 확인해야 합니다.
+날짜 요청은 `2026-11-15T10:00:00+09:00`처럼 시간대가 포함된 ISO 8601 문자열을 권장합니다.
+팟 이벤트의 `timestamp`와 조회 조건 `starts_from`은 Unix timestamp **초** 단위입니다.
+
+DTO 필드를 변경할 때는 `@ApiProperty`/`@ApiPropertyOptional`을 함께 갱신하고,
+새 HTTP API에는 요약, 응답 타입, 필요한 인증 정보를 추가합니다.
+제네릭 페이지네이션과 이벤트 payload는 명시적인 스키마를 사용합니다.
+
+```bash
+# 외부 서비스 연결 없이 전체 HTTP 명세 및 문서 경로 검증
+bun run test --runInBand swagger.spec.ts
+bun run build
+```
+
+구현 방식은 [NestJS OpenAPI 문서](https://docs.nestjs.com/openapi/types-and-parameters)를 참고했습니다.
+
 택시 합승 서비스 PotG의 백엔드 서버입니다.
 
 ## 기술 스택
