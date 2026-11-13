@@ -46,20 +46,34 @@ import { HealthModule } from "./health/health.module";
     SlackModule.forRootAsync({
       imports: [ConfigModule],
       isGlobal: true,
-      useFactory: (configService: ConfigService) => ({
-        type: "webhook",
-        channels: [
-          {
-            name: "bug",
-            url: configService.get<string>("SLACK_WEBHOOK_URL"),
-          },
-          {
-            name: "report",
-            url: configService.get<string>("SLACK_REPORT_WEBHOOK_URL"),
-          },
-        ],
-        defaultChannel: "bug",
-      }),
+      useFactory: (configService: ConfigService) => {
+        const SlackWebHookURL = configService.get<string>("SLACK_WEBHOOK_URL");
+        const SlackReportWebhookURL = configService.get<string>(
+          "SLACK_REPORT_WEBHOOK_URL",
+        );
+        if (SlackWebHookURL && SlackReportWebhookURL) {
+          return {
+            type: "webhook",
+            channels: [
+              {
+                name: "bug",
+                url: SlackWebHookURL,
+              },
+              {
+                name: "report",
+                url: SlackReportWebhookURL,
+              },
+            ],
+            defaultChannel: "bug",
+          };
+        }
+
+        // https://github.com/bjerkio/nestjs-slack/blob/v2.0.0/src/slack.module.ts
+        // type: "stdout" 관련 74~86줄
+        return {
+          type: "stdout",
+        };
+      },
       inject: [ConfigService],
     }),
   ],
