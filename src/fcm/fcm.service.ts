@@ -214,6 +214,7 @@ export class FcmService implements OnModuleInit, IFcmService {
         actionButtonText: actionButtonText || "",
       },
     };
+    this.logger.debug(`[FCM] set message. recipientCount=${fcmTokens.length}`);
 
     const response = await admin
       .messaging()
