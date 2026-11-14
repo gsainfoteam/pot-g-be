@@ -218,8 +218,8 @@ export class AccountingService implements OnModuleInit {
       pot.joinedUserPks,
     );
 
-    // total cost 가 0원인 경우 바로 정산 확정 처리
-    if (req.total_cost === 0) {
+    // total cost가 0원이거나 requested user가 0명일 경우 바로 정산 확정 처리
+    if (req.total_cost === 0 || req.requested_user.length === 0) {
       await this.processConfirmAccounting(pot, {
         accounting_results: req.requested_user.map((userPk) => {
           return {
