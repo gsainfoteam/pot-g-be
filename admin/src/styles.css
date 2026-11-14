@@ -16,56 +16,6 @@
   --text-grey: #515151;
 }
 
-.user-search {
-  align-items: flex-end;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.user-search label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--text-grey);
-}
-
-.user-search-value {
-  flex: 1;
-  min-width: 240px;
-}
-
-.user-search input,
-.user-search select {
-  width: 100%;
-  min-height: 38px;
-}
-
-.user-table-scroll {
-  overflow-x: auto;
-}
-
-.user-identifier {
-  overflow-wrap: anywhere;
-  font-family: monospace;
-  font-size: 13px;
-}
-
-.user-section-title {
-  margin-top: 0;
-  font-size: 16px;
-}
-
-.user-detail-sections {
-  display: grid;
-  gap: 16px;
-}
-
-.user-info dd {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
 * {
   box-sizing: border-box;
 }
