@@ -4,7 +4,6 @@ import { AdminAccountRepository } from "@src/admin-database/repository/admin-acc
 import { PotRoomAdminRepository } from "@src/admin-database/repository/pot-room.admin.repository";
 import { PotEventAdminRepository } from "@src/admin-database/repository/pot-event.admin.repository";
 import { RouteAdminRepository } from "@src/admin-database/repository/route.admin.repository";
-import { AdminUserRepository } from "@src/admin-database/repository/admin-user.repository";
 
 /**
  * 어드민 전용 레포지토리만 모아서 export 하는 모듈입니다.
@@ -17,14 +16,12 @@ import { AdminUserRepository } from "@src/admin-database/repository/admin-user.r
     PotRoomAdminRepository,
     PotEventAdminRepository,
     RouteAdminRepository,
-    AdminUserRepository,
   ],
   exports: [
     AdminAccountRepository,
     PotRoomAdminRepository,
     PotEventAdminRepository,
     RouteAdminRepository,
-    AdminUserRepository,
   ],
 })
 export class AdminDatabaseModule {}

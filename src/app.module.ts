@@ -19,7 +19,6 @@ import { AdminPotModule } from "@src/admin-pot/admin-pot.module";
 import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
 import { HealthModule } from "./health/health.module";
-import { AdminUserModule } from "@src/admin-user/admin-user.module";
 
 @Module({
   imports: [
@@ -77,7 +76,6 @@ import { AdminUserModule } from "@src/admin-user/admin-user.module";
       },
       inject: [ConfigService],
     }),
-    AdminUserModule,
   ],
   controllers: [],
   providers: [],
