@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useFetch } from "../lib/use-fetch";
 import { formatDateTime } from "../lib/format";
+import { PotTable, type PotDto } from "../components/PotTable";
 import { UserPagination } from "../components/UserPagination";
 
 type UserDetail = {
@@ -25,17 +26,7 @@ type UserDetail = {
     } | null;
   }[];
 };
-type PotItem = {
-  pk: string;
-  name: string;
-  is_archived: boolean;
-  is_deleted: boolean;
-  is_departure_confirmed: boolean;
-  starts_at: string;
-  ends_at: string;
-  created_at: string;
-};
-type PotList = { items: PotItem[]; total: number; page: number; size: number };
+type PotList = { items: PotDto[]; total: number; page: number; size: number };
 
 export function UserDetailPage() {
   const { pk } = useParams();
@@ -88,12 +79,12 @@ function UserDetailContent({ pk }: { pk: string }) {
                 {user.data.name ?? (user.data.is_deleted ? "탈퇴 회원" : "-")}
               </dd>
               <dt>상태</dt>
-              <dd>{user.data.is_deleted ? "탈퇴" : "정상"}</dd>
+              <dd>{user.data.is_deleted ? "탈퇴" : "이용 중"}</dd>
               <dt>이메일</dt>
               <dd>{user.data.email ?? "-"}</dd>
-              <dt>회원 PK</dt>
+              <dt>회원 ID</dt>
               <dd className="user-identifier">{user.data.pk}</dd>
-              <dt>IDP 식별자</dt>
+              <dt>IDP Sub</dt>
               <dd className="user-identifier">{user.data.idp_sub}</dd>
               <dt>가입일</dt>
               <dd>{formatDateTime(user.data.created_at)}</dd>
@@ -109,10 +100,10 @@ function UserDetailContent({ pk }: { pk: string }) {
               <table>
                 <thead>
                   <tr>
-                    <th>기기 PK</th>
-                    <th>OS / 버전</th>
+                    <th>기기 ID</th>
+                    <th>운영체제 / 앱 버전</th>
                     <th>로그인 상태</th>
-                    <th>푸시 토큰</th>
+                    <th>푸시 토큰 등록</th>
                     <th>채팅 알림</th>
                     <th>마케팅 알림</th>
                     <th>팟 입퇴장 알림</th>
@@ -130,22 +121,22 @@ function UserDetailContent({ pk }: { pk: string }) {
                       <td>
                         {device.push_setting
                           ? device.push_setting.chat_push
-                            ? "수신"
-                            : "거부"
+                            ? "수신함"
+                            : "수신 안 함"
                           : "설정 없음"}
                       </td>
                       <td>
                         {device.push_setting
                           ? device.push_setting.marketing_push
-                            ? "수신"
-                            : "거부"
+                            ? "수신함"
+                            : "수신 안 함"
                           : "설정 없음"}
                       </td>
                       <td>
                         {device.push_setting
                           ? device.push_setting.pot_in_out_push
-                            ? "수신"
-                            : "거부"
+                            ? "수신함"
+                            : "수신 안 함"
                           : "설정 없음"}
                       </td>
                     </tr>
@@ -164,7 +155,7 @@ function UserDetailContent({ pk }: { pk: string }) {
           <section className="card">
             <div className="page-header">
               <h3 className="user-section-title">
-                참여했던 팟{pots.data ? ` (${pots.data.total})` : ""}
+                참여 팟{pots.data ? ` (${pots.data.total})` : ""}
               </h3>
               <button className="button secondary small" onClick={pots.reload}>
                 새로고침
@@ -187,48 +178,10 @@ function UserDetailContent({ pk }: { pk: string }) {
             ) : (
               <>
                 <div className="user-table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>팟 이름</th>
-                        <th>상태</th>
-                        <th>출발 가능 시간</th>
-                        <th>생성일</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pots.data.items.map((pot) => (
-                        <tr key={pot.pk}>
-                          <td>
-                            <Link className="table-link" to={`/pots/${pot.pk}`}>
-                              {pot.name}
-                            </Link>
-                          </td>
-                          <td>
-                            {pot.is_deleted
-                              ? "삭제"
-                              : pot.is_archived
-                                ? "보관"
-                                : pot.is_departure_confirmed
-                                  ? "출발 확정"
-                                  : "출발 확정 전"}
-                          </td>
-                          <td>
-                            {formatDateTime(pot.starts_at)} ~{" "}
-                            {formatDateTime(pot.ends_at)}
-                          </td>
-                          <td>{formatDateTime(pot.created_at)}</td>
-                        </tr>
-                      ))}
-                      {!pots.data.items.length && (
-                        <tr>
-                          <td colSpan={4} className="placeholder">
-                            참여했던 팟이 없습니다.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  <PotTable
+                    pots={pots.data.items}
+                    empty="참여한 팟이 없습니다."
+                  />
                 </div>
                 <UserPagination
                   page={page}
