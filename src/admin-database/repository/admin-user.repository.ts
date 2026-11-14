@@ -1,5 +1,18 @@
 import { Injectable } from "@nestjs/common";
-import { and, count, desc, eq, exists, or, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  ilike,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
+import { route } from "../../../drizzle/schema/route";
+import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
+import { getPotDepartureTime } from "../query/pot-departure-time";
 import { DatabaseService } from "@src/database/database.service";
 import { AdminUserListReqDto } from "@src/admin-user/dto/admin-user-list.dto";
 import { users } from "../../../drizzle/schema/users";
@@ -13,11 +26,18 @@ import { AdminUserPotListReqDto } from "@src/admin-user/dto/admin-user-pot-list.
 export class AdminUserRepository {
   constructor(private readonly dbService: DatabaseService) {}
 
+  private contains(column: SQL, value?: string) {
+    const keyword = value?.trim();
+    if (!keyword) return undefined;
+    const pattern = `%${keyword.replace(/[\\%_]/g, "\\$&")}%`;
+    return ilike(column, pattern);
+  }
+
   private buildWhere(req: AdminUserListReqDto) {
     return and(
-      req.pk !== undefined ? eq(users.pk, req.pk) : undefined,
-
-      req.idp_sub !== undefined ? eq(users.idpSub, req.idp_sub) : undefined,
+      this.contains(sql`${users.pk}::text`, req.pk),
+      this.contains(sql`${users.idpSub}`, req.idp_sub),
+      this.contains(sql`${users.email}`, req.email),
 
       req.status === "all"
         ? undefined
@@ -108,6 +128,10 @@ export class AdminUserRepository {
       .select({
         pk: potRoom.pk,
         name: potRoom.name,
+        route_name: sql<string>`coalesce(${route.shortNameKor}, '-')`,
+        current: sql<number>`(SELECT count(*)::int FROM ${userPotRoom} WHERE ${userPotRoom.potRoomFk} = ${potRoom.pk})`,
+        total: potRoom.maxCapacity,
+        departure_time: getPotDepartureTime(),
         is_archived: potRoom.isArchived,
         is_deleted: potRoom.isDeleted,
         is_departure_confirmed: potRoom.isDepartureConfirmed,
@@ -116,6 +140,7 @@ export class AdminUserRepository {
         created_at: potRoom.createdAt,
       })
       .from(potRoom)
+      .leftJoin(route, eq(route.pk, potRoom.routeFk))
       .where(this.participatedIn(userPk))
       .orderBy(desc(potRoom.createdAt), desc(potRoom.pk))
       .limit(req.size)

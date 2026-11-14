@@ -17,7 +17,6 @@ type UserList = {
   page: number;
   size: number;
 };
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function UsersPage() {
   const [params] = useSearchParams();
@@ -34,14 +33,15 @@ function UserListContent() {
     : "active";
   const rawPage = Number(params.get("page") ?? 0);
   const page = Number.isSafeInteger(rawPage) && rawPage >= 0 ? rawPage : 0;
-  const [field, setField] = useState(params.has("idp_sub") ? "idp_sub" : "pk");
+  const [field, setField] = useState(
+    params.has("email") ? "email" : params.has("idp_sub") ? "idp_sub" : "pk",
+  );
   const [search, setSearch] = useState(
-    params.get("pk") ?? params.get("idp_sub") ?? "",
+    params.get("pk") ?? params.get("idp_sub") ?? params.get("email") ?? "",
   );
   const [filter, setFilter] = useState(status);
-  const [validation, setValidation] = useState("");
   const query = new URLSearchParams({ status, page: String(page), size: "10" });
-  for (const key of ["pk", "idp_sub"]) {
+  for (const key of ["pk", "idp_sub", "email"]) {
     if (params.get(key)) query.set(key, params.get(key)!);
   }
   const list = useFetch<UserList>(
@@ -51,11 +51,6 @@ function UserListContent() {
   function submit(event: FormEvent) {
     event.preventDefault();
     const value = search.trim();
-    if (value && field === "pk" && !UUID.test(value)) {
-      setValidation("회원 PK는 UUID 형식으로 입력해 주세요.");
-      return;
-    }
-    setValidation("");
     const next = new URLSearchParams({ status: filter });
     if (value) next.set(field, value);
     if (next.toString() === params.toString()) list.reload();
@@ -82,11 +77,11 @@ function UserListContent() {
             value={field}
             onChange={(e) => {
               setField(e.target.value);
-              setValidation("");
             }}
           >
-            <option value="pk">회원 PK</option>
-            <option value="idp_sub">IDP 식별자</option>
+            <option value="pk">회원 ID</option>
+            <option value="email">이메일</option>
+            <option value="idp_sub">IDP Sub</option>
           </select>
         </label>
         <label className="user-search-value">
@@ -94,14 +89,20 @@ function UserListContent() {
           <input
             value={search}
             maxLength={64}
-            placeholder={field === "pk" ? "회원 UUID 입력" : "IDP 식별자 입력"}
+            placeholder={
+              field === "pk"
+                ? "회원 ID의 일부 또는 전체 입력"
+                : field === "email"
+                  ? "이메일의 일부 또는 전체 입력"
+                  : "IDP Sub의 일부 또는 전체 입력"
+            }
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
         <label>
           회원 상태
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="active">정상 회원</option>
+            <option value="active">이용 중인 회원</option>
             <option value="withdrawn">탈퇴 회원</option>
             <option value="all">전체 회원</option>
           </select>
@@ -118,7 +119,6 @@ function UserListContent() {
               setSearch("");
               setField("pk");
               setFilter("active");
-              setValidation("");
               list.reload();
             }
           }}
@@ -126,11 +126,6 @@ function UserListContent() {
           초기화
         </button>
       </form>
-      {validation && (
-        <p className="error-text" role="alert">
-          {validation}
-        </p>
-      )}
       <div className="card" aria-busy={!list.data && !list.error}>
         {list.error ? (
           <div role="alert">
@@ -154,7 +149,7 @@ function UserListContent() {
                   <tr>
                     <th>이름</th>
                     <th>이메일</th>
-                    <th>회원 PK</th>
+                    <th>회원 ID</th>
                     <th>상태</th>
                     <th>가입일</th>
                   </tr>
@@ -181,7 +176,7 @@ function UserListContent() {
                       </td>
                       <td>{user.email ?? "-"}</td>
                       <td className="user-identifier">{user.pk}</td>
-                      <td>{user.is_deleted ? "탈퇴" : "정상"}</td>
+                      <td>{user.is_deleted ? "탈퇴" : "이용 중"}</td>
                       <td>{formatDateTime(user.created_at)}</td>
                     </tr>
                   ))}

@@ -4,6 +4,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotRoomAdminEntity } from "@src/admin-database/entity/pot-room.admin.entity";
 import { potRoom } from "../../../drizzle/schema/pot-room";
 import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
+import { getPotDepartureTime } from "../query/pot-departure-time";
 
 /**
  * 어드민 페이지 전용 pot_room 조회 레포지토리입니다.
@@ -35,7 +36,7 @@ export class PotRoomAdminRepository {
     page?: number;
     size?: number;
   }): Promise<PotRoomAdminEntity[]> {
-    const departureTime = this.departureTimeSubquery();
+    const departureTime = getPotDepartureTime();
 
     const query = this.dbService.db
       .select({
@@ -103,12 +104,6 @@ export class PotRoomAdminRepository {
           : undefined,
       ),
     );
-  }
-
-  private departureTimeSubquery() {
-    return sql<
-      string | null
-    >`(SELECT (pe.data->>'departureTime')::timestamptz FROM pot_event AS pe WHERE pe.pot_fk = ${potRoom.pk} AND pe.type = 'departure_confirm_v1' ORDER BY pe.timestamp DESC LIMIT 1)`;
   }
 
   // 팟 이름 또는 pk 에 검색어가 포함된 경우. LIKE 의 와일드카드 문자는 이스케이프 합니다.

@@ -5,6 +5,7 @@ import {
   AdminUserPotListResDto,
 } from "./dto/admin-user-pot-list.dto";
 import { AdminUserRepository } from "@src/admin-database/repository/admin-user.repository";
+import { AdminPotStatus } from "@src/admin-pot/dto/admin-pot.dto";
 import {
   AdminUserListReqDto,
   AdminUserListResDto,
@@ -39,12 +40,32 @@ export class AdminUserService {
     pk: string,
     req: AdminUserPotListReqDto,
   ): Promise<AdminUserPotListResDto> {
-    await this.requireUser(pk);
+    const user = await this.requireUser(pk);
     const [items, total] = await Promise.all([
-      this.adminUserRepository.findPots(pk, req),
-      this.adminUserRepository.countPots(pk),
+      this.adminUserRepository.findPots(user.pk, req),
+      this.adminUserRepository.countPots(user.pk),
     ]);
-    return { items, total, page: req.page, size: req.size };
+    return {
+      items: items.map((pot) => {
+        const status: AdminPotStatus = pot.is_deleted
+          ? "DELETED"
+          : pot.is_archived
+            ? "ARCHIVED"
+            : pot.is_departure_confirmed
+              ? "CONFIRMED"
+              : "BEFORE_CONFIRMED";
+        return {
+          ...pot,
+          status,
+          departure_time: pot.departure_time
+            ? new Date(pot.departure_time)
+            : null,
+        };
+      }),
+      total,
+      page: req.page,
+      size: req.size,
+    };
   }
 
   async list(req: AdminUserListReqDto): Promise<AdminUserListResDto> {

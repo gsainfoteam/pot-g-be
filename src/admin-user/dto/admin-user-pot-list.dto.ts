@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import { IsInt, IsOptional, Max, Min } from "class-validator";
+import { AdminPotDto } from "@src/admin-pot/dto/admin-pot.dto";
 
 export class AdminUserPotListReqDto {
   @IsOptional()
@@ -16,15 +17,10 @@ export class AdminUserPotListReqDto {
   size: number = 10;
 }
 
-export class AdminUserPotListItemDto {
-  pk: string;
-  name: string;
+export class AdminUserPotListItemDto extends AdminPotDto {
   is_archived: boolean;
   is_deleted: boolean;
   is_departure_confirmed: boolean;
-  starts_at: Date;
-  ends_at: Date;
-  created_at: Date;
 }
 
 export class AdminUserPotListResDto {
