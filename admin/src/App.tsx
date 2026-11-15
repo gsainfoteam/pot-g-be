@@ -11,6 +11,7 @@ import { VersionPage } from "./pages/VersionPage";
 import { UsersPage } from "./pages/UsersPage";
 import { UserDetailPage } from "./pages/UserDetailPage";
 import { isLoggedIn } from "./lib/auth";
+import { PotCleanupPage } from "./pages/PotCleanupPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!isLoggedIn()) {
@@ -44,6 +45,7 @@ export function App() {
           element={<PlaceholderPage title="통계" refreshable />}
         />
         <Route path="admin-accounts" element={<AdminAccountsPage />} />
+        <Route path="pot-cleanup" element={<PotCleanupPage />} />
       </Route>
     </Routes>
   );

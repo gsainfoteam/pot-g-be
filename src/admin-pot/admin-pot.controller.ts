@@ -4,6 +4,7 @@ import {
   Param,
   ParseUUIDPipe,
   Query,
+  Post,
   UseGuards,
 } from "@nestjs/common";
 import { ManagerGuard } from "@src/auth/guard/manager.guard";
@@ -13,7 +14,10 @@ import {
   AdminPotListResDto,
   AdminPotSearchReqDto,
 } from "@src/admin-pot/dto/admin-pot-search.dto";
-import { AdminPotDto } from "@src/admin-pot/dto/admin-pot.dto";
+import {
+  AdminPotArchiveZeroTargetResDto,
+  AdminPotDto,
+} from "@src/admin-pot/dto/admin-pot.dto";
 import { AdminPotDetailDto } from "@src/admin-pot/dto/admin-pot-detail.dto";
 
 @Controller("/api/manager/v1/pot")
@@ -38,6 +42,11 @@ export class AdminPotController {
     @Query() req: AdminPotSearchReqDto,
   ): Promise<AdminPotDto[]> {
     return this.adminPotService.listOverdue(req);
+  }
+
+  @Post("/archive-zero-target")
+  async archiveZeroTargetPots(): Promise<AdminPotArchiveZeroTargetResDto> {
+    return this.adminPotService.archiveZeroTargetAccountingPots();
   }
 
   @Get("/:pk")

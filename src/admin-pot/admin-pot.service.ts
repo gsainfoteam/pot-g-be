@@ -7,7 +7,12 @@ import { UserRepository } from "@src/database/repository/user.repository";
 import { PotRoomAdminEntity } from "@src/admin-database/entity/pot-room.admin.entity";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Pot } from "@src/pot/model/pot";
-import { AdminPotDto, AdminPotStatus } from "@src/admin-pot/dto/admin-pot.dto";
+import { PotService } from "@src/pot/pot.service";
+import {
+  AdminPotArchiveZeroTargetResDto,
+  AdminPotDto,
+  AdminPotStatus,
+} from "@src/admin-pot/dto/admin-pot.dto";
 import {
   AdminPotListReqDto,
   AdminPotListResDto,
@@ -18,6 +23,7 @@ import {
   AdminPotDetailDto,
 } from "@src/admin-pot/dto/admin-pot-detail.dto";
 import { Trace } from "@gsainfoteam/nest-observability";
+import { BaseResultDto } from "@src/global/dto/base-result.dto";
 
 const UUID_PATTERN =
   /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
@@ -30,6 +36,7 @@ export class AdminPotService {
     private readonly potEventAdminRepository: PotEventAdminRepository,
     private readonly routeRepository: RouteRepository,
     private readonly userRepository: UserRepository,
+    private readonly potService: PotService,
   ) {}
 
   async listAll(req: AdminPotListReqDto): Promise<AdminPotListResDto> {
@@ -204,5 +211,43 @@ export class AdminPotService {
         profile.isDeleted ? `${profile.name} (withdrawn)` : profile.name,
       ]),
     );
+  }
+
+  async archiveZeroTargetAccountingPots(): Promise<AdminPotArchiveZeroTargetResDto> {
+    const activePotRooms =
+      await this.potRoomAdminRepository.findAllWithDeparture({
+        activeOnly: true,
+      });
+
+    const archivedPotPks: string[] = [];
+
+    for (const potRoom of activePotRooms) {
+      if (potRoom.isArchived || potRoom.isDeleted) continue;
+
+      const events = await this.potEventAdminRepository.findEventsWithoutChat(
+        potRoom.pk,
+      );
+      if (events.length === 0) continue;
+
+      const pot = PotEventReducer.reduceFromInitial(events);
+
+      // AdminPotService.resolveStatus 기준 "ACCOUNTING_DONE" 이면서 미해산인 상태와 동일
+      if (
+        !pot.isArchived &&
+        Boolean(pot.accountingRequestUserId) &&
+        Array.isArray(pot.accountingRequestedUserPks) &&
+        pot.accountingRequestedUserPks.length === 0
+      ) {
+        const res = await this.potService.archivePot(pot);
+        if (res === BaseResultDto.OK) {
+          archivedPotPks.push(pot.pk);
+        }
+      }
+    }
+
+    return {
+      archived_count: archivedPotPks.length,
+      archived_pot_pks: archivedPotPks,
+    };
   }
 }
