@@ -54,7 +54,8 @@ export class DeviceRepository {
 
   /*
   // TODO: LEFT OUTER JOIN + in array 조합이라 마음에 들지 않음
-  SELECT d.fcm_token, uas.chat_push, uas.marketing_push, uas.pot_in_out_push
+  SELECT d.user_fk, d.device_id, d.logged_in, d.fcm_token,
+         uas.chat_push, uas.marketing_push, uas.pot_in_out_push
   FROM device AS d
     LEFT OUTER JOIN user_alarm_setting AS uas ON d.pk = uas.device_fk
   WHERE d.user_fk in (?1) AND d.logged_in = true;
@@ -62,6 +63,9 @@ export class DeviceRepository {
   async findFcmTokensByUserFks(userFks: string[]) {
     return await this.dbService.db
       .select({
+        userFk: device.userFk,
+        deviceId: device.deviceId,
+        loggedIn: device.loggedIn,
         fcmToken: device.fcmToken,
         chatPush: userAlarmSetting.chatPush,
         marketingPush: userAlarmSetting.marketingPush,
