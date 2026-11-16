@@ -2,9 +2,15 @@ import { Logger } from "@nestjs/common";
 import { createHash } from "node:crypto";
 
 export class StagingLogger extends Logger {
-  debug(message: string): void {
+  debug(message: any, ...optionalParams: any[]): void {
     if (process.env.APP_ENV === "stg") {
-      super.debug(message);
+      super.debug(message, ...optionalParams);
+    }
+  }
+
+  static debug(message: any, ...optionalParams: any[]): void {
+    if (process.env.APP_ENV === "stg") {
+      super.debug(message, ...optionalParams);
     }
   }
 
