@@ -19,3 +19,8 @@ export class AdminPotDto {
   departure_time: Date | null;
   created_at: Date;
 }
+
+export class AdminPotArchiveZeroTargetResDto {
+  archived_count: number;
+  archived_pot_pks: string[];
+}

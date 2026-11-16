@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: "/users", label: "사용자" },
   { to: "/stats", label: "통계" },
   { to: "/admin-accounts", label: "관리자 계정" },
+  { to: "/pot-cleanup", label: "일회성 팟 정리" },
 ];
 
 export function DashboardLayout() {
