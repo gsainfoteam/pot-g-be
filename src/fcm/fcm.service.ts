@@ -1,9 +1,9 @@
-import { StagingLogger } from "../global/logger/staging.logger";
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as admin from "firebase-admin";
 import { BulkPushMessageDto, PushMessageDto } from "./dto/push-message.dto";
 import { Trace } from "@gsainfoteam/nest-observability";
+import { IFcmService } from "./fcm.interface";
 
 export interface FcmResult {
   success: boolean;
@@ -21,8 +21,8 @@ export interface BulkFcmResult {
 
 @Trace()
 @Injectable()
-export class FcmService implements OnModuleInit {
-  private readonly logger = new StagingLogger(FcmService.name);
+export class FcmService implements OnModuleInit, IFcmService {
+  private readonly logger = new Logger(FcmService.name);
   private firebaseApp: admin.app.App;
 
   constructor(private readonly configService: ConfigService) {}
@@ -55,14 +55,9 @@ export class FcmService implements OnModuleInit {
         this.firebaseApp = admin.app();
       }
 
-      this.logger.debug(
-        "[onModuleInit] Firebase Admin SDK initialized successfully",
-      );
+      this.logger.log("Firebase Admin SDK initialized successfully");
     } catch (error) {
-      this.logger.error(
-        "[onModuleInit] Failed to initialize Firebase Admin SDK:",
-        error,
-      );
+      this.logger.error("Failed to initialize Firebase Admin SDK:", error);
       throw error;
     }
   }
@@ -132,8 +127,8 @@ export class FcmService implements OnModuleInit {
 
       const response = await admin.messaging().send(message);
 
-      this.logger.debug(
-        "[sendPushNotification] Push notification accepted by FCM",
+      this.logger.log(
+        `Push notification sent successfully. Message ID: ${response}`,
       );
 
       return {
@@ -143,7 +138,7 @@ export class FcmService implements OnModuleInit {
       };
     } catch (error) {
       this.logger.error(
-        `[sendPushNotification] Failed to send push notification to ${StagingLogger.tokenId(pushMessage.fcmToken)}:`,
+        `Failed to send push notification to ${pushMessage.fcmToken}:`,
         error,
       );
 
@@ -232,23 +227,16 @@ export class FcmService implements OnModuleInit {
     }));
 
     this.logger.debug(
-      `[sendBulkPushNotification] accepted=${response.successCount}, failed=${response.failureCount}`,
+      `Bulk push notification completed. Sent: ${response.successCount}, Failed: ${response.failureCount}`,
     );
 
-    response.responses.forEach((result, index) => {
-      this.logger.debug(
-        `[sendBulkPushNotification] token=${StagingLogger.tokenId(fcmTokens[index])} ${result.success ? "accepted" : `failed: ${result.error?.code ?? "unknown"}`}`,
-      );
-    });
     if (response.failureCount !== 0) {
       this.logger.error(
-        `[sendBulkPushNotification] FCM send failed for ${response.failureCount} device(s)`,
+        `FCM messages failed to send (Success: ${response.successCount}, Failed: ${response.failureCount}). Details:`,
       );
-      response.responses.forEach((result, index) => {
-        if (!result.success) {
-          this.logger.error(
-            `[sendBulkPushNotification] token=${StagingLogger.tokenId(fcmTokens[index])} failed: ${result.error?.code ?? "unknown"}`,
-          );
+      results.forEach((res) => {
+        if (!res.success) {
+          this.logger.error(`FCM Token: ${res.fcmToken}, Error: ${res.error}`);
         }
       });
     }
@@ -277,8 +265,9 @@ export class FcmService implements OnModuleInit {
       await admin.messaging().send(testMessage, true);
       return true;
     } catch (error) {
-      this.logger.debug(
-        `[validateFcmToken] FCM token validation failed: token=${StagingLogger.tokenId(fcmToken)}, code=${error.code ?? "unknown"}`,
+      this.logger.warn(
+        `FCM token validation failed for token: ${fcmToken}`,
+        error.message,
       );
       return false;
     }
