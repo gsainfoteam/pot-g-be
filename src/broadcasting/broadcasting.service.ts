@@ -358,18 +358,9 @@ export class BroadcastingService {
     }
     return devices.filter((tokenInfo) => {
       this.logger.debug(
-        `[getFcmTokensForUsers] user=${tokenInfo.userFk} device=${tokenInfo.deviceId} token=${StagingLogger.tokenId(tokenInfo.fcmToken)} ${setting}=${tokenInfo[setting]} -> ${tokenInfo[setting] == null ? "skip: missing settings" : !tokenInfo[setting] ? "skip: disabled" : "enabled"}`,
+        `[getFcmTokensForUsers] user=${tokenInfo.userFk} device=${tokenInfo.deviceId} token=${StagingLogger.tokenId(tokenInfo.fcmToken)} ${setting}=${tokenInfo[setting]} -> ${!tokenInfo.fcmToken ? "skip: missing token" : tokenInfo[setting] == null ? "skip: missing settings" : !tokenInfo[setting] ? "skip: disabled" : "enabled"}`,
       );
-      if (tokenInfo.fcmToken !== null && tokenInfo.fcmToken !== "") {
-        return true;
-      }
-      if (
-        tokenInfo.chatPush ||
-        tokenInfo.marketingPush ||
-        tokenInfo.potInOutPush
-      ) {
-        return true;
-      }
+      return Boolean(tokenInfo.fcmToken) && tokenInfo[setting] === true;
     });
   }
 

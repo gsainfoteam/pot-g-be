@@ -273,7 +273,7 @@ export class FcmService implements OnModuleInit, IFcmService {
       await admin.messaging().send(testMessage, true);
       return true;
     } catch (error) {
-      this.logger.debug(
+      this.logger.warn(
         `[validateFcmToken] FCM token validation failed: token=${StagingLogger.tokenId(fcmToken)}, code=${error.code ?? "unknown"}`,
       );
       return false;
