@@ -8,7 +8,10 @@ import { PotsPage } from "./pages/PotsPage";
 import { PotDetailPage } from "./pages/PotDetailPage";
 import { RoutesPage } from "./pages/RoutesPage";
 import { VersionPage } from "./pages/VersionPage";
+import { UsersPage } from "./pages/UsersPage";
+import { UserDetailPage } from "./pages/UserDetailPage";
 import { isLoggedIn } from "./lib/auth";
+import { PotCleanupPage } from "./pages/PotCleanupPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!isLoggedIn()) {
@@ -35,12 +38,14 @@ export function App() {
         <Route path="pots/:pk" element={<PotDetailPage />} />
         <Route path="routes" element={<RoutesPage />} />
         <Route path="versions" element={<VersionPage />} />
-        <Route path="users" element={<PlaceholderPage title="사용자" />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="users/:pk" element={<UserDetailPage />} />
         <Route
           path="stats"
           element={<PlaceholderPage title="통계" refreshable />}
         />
         <Route path="admin-accounts" element={<AdminAccountsPage />} />
+        <Route path="pot-cleanup" element={<PotCleanupPage />} />
       </Route>
     </Routes>
   );
