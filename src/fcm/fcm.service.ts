@@ -56,7 +56,7 @@ export class FcmService implements OnModuleInit, IFcmService {
         this.firebaseApp = admin.app();
       }
 
-      this.logger.debug(
+      this.logger.log(
         "[onModuleInit] Firebase Admin SDK initialized successfully",
       );
     } catch (error) {
@@ -134,7 +134,7 @@ export class FcmService implements OnModuleInit, IFcmService {
       const response = await admin.messaging().send(message);
 
       this.logger.debug(
-        "[sendPushNotification] Push notification accepted by FCM",
+        `[sendPushNotification] Push notification accepted by FCM: messageId=${response}`,
       );
 
       return {
@@ -236,11 +236,6 @@ export class FcmService implements OnModuleInit, IFcmService {
       `[sendBulkPushNotification] accepted=${response.successCount}, failed=${response.failureCount}`,
     );
 
-    response.responses.forEach((result, index) => {
-      this.logger.debug(
-        `[sendBulkPushNotification] token=${StagingLogger.tokenId(fcmTokens[index])} ${result.success ? "accepted" : `failed: ${result.error?.code ?? "unknown"}`}`,
-      );
-    });
     if (response.failureCount !== 0) {
       this.logger.error(
         `[sendBulkPushNotification] FCM send failed for ${response.failureCount} device(s)`,
@@ -248,7 +243,7 @@ export class FcmService implements OnModuleInit, IFcmService {
       response.responses.forEach((result, index) => {
         if (!result.success) {
           this.logger.error(
-            `[sendBulkPushNotification] token=${StagingLogger.tokenId(fcmTokens[index])} failed: ${result.error?.code ?? "unknown"}`,
+            `[sendBulkPushNotification] token=${StagingLogger.tokenId(fcmTokens[index])} failed: code=${result.error?.code ?? "unknown"}, message=${result.error?.message ?? "unknown"}`,
           );
         }
       });

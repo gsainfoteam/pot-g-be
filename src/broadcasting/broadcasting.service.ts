@@ -90,15 +90,15 @@ export class BroadcastingService {
       targetClients.forEach((targetClient) => {
         if (!targetClient.getIsAuthorized()) {
           // 인증되지 않은 상태 -> 대기열 추가
-          targetClient.addMessageToQueue(potEventReceiveDto);
           this.logger.debug(
-            `[broadcastPotEvent] user=${userPk} not authorized -> queued (no push fallback)`,
+            `[broadcastPotEvent] user=${userPk} request_id=${potEventReceiveDto.request_id} not authorized -> queue WS message (no push fallback)`,
           );
+          targetClient.addMessageToQueue(potEventReceiveDto);
           return;
         }
 
         this.logger.debug(
-          `[broadcastPotEvent] user=${userPk} sent -> waiting for ACK`,
+          `[broadcastPotEvent] user=${userPk} request_id=${potEventReceiveDto.request_id} event_type=${potEventDto.event_type} send WS message`,
         );
         targetClient.sendMessage(potEventReceiveDto);
         // TODO: targetClient 하나하나마다 10초 후에 ack 확인하는 비동기 작업을 시작하는게
@@ -151,7 +151,7 @@ export class BroadcastingService {
     ) {
       // ack 가 도착했음
       this.logger.debug(
-        `[checkPotEventAck] user=${targetClient.getUserId()} ACK received -> skip push`,
+        `[checkPotEventAck] user=${targetClient.getUserId()} request_id=${potEventReceiveDto.request_id} ACK received -> skip push`,
       );
       return;
     }
@@ -164,7 +164,7 @@ export class BroadcastingService {
 
     // 10초 대기 후에도 ack 가 오지 않는 경우 푸시 알람 발송
     this.logger.debug(
-      `[checkPotEventAck] user=${targetClient.getUserId()} ACK timeout -> push`,
+      `[checkPotEventAck] user=${targetClient.getUserId()} request_id=${potEventReceiveDto.request_id} ACK timeout -> push`,
     );
     await this.sendPotEventPush(
       potEventDto,
@@ -352,7 +352,7 @@ export class BroadcastingService {
     for (const userPk of userPks) {
       if (!devices.some((device) => device.userFk === userPk)) {
         this.logger.debug(
-          `[getFcmTokensForUsers] user=${userPk} no logged-in devices (unregistered or logged out)`,
+          `[getFcmTokensForUsers] user=${userPk} no logged-in devices -> skip push`,
         );
       }
     }
