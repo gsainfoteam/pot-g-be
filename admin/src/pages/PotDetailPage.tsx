@@ -62,10 +62,17 @@ export function PotDetailPage() {
 
   // 채팅 열람 시 열람 기록이 남기 때문에, 버튼을 눌렀을 때만 채팅을 불러옵니다.
   const [includeChat, setIncludeChat] = useState(false);
-  const { data: chat, error: chatError } = useFetch<PotChatDto>(
+  const {
+    data: chat,
+    error: chatError,
+    reload: reloadChat,
+  } = useFetch<PotChatDto>(
     includeChat && pk ? `/api/manager/v1/pot/${pk}/chat` : null,
     "채팅 내역을 불러오지 못했습니다.",
   );
+
+  // 요청 중에는 버튼을 막아 중복 열람 기록을 방지하고, 실패하면 다시 시도할 수 있게 합니다.
+  const chatLoading = includeChat && !chat && !chatError;
 
   // 이벤트와 채팅을 시간순으로 합칩니다. 채팅은 id 가 이벤트와 같은 테이블이라 겹치지 않습니다.
   const rows = useMemo(() => {
@@ -176,18 +183,18 @@ export function PotDetailPage() {
               </h3>
               <button
                 className="button secondary small"
-                disabled={!pot.is_reported || includeChat}
+                disabled={!pot.is_reported || chatLoading || !!chat}
                 title={
                   pot.is_reported
                     ? "채팅 열람 시 열람 기록이 남습니다."
                     : "신고가 접수된 팟만 채팅을 열람할 수 있습니다."
                 }
-                onClick={() => setIncludeChat(true)}
+                onClick={chatError ? reloadChat : () => setIncludeChat(true)}
               >
-                채팅 포함해서 보기
+                {chatError ? "다시 시도" : "채팅 포함해서 보기"}
               </button>
             </div>
-            {includeChat && !chat && !chatError && (
+            {chatLoading && (
               <p className="placeholder">채팅을 불러오는 중...</p>
             )}
             {chatError && <p className="error-text">{chatError}</p>}
