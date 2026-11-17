@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { subDays } from "date-fns";
 import { PotRoomAdminRepository } from "@src/admin-database/repository/pot-room.admin.repository";
 import { PotEventAdminRepository } from "@src/admin-database/repository/pot-event.admin.repository";
+import { AdminChatViewLogRepository } from "@src/admin-database/repository/admin-chat-view-log.admin.repository";
+import { ReportAdminRepository } from "@src/admin-database/repository/report.admin.repository";
 import { RouteRepository } from "@src/database/repository/route.repository";
 import { UserRepository } from "@src/database/repository/user.repository";
 import { PotRoomAdminEntity } from "@src/admin-database/entity/pot-room.admin.entity";
@@ -20,6 +26,7 @@ import {
 } from "@src/admin-pot/dto/admin-pot-search.dto";
 import {
   AdminPotAccountingDto,
+  AdminPotChatDto,
   AdminPotDetailDto,
 } from "@src/admin-pot/dto/admin-pot-detail.dto";
 import { Trace } from "@gsainfoteam/nest-observability";
@@ -34,6 +41,8 @@ export class AdminPotService {
   constructor(
     private readonly potRoomAdminRepository: PotRoomAdminRepository,
     private readonly potEventAdminRepository: PotEventAdminRepository,
+    private readonly reportAdminRepository: ReportAdminRepository,
+    private readonly adminChatViewLogRepository: AdminChatViewLogRepository,
     private readonly routeRepository: RouteRepository,
     private readonly userRepository: UserRepository,
     private readonly potService: PotService,
@@ -104,6 +113,8 @@ export class AdminPotService {
 
     const routes = await this.routeRepository.findAllWithStops();
     const users = await this.getUserNames(pot, eventDtos, potPk);
+    const isReported =
+      await this.reportAdminRepository.existsByPotRoomPk(potPk);
 
     return {
       pk: potRoom.pk,
@@ -112,6 +123,7 @@ export class AdminPotService {
       status: this.resolveStatus(potRoom, pot),
       is_archived: potRoom.isArchived,
       is_deleted: potRoom.isDeleted,
+      is_reported: isReported,
       total: potRoom.maxCapacity,
       starts_at: potRoom.startsAt,
       ends_at: potRoom.endsAt,
@@ -123,6 +135,45 @@ export class AdminPotService {
       accounting: this.toAccountingDto(pot),
       users,
       events: eventDtos,
+    };
+  }
+
+  // 개인정보 보호를 위해 신고가 접수된 팟의 채팅만 열람할 수 있습니다.
+  async getChat(potPk: string, adminEmail: string): Promise<AdminPotChatDto> {
+    const potRoom = await this.potRoomAdminRepository.findByPk(potPk);
+    if (!potRoom) {
+      throw new NotFoundException("Pot not found.");
+    }
+
+    if (!(await this.reportAdminRepository.existsByPotRoomPk(potPk))) {
+      throw new ForbiddenException("Chat is only viewable for reported pots.");
+    }
+
+    await this.adminChatViewLogRepository.insert(potPk, adminEmail);
+
+    const events = await this.potEventAdminRepository.findChatEvents(potPk);
+    const messages = events.map((event) => ({
+      id: event.id!,
+      timestamp: event.timestamp,
+      user_pk: event.data.userPk as string,
+      message: event.data.message as string,
+    }));
+
+    const userPks = [...new Set(messages.map((message) => message.user_pk))];
+    const profiles =
+      userPks.length === 0
+        ? []
+        : await this.userRepository.getUserProfileByPks(userPks);
+
+    return {
+      pot_pk: potPk,
+      users: Object.fromEntries(
+        profiles.map((profile) => [
+          profile.pk,
+          profile.isDeleted ? `${profile.name} (withdrawn)` : profile.name,
+        ]),
+      ),
+      messages,
     };
   }
 

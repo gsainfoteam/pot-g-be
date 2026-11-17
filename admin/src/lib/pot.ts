@@ -10,6 +10,7 @@ export const POT_STATUS_LABEL: Record<string, string> = {
 
 export const EVENT_TYPE_LABEL: Record<string, string> = {
   create_v1: "팟 생성",
+  chat_v1: "채팅",
   popo_chat_v1: "시스템 메시지",
   user_in_v1: "참여",
   user_leave_v1: "퇴장",

@@ -23,6 +23,7 @@ export class AdminPotDetailDto {
   status: AdminPotStatus;
   is_archived: boolean;
   is_deleted: boolean;
+  is_reported: boolean; // 신고 접수 여부 (채팅 열람 가능 여부)
   total: number;
   starts_at: Date;
   ends_at: Date;
@@ -34,4 +35,17 @@ export class AdminPotDetailDto {
   accounting: AdminPotAccountingDto | null;
   users: Record<string, string>; // user pk -> 이름
   events: AdminPotEventDto[]; // 채팅 제외
+}
+
+export class AdminPotChatMessageDto {
+  id: number;
+  timestamp: Date;
+  user_pk: string;
+  message: string;
+}
+
+export class AdminPotChatDto {
+  pot_pk: string;
+  users: Record<string, string>; // user pk -> 이름
+  messages: AdminPotChatMessageDto[];
 }

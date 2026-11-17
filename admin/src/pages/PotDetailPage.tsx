@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useFetch } from "../lib/use-fetch";
 import { formatDateTime } from "../lib/format";
@@ -11,6 +12,16 @@ type PotEventDto = {
   data: unknown;
 };
 
+type PotChatDto = {
+  users: Record<string, string>;
+  messages: {
+    id: number;
+    timestamp: string;
+    user_pk: string;
+    message: string;
+  }[];
+};
+
 type PotDetailDto = {
   pk: string;
   name: string;
@@ -18,6 +29,7 @@ type PotDetailDto = {
   status: string;
   is_archived: boolean;
   is_deleted: boolean;
+  is_reported: boolean;
   total: number;
   starts_at: string;
   ends_at: string;
@@ -47,6 +59,40 @@ export function PotDetailPage() {
     pk ? `/api/manager/v1/pot/${pk}` : null,
     "팟 정보를 불러오지 못했습니다.",
   );
+
+  // 채팅 열람 시 열람 기록이 남기 때문에, 버튼을 눌렀을 때만 채팅을 불러옵니다.
+  const [includeChat, setIncludeChat] = useState(false);
+  const {
+    data: chat,
+    error: chatError,
+    reload: reloadChat,
+  } = useFetch<PotChatDto>(
+    includeChat && pk ? `/api/manager/v1/pot/${pk}/chat` : null,
+    "채팅 내역을 불러오지 못했습니다.",
+  );
+
+  // 요청 중에는 버튼을 막아 중복 열람 기록을 방지하고, 실패하면 다시 시도할 수 있게 합니다.
+  const chatLoading = includeChat && !chat && !chatError;
+
+  // 이벤트와 채팅을 시간순으로 합칩니다. 채팅은 id 가 이벤트와 같은 테이블이라 겹치지 않습니다.
+  const rows = useMemo(() => {
+    const events = (pot?.events ?? []).map((event) => ({
+      ...event,
+      chat: null as string | null,
+    }));
+    const chats = (chat?.messages ?? []).map((message) => ({
+      id: message.id,
+      timestamp: message.timestamp,
+      event_type: "chat_v1",
+      data: null,
+      chat: `${chat?.users[message.user_pk] ?? message.user_pk}: ${message.message}`,
+    }));
+    return [...events, ...chats].sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime() ||
+        a.id - b.id,
+    );
+  }, [pot, chat]);
 
   const nameOf = (userPk: string | null) =>
     userPk ? (pot?.users[userPk] ?? userPk) : "-";
@@ -131,7 +177,27 @@ export function PotDetailPage() {
           )}
 
           <div className="card">
-            <h3 style={{ marginTop: 0 }}>이벤트 (채팅 제외)</h3>
+            <div className="page-header">
+              <h3 style={{ margin: 0 }}>
+                이벤트 {chat ? "(채팅 포함)" : "(채팅 제외)"}
+              </h3>
+              <button
+                className="button secondary small"
+                disabled={!pot.is_reported || chatLoading || !!chat}
+                title={
+                  pot.is_reported
+                    ? "채팅 열람 시 열람 기록이 남습니다."
+                    : "신고가 접수된 팟만 채팅을 열람할 수 있습니다."
+                }
+                onClick={chatError ? reloadChat : () => setIncludeChat(true)}
+              >
+                {chatError ? "다시 시도" : "채팅 포함해서 보기"}
+              </button>
+            </div>
+            {chatLoading && (
+              <p className="placeholder">채팅을 불러오는 중...</p>
+            )}
+            {chatError && <p className="error-text">{chatError}</p>}
             <table>
               <thead>
                 <tr>
@@ -141,7 +207,7 @@ export function PotDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {pot.events.map((event) => (
+                {rows.map((event) => (
                   <tr key={`${event.timestamp}-${event.id}`}>
                     <td className="nowrap">
                       {formatDateTime(event.timestamp)}
@@ -150,13 +216,17 @@ export function PotDetailPage() {
                       {EVENT_TYPE_LABEL[event.event_type] ?? event.event_type}
                     </td>
                     <td>
-                      <code className="event-data">
-                        {renderData(event.data)}
-                      </code>
+                      {event.chat !== null ? (
+                        event.chat
+                      ) : (
+                        <code className="event-data">
+                          {renderData(event.data)}
+                        </code>
+                      )}
                     </td>
                   </tr>
                 ))}
-                {pot.events.length === 0 && (
+                {rows.length === 0 && (
                   <tr>
                     <td colSpan={3} className="placeholder">
                       이벤트가 없습니다.

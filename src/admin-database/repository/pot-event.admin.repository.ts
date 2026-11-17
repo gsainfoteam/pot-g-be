@@ -27,4 +27,20 @@ export class PotEventAdminRepository {
 
     return result.map((event) => PotEventFactory.toModel(event));
   }
+
+  /*
+  SELECT * FROM pot_event
+    WHERE pot_fk = ?1
+      AND type = 'chat_v1'
+    ORDER BY timestamp ASC, id ASC;
+   */
+  async findChatEvents(potPk: string): Promise<PotEvent<any, any>[]> {
+    const result = await this.dbService.db
+      .select()
+      .from(potEvent)
+      .where(and(eq(potEvent.potFk, potPk), eq(potEvent.type, "chat_v1")))
+      .orderBy(asc(potEvent.timestamp), asc(potEvent.id));
+
+    return result.map((event) => PotEventFactory.toModel(event));
+  }
 }
