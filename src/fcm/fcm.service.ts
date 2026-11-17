@@ -133,7 +133,7 @@ export class FcmService implements OnModuleInit, IFcmService {
 
       const response = await admin.messaging().send(message);
 
-      this.logger.debug(
+      this.logger.log(
         `[sendPushNotification] Push notification accepted by FCM: messageId=${response}`,
       );
 
