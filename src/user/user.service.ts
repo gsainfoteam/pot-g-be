@@ -32,10 +32,13 @@ import { UserBankRepository } from "@src/database/repository/user-bank.repositor
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotService } from "@src/pot/pot.service";
 import { Trace } from "@gsainfoteam/nest-observability";
+import { StagingLogger } from "@src/global/logger/staging.logger";
 
 @Trace()
 @Injectable()
 export class UserService {
+  private readonly logger = new StagingLogger(UserService.name);
+
   constructor(
     private readonly dbService: DatabaseService,
     private readonly idpService: InfoteamIdpService,
@@ -136,9 +139,18 @@ export class UserService {
 
     device.loggedIn = true;
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.deviceRepository.update(device, tx);
-    });
+    const updated = await this.dbService.db.transaction((tx: TxType) =>
+      this.deviceRepository.update(device, tx),
+    );
+    let result = "registered";
+    if (!updated) {
+      result = "device_not_updated";
+    } else if (!device.fcmToken) {
+      result = "missing_fcm_token";
+    }
+    this.logger.debug(
+      `[device] user=${userCtx.userId} device_pk=${userCtx.devicePk} device_id=${device.deviceId} result=${result} has_input_token=${Boolean(fcmToken)}`,
+    );
 
     return BaseResultDto.OK;
   }
@@ -324,13 +336,16 @@ export class UserService {
 
     device.loggedIn = false;
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
+    const updated = await this.dbService.db.transaction(async (tx: TxType) => {
       await this.refreshTokenRepository.deleteByOpaqueHash(
         req.refresh_token,
         tx,
       );
-      await this.deviceRepository.update(device, tx);
+      return this.deviceRepository.update(device, tx);
     });
+    this.logger.debug(
+      `[logout] user=${userCtx.userId} device_pk=${userCtx.devicePk} updated=${updated}`,
+    );
 
     return BaseResultDto.OK;
   }

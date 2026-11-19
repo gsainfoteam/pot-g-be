@@ -219,7 +219,7 @@ export class BroadcastingService {
     potName?: string,
     senderName?: string,
   ) {
-    const targetFcmTokens = await this.getFcmTokensForUsers(
+    const targetDevices = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
       "chatPush",
     );
@@ -227,9 +227,7 @@ export class BroadcastingService {
     const potEventChatV1Dto = potEventDto.data as PotEventChatV1Dto;
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.chatPush)
-        .map((tokenInfo) => tokenInfo.fcmToken),
+      targetDevices,
       `${potName}: ${senderName}`,
       potEventChatV1Dto.content,
     );
@@ -240,7 +238,7 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
   ) {
-    const targetFcmTokens = await this.getFcmTokensForUsers(
+    const targetDevices = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
       "chatPush",
     );
@@ -248,9 +246,7 @@ export class BroadcastingService {
     const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.chatPush)
-        .map((tokenInfo) => tokenInfo.fcmToken),
+      targetDevices,
       `${potName}: 포포`,
       potEventPopoChatV1Dto.content,
     );
@@ -261,16 +257,14 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
   ) {
-    const targetFcmTokens = await this.getFcmTokensForUsers(
+    const targetDevices = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
       "potInOutPush",
     );
 
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map((tokenInfo) => tokenInfo.fcmToken),
+      targetDevices,
       `${potName}: 입퇴장 알림`,
       "사용자가 채팅방에 입장했습니다.",
     );
@@ -284,7 +278,7 @@ export class BroadcastingService {
     const potEventUserLeaveV1Dto = potEventDto.data as PotEventUserLeaveV1Dto;
 
     // 채팅방을 퇴장한 유저는 제외하고 푸시 알림 발송
-    const targetFcmTokens = await this.getFcmTokensForUsers(
+    const targetDevices = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks.filter(
         (userPk) => userPk !== potEventUserLeaveV1Dto.user_pk,
       ),
@@ -293,9 +287,7 @@ export class BroadcastingService {
 
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map((tokenInfo) => tokenInfo.fcmToken),
+      targetDevices,
       `${potName}: 입퇴장 알림`,
       "사용자가 채팅방에서 퇴장했습니다.",
     );
@@ -308,31 +300,27 @@ export class BroadcastingService {
   ) {
     const potEventUserKickV1Dto = potEventDto.data as PotEventUserKickV1Dto;
 
-    const targetFcmTokens = await this.getFcmTokensForUsers(
+    const targetDevices = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks.filter(
         (userPk) => userPk !== potEventUserKickV1Dto.kicked_user_pk,
       ),
       "potInOutPush",
     );
-    const kickedUserFcmTokens = await this.getFcmTokensForUsers(
+    const kickedUserDevices = await this.getFcmTokensForUsers(
       [potEventUserKickV1Dto.kicked_user_pk],
       "potInOutPush",
     );
 
     await this.sendPushToUser(
       potEventDto,
-      targetFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map((tokenInfo) => tokenInfo.fcmToken),
+      targetDevices,
       `${potName}: 입퇴장 알림`,
       "사용자가 채팅방에서 퇴장했습니다.",
     );
 
     await this.sendPushToUser(
       potEventDto,
-      kickedUserFcmTokens
-        .filter((tokenInfo) => tokenInfo.potInOutPush)
-        .map((tokenInfo) => tokenInfo.fcmToken),
+      kickedUserDevices,
       `${potName}: 강퇴 알림`,
       "사용자가 채팅방에서 강퇴되었습니다.",
     );
@@ -357,8 +345,16 @@ export class BroadcastingService {
       }
     }
     return devices.filter((tokenInfo) => {
+      let reason = "enabled";
+      if (!tokenInfo.fcmToken) {
+        reason = "skip: missing token";
+      } else if (tokenInfo[setting] == null) {
+        reason = "skip: missing settings";
+      } else if (!tokenInfo[setting]) {
+        reason = "skip: disabled";
+      }
       this.logger.debug(
-        `[getFcmTokensForUsers] user=${tokenInfo.userFk} device=${tokenInfo.deviceId} token=${StagingLogger.tokenId(tokenInfo.fcmToken)} ${setting}=${tokenInfo[setting]} -> ${!tokenInfo.fcmToken ? "skip: missing token" : tokenInfo[setting] == null ? "skip: missing settings" : !tokenInfo[setting] ? "skip: disabled" : "enabled"}`,
+        `[getFcmTokensForUsers] user=${tokenInfo.userFk} device_pk=${tokenInfo.devicePk} device_id=${tokenInfo.deviceId} token=${StagingLogger.tokenId(tokenInfo.fcmToken)} ${setting}=${tokenInfo[setting]} -> ${reason}`,
       );
       return Boolean(tokenInfo.fcmToken) && tokenInfo[setting] === true;
     });
@@ -366,11 +362,11 @@ export class BroadcastingService {
 
   private async sendPushToUser(
     potEventDto: PotEventDto<any>,
-    fcmTokens: string[],
+    devices: { devicePk: string; fcmToken: string }[],
     title: string,
     body: string,
   ) {
-    if (fcmTokens.length === 0) {
+    if (devices.length === 0) {
       this.logger.debug(
         `[sendPushToUser] ${title} no eligible devices -> skip`,
       );
@@ -378,15 +374,25 @@ export class BroadcastingService {
     }
 
     this.logger.debug(
-      `[sendPushToUser] ${title} ${potEventDto.event_type}, targets=${fcmTokens.length}`,
+      `[sendPushToUser] ${title} ${potEventDto.event_type}, targets=${devices.length} device_pks=${devices.map((d) => d.devicePk).join(",")}`,
     );
     try {
-      await this.fcmService.sendBulkPushNotification({
-        fcmTokens: fcmTokens,
+      const { results } = await this.fcmService.sendBulkPushNotification({
+        fcmTokens: devices.map((device) => device.fcmToken),
         title: title,
         body: body,
         deepLink: this.createDeeplink(potEventDto.pot_pk),
       });
+      const outcomes = results.map((result, index) => {
+        let status = "accepted";
+        if (!result.success) {
+          status = "failed";
+        }
+        return { device_pk: devices[index].devicePk, status };
+      });
+      this.logger.debug(
+        `[sendPushToUser] ${potEventDto.event_type} results=${JSON.stringify(outcomes)}`,
+      );
     } catch (e) {
       this.logger.error(
         `[sendPushToUser] Failed to send FCM notification for ${potEventDto.event_type}:.`,
