@@ -54,7 +54,7 @@ export class DeviceRepository {
 
   /*
   // TODO: LEFT OUTER JOIN + in array 조합이라 마음에 들지 않음
-  SELECT d.user_fk, d.device_id, d.logged_in, d.fcm_token,
+  SELECT d.user_fk, d.pk AS device_pk, d.device_id, d.logged_in, d.fcm_token,
          uas.chat_push, uas.marketing_push, uas.pot_in_out_push
   FROM device AS d
     LEFT OUTER JOIN user_alarm_setting AS uas ON d.pk = uas.device_fk
