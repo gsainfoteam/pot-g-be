@@ -142,13 +142,14 @@ export class UserService {
     const updated = await this.dbService.db.transaction((tx: TxType) =>
       this.deviceRepository.update(device, tx),
     );
-    const result = !updated
-      ? "device_not_updated"
-      : device.fcmToken
-        ? "registered"
-        : "missing_fcm_token";
+    let result = "registered";
+    if (!updated) {
+      result = "device_not_updated";
+    } else if (!device.fcmToken) {
+      result = "missing_fcm_token";
+    }
     this.logger.debug(
-      `[device] user=${userCtx.userId} device_pk=${userCtx.devicePk} result=${result} has_input_token=${Boolean(fcmToken)}`,
+      `[device] user=${userCtx.userId} device_pk=${userCtx.devicePk} device_id=${device.deviceId} result=${result} has_input_token=${Boolean(fcmToken)}`,
     );
 
     return BaseResultDto.OK;

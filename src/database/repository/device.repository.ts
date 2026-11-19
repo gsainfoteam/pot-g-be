@@ -64,6 +64,7 @@ export class DeviceRepository {
     return await this.dbService.db
       .select({
         userFk: device.userFk,
+        devicePk: device.pk,
         deviceId: device.deviceId,
         loggedIn: device.loggedIn,
         fcmToken: device.fcmToken,
@@ -74,14 +75,6 @@ export class DeviceRepository {
       .from(device)
       .leftJoin(userAlarmSetting, eq(device.pk, userAlarmSetting.deviceFk))
       .where(and(inArray(device.userFk, userFks), eq(device.loggedIn, true)));
-  }
-
-  async findUsersWithDevices(userFks: string[]) {
-    const rows = await this.dbService.db
-      .selectDistinct({ userFk: device.userFk })
-      .from(device)
-      .where(inArray(device.userFk, userFks));
-    return new Set(rows.map((row) => row.userFk));
   }
 
   async insert(
