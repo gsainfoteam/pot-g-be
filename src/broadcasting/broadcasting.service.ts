@@ -1,5 +1,6 @@
 import { StagingLogger } from "../global/logger/staging.logger";
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { WebsocketService } from "@src/websocket/websocket.service";
 import { PotEventDto } from "@src/pot/event/v1/dto/pot-event.dto";
 import { WsBaseDto } from "@src/websocket/dto/ws.base.dto";
@@ -31,6 +32,7 @@ export class BroadcastingService {
     private readonly websocketService: WebsocketService,
     private readonly fcmService: FcmService,
     private readonly deviceRepository: DeviceRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   asyncBroadcastPotEvent(
@@ -349,11 +351,19 @@ export class BroadcastingService {
     // 한 채팅방에 참여중인 유저는 최대 4명이므로 동시에 4명에게 푸시 알람을 보내면 됩니다.
     // 큰 트래픽이 발생하지는 않으므로 네 요청을 모두 동시에 보내도 무방합니다.
     const devices = await this.deviceRepository.findFcmTokensByUserFks(userPks);
-    for (const userPk of userPks) {
-      if (!devices.some((device) => device.userFk === userPk)) {
-        this.logger.debug(
-          `[getFcmTokensForUsers] user=${userPk} no logged-in devices -> skip push`,
-        );
+    if (this.configService.get<string>("APP_ENV") === "stg") {
+      const missing = userPks.filter(
+        (pk) => !devices.some((device) => device.userFk === pk),
+      );
+      if (missing.length) {
+        const registered = await this.deviceRepository
+          .findUsersWithDevices(missing)
+          .catch(() => undefined);
+        for (const pk of missing) {
+          this.logger.debug(
+            `[getFcmTokensForUsers] user=${pk} no logged-in devices -> skip push; device_exists=${registered?.has(pk) ?? "unknown"}`,
+          );
+        }
       }
     }
     return devices.filter((tokenInfo) => {

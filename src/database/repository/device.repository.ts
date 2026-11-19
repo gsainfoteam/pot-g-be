@@ -76,6 +76,14 @@ export class DeviceRepository {
       .where(and(inArray(device.userFk, userFks), eq(device.loggedIn, true)));
   }
 
+  async findUsersWithDevices(userFks: string[]) {
+    const rows = await this.dbService.db
+      .selectDistinct({ userFk: device.userFk })
+      .from(device)
+      .where(inArray(device.userFk, userFks));
+    return new Set(rows.map((row) => row.userFk));
+  }
+
   async insert(
     deviceEntity: DeviceEntity,
     tx: TxType,
@@ -102,7 +110,7 @@ export class DeviceRepository {
   }
 
   async update(deviceEntity: DeviceEntity, tx: TxType) {
-    await tx
+    const result = await tx
       .update(device)
       .set({
         fcmToken: deviceEntity.fcmToken,
@@ -112,6 +120,7 @@ export class DeviceRepository {
         loggedIn: deviceEntity.loggedIn,
       })
       .where(eq(device.pk, deviceEntity.pk));
+    return result.rowCount > 0;
   }
 
   async logoutAllWithUserFk(userFk: string, tx: TxType) {
