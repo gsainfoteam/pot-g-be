@@ -798,8 +798,12 @@ export class PotService {
       "popo-reminder-taxi-call-v1",
     );
 
-    // 출발 확정을 20분 안으로 했을 경우 바로 발송
-    if (subMinutes(req.departure_time, 20) < new Date()) {
+    const taxiCallReminderMinutesBefore = 5;
+
+    // 출발 확정을 5분 안으로 했을 경우 바로 발송
+    if (
+      subMinutes(req.departure_time, taxiCallReminderMinutesBefore) < new Date()
+    ) {
       this.popoService.asyncSendPopoChatMsgToPotRoom(
         taxiCallPopoChatMsg,
         null,
@@ -811,14 +815,14 @@ export class PotService {
         },
       );
     } else {
-      // departureTime 시간 20분 전 taxi call reminder 메세지 발송 예약
+      // departureTime 시간 5분 전 taxi call reminder 메세지 발송 예약
       this.popoService.asyncReservePopoChatMsg(
         taxiCallPopoChatMsg,
-        subMinutes(req.departure_time, 20),
+        subMinutes(req.departure_time, taxiCallReminderMinutesBefore),
         null,
         pot,
         {
-          remainDepartureTime: 20,
+          remainDepartureTime: taxiCallReminderMinutesBefore,
         },
       );
     }
