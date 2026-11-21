@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { subMinutes } from "date-fns";
-import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/delay-check-policy.admin.repository";
+import { addMinutes } from "date-fns";
+import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
 import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
 import { RouteService } from "@src/discovery/route.service";
 import { TxType } from "@src/global/types/tx.types";
@@ -13,7 +13,7 @@ export class DelayCheckService {
 
   constructor(
     configService: ConfigService,
-    private readonly policyRepository: DelayCheckPolicyAdminRepository,
+    private readonly popoChatMsgRepository: PopoChatMsgRepository,
     private readonly reservationRepository: PopoChatReservationRepository,
     private readonly routeService: RouteService,
   ) {
@@ -41,11 +41,14 @@ export class DelayCheckService {
       );
     }
 
-    const policy = await this.policyRepository.find(tx);
+    const policy = await this.popoChatMsgRepository.findByType(
+      "popo-delay-check-request-v1",
+      tx,
+    );
 
-    if (!policy) {
+    if (!policy || policy.offsetMinutes === null) {
       throw new InternalServerErrorException(
-        "Delay check policy is not initialized",
+        "Delay check message policy is not initialized",
       );
     }
 
@@ -55,10 +58,7 @@ export class DelayCheckService {
 
     const now = new Date();
 
-    const scheduledAt = subMinutes(
-      departureTime,
-      policy.minutesBeforeDeparture,
-    );
+    const scheduledAt = addMinutes(departureTime, policy.offsetMinutes);
 
     const sendAfter = scheduledAt > now ? scheduledAt : now;
 
@@ -82,9 +82,5 @@ export class DelayCheckService {
       },
       tx,
     );
-  }
-
-  async isEnabled(tx: TxType): Promise<boolean> {
-    return (await this.policyRepository.find(tx))?.enabled ?? false;
   }
 }

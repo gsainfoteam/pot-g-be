@@ -1,0 +1,1 @@
+DROP TABLE "delay_check_policy" CASCADE;

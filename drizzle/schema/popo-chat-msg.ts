@@ -1,4 +1,11 @@
-import { pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const popoChatType = pgEnum("popo_chat_type", [
   "popo-departure-confirm-request-v1",
@@ -31,7 +38,9 @@ CREATE TABLE "popo_chat_msg" (
     "action_btns" popo_action_btn_type[] NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT now(),
     "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
-    "message" text NOT NULL
+    "message" text NOT NULL,
+    "enabled" boolean NOT NULL DEFAULT true,
+    "offset_minutes" integer // 기준 시각 대비 발송 시점(분), 음수 = 전, 양수 = 후, NULL = 즉시 발송
 );
 */
 export const popoChatMsg = pgTable("popo_chat_msg", {
@@ -44,4 +53,7 @@ export const popoChatMsg = pgTable("popo_chat_msg", {
     .notNull()
     .defaultNow(),
   message: text("message").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  // 기준 시각은 코드(popo-message-meta.ts)에서 정해지고, 여기에는 그 시각 대비 오프셋만 저장한다.
+  offsetMinutes: integer("offset_minutes"),
 });

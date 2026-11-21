@@ -12,7 +12,7 @@ import { UsersPage } from "./pages/UsersPage";
 import { UserDetailPage } from "./pages/UserDetailPage";
 import { isLoggedIn } from "./lib/auth";
 import { PotCleanupPage } from "./pages/PotCleanupPage";
-import { NotificationSettingsPage } from "./pages/NotificationSettingsPage";
+import { PopoMessagesPage } from "./pages/PopoMessagesPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!isLoggedIn()) {
@@ -41,7 +41,7 @@ export function App() {
         <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="users/:pk" element={<UserDetailPage />} />
-        <Route path="notification-settings" element={<NotificationSettingsPage />} />
+        <Route path="popo-messages" element={<PopoMessagesPage />} />
         <Route
           path="stats"
           element={<PlaceholderPage title="통계" refreshable />}
