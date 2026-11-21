@@ -88,7 +88,8 @@ export const POPO_MESSAGE_META: Record<PopoChatStringType, PopoMessageMeta> = {
   },
   "popo-accounting-request-v1": {
     title: "정산 요청 안내",
-    description: "결제자가 정산을 요청하는 즉시 발송됩니다.",
+    description:
+      "결제자가 정산을 요청하는 즉시 발송됩니다. 총액이 0원이거나 요청 인원이 0명이면 바로 정산 완료로 처리되어 발송되지 않습니다.",
     timingAnchor: null,
     variables: [
       { name: "totalNum", description: "정산 요청 인원 수" },

@@ -40,6 +40,8 @@ import { Trace } from "@gsainfoteam/nest-observability";
 export class PopoService implements OnModuleInit {
   private readonly logger = new Logger(PopoService.name);
   private cachedPopoChatMsgs: PopoChatMsgEntity[] = [];
+  private cacheGeneration = 0;
+  private appliedCacheGeneration = 0;
   readonly reservationCreated$ = new Subject<PopoChatReservationEntity>();
   readonly reservationsCancelled$ = new Subject<{
     potPk: string;
@@ -295,15 +297,19 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
-    const earliest = new Date(Date.now() + 1_000);
-    const sendAfter = this.resolveSendAt(popoChatMsg, anchor);
-    this.asyncReservePopoChatMsg(
-      popoChatMsg,
-      sendAfter > earliest ? sendAfter : earliest,
-      potPk,
-      pot,
-      formatArguments,
-    );
+    const scheduledAt = this.resolveSendAt(popoChatMsg, anchor);
+    this.runAsync(async () => {
+      // 팟 조회 등으로 시간이 지체될 수 있으므로, 실제 예약 직전에 지난 시각을 보정한다.
+      const resolvedPot = await this.resolvePot(potPk, pot);
+      const earliest = new Date(Date.now() + 1_000);
+      await this.reservePopoChatMsg(
+        popoChatMsg,
+        scheduledAt > earliest ? scheduledAt : earliest,
+        undefined,
+        resolvedPot,
+        formatArguments,
+      );
+    });
   }
 
   asyncReservePopoChatMsg(
@@ -313,7 +319,7 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
-    defer(() =>
+    this.runAsync(() =>
       this.reservePopoChatMsg(
         popoChatMsg,
         sendAfter,
@@ -321,7 +327,11 @@ export class PopoService implements OnModuleInit {
         pot,
         formatArguments,
       ),
-    )
+    );
+  }
+
+  private runAsync(task: () => Promise<void>) {
+    defer(task)
       .pipe(
         subscribeOn(asyncScheduler),
         catchError((err) => {
@@ -513,12 +523,32 @@ export class PopoService implements OnModuleInit {
     return pot;
   }
 
-  /** 어드민에서 메시지 정책을 수정한 뒤 캐시를 갱신한다. */
-  async reloadPopoChatMsgs() {
-    await this.cachePopoChatMsgs();
+  /**
+   * 어드민에서 메시지 정책을 수정한 뒤 캐시를 갱신한다.
+   * 일시적인 DB 오류에 대비해 몇 번 재시도하고, 모두 실패하면 에러를 던진다.
+   */
+  async reloadPopoChatMsgs(retries = 3) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await this.cachePopoChatMsgs();
+        return;
+      } catch (err) {
+        if (attempt >= retries) throw err;
+        this.logger.warn(
+          `Reload popo chat msg cache failed (attempt ${attempt}/${retries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
   }
 
   private async cachePopoChatMsgs() {
-    this.cachedPopoChatMsgs = await this.popoChatMsgRepository.findAll();
+    // 요청이 겹칠 때 먼저 시작한 조회가 나중에 끝나도 최신 결과를 덮어쓰지 않도록 한다.
+    const generation = ++this.cacheGeneration;
+    const msgs = await this.popoChatMsgRepository.findAll();
+    if (generation > this.appliedCacheGeneration) {
+      this.appliedCacheGeneration = generation;
+      this.cachedPopoChatMsgs = msgs;
+    }
   }
 }

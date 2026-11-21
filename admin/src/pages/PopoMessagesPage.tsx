@@ -72,6 +72,12 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
   );
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // 저장 요청 중에 편집이 있었는지 구분하기 위한 편집 버전
+  const editVersion = useRef(0);
+  const markEdited = () => {
+    editVersion.current += 1;
+    setSaved(false);
+  };
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -88,6 +94,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
   const handleSave = async () => {
     setError(null);
     setSaved(false);
+    const submittedVersion = editVersion.current;
 
     if (message.trim() === "") {
       setError("메시지 문구를 입력해 주세요.");
@@ -97,7 +104,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
     let offset: number | null = null;
     if (hasTiming) {
       const parsed = Number(minutes);
-      if (!Number.isInteger(parsed) || parsed < 0) {
+      if (minutes.trim() === "" || !Number.isInteger(parsed) || parsed < 0) {
         setError("발송 시점은 0 이상의 정수(분)로 입력해 주세요.");
         return;
       }
@@ -106,7 +113,8 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
 
     try {
       await onSave({ ...policy, message, enabled, offset_minutes: offset });
-      setSaved(true);
+      // 저장하는 동안 다시 편집했다면 저장 완료 표시를 하지 않는다.
+      if (editVersion.current === submittedVersion) setSaved(true);
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -129,7 +137,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
             checked={enabled}
             onChange={(event) => {
               setEnabled(event.target.checked);
-              setSaved(false);
+              markEdited();
             }}
           />
           {enabled ? "발송 중" : "발송 안 함"}
@@ -148,7 +156,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
           value={message}
           onChange={(event) => {
             setMessage(event.target.value);
-            setSaved(false);
+            markEdited();
           }}
         />
         <span className="popo-message-hint">
@@ -191,7 +199,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
               value={minutes}
               onChange={(event) => {
                 setMinutes(event.target.value);
-                setSaved(false);
+                markEdited();
               }}
             />
             <span>분</span>
@@ -200,7 +208,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
               value={direction}
               onChange={(event) => {
                 setDirection(event.target.value as "before" | "after");
-                setSaved(false);
+                markEdited();
               }}
             >
               <option value="before">전</option>
@@ -299,13 +307,17 @@ export function PopoMessagesPage() {
         <br />
         발송 예약이 걸리는 조건과 취소 흐름은 로직에 해당하므로 이 페이지에서는
         설명만 제공하며, 변경하려면 코드를 수정해야 합니다. 변경한 정책은 이후에
-        새로 만들어지는 예약부터 적용되고, 이미 예약된 메시지는 그대로
-        발송됩니다.
+        새로 만들어지는 예약부터 적용되고, 이미 예약된 메시지의 발송 시각은
+        바뀌지 않지만, 문구와 발송 여부는 발송 시점의 정책을 따릅니다.
       </p>
       {error && (
         <p className="error-text" role="alert">
           {error}
         </p>
+      )}
+      {!data && !error && <p className="popo-message-hint">불러오는 중...</p>}
+      {data && data.length === 0 && (
+        <p className="popo-message-hint">등록된 포포 메시지가 없습니다.</p>
       )}
       <div className="popo-messages-layout">
         <ul className="popo-message-list" aria-label="포포 메시지 목록">

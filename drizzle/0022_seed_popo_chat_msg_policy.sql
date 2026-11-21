@@ -15,7 +15,8 @@ END;
 -- delay_check_policy 의 값을 popo_chat_msg 로 옮긴다. (테이블은 다음 마이그레이션에서 삭제)
 UPDATE public.popo_chat_msg AS msg
 SET enabled = policy.enabled,
-    offset_minutes = -policy.minutes_before_departure
+    offset_minutes = -policy.minutes_before_departure,
+    updated_at = GREATEST(msg.updated_at, policy.updated_at)
 FROM public.delay_check_policy AS policy
 WHERE msg.type = 'popo-delay-check-request-v1'
   AND policy.key = 'default';
