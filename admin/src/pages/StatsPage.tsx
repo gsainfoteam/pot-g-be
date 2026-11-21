@@ -146,7 +146,7 @@ export function StatsPage() {
               <strong style={{ color: "#1d4ed8" }}>
                 {data.summary.confirmedPots.toLocaleString()}개
               </strong>
-              의 팟(2인 이상)이 함께 택시를 타고 출발했어요!{" "}
+              의 팟이 함께 택시를 타고 출발했어요!{" "}
               <span
                 style={{
                   display: "inline-block",
@@ -293,7 +293,7 @@ export function StatsPage() {
                       display: "inline-block",
                     }}
                   />
-                  2인+ 확정
+                  출발 확정
                 </span>
               </div>
             </div>
@@ -360,7 +360,7 @@ export function StatsPage() {
                       </div>
                       <span
                         style={{ textAlign: "right", color: "#374151" }}
-                        title={`전체 ${r.totalCount}개 중 2인+ 확정 ${r.confirmedCount}개`}
+                        title={`전체 ${r.totalCount}개 중 출발 확정 ${r.confirmedCount}개`}
                       >
                         <span style={{ color: "#6b7280" }}>{r.totalCount}</span>{" "}
                         /{" "}
