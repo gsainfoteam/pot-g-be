@@ -113,6 +113,34 @@
       "when": 1794882410502,
       "tag": "0015_admin_chat_view_log",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795179488845,
+      "tag": "0016_popo_reservation_delivery",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795179488846,
+      "tag": "0017_delay_check_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795179488847,
+      "tag": "0018_delay_check_message_types",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795179488848,
+      "tag": "0019_insert_delay_check_message",
+      "breakpoints": true
     }
   ]
 }
