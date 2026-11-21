@@ -141,6 +141,27 @@
       "when": 1795179488848,
       "tag": "0019_insert_delay_check_message",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795258048215,
+      "tag": "0020_popo_chat_msg_policy_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795258055850,
+      "tag": "0021_seed_popo_chat_msg_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795258056289,
+      "tag": "0022_drop_delay_check_policy",
+      "breakpoints": true
     }
   ]
 }
