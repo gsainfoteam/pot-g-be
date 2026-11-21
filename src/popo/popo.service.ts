@@ -5,6 +5,7 @@ import {
   Logger,
   OnModuleInit,
 } from "@nestjs/common";
+import { addMinutes } from "date-fns";
 import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
 import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
 import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
@@ -23,7 +24,6 @@ import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reserv
 import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-delivery.repository";
 import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
 import { PotEvent } from "@src/pot/event/pot-event";
-import { DelayCheckService } from "@src/popo/delay-check.service";
 import {
   asyncScheduler,
   catchError,
@@ -57,7 +57,6 @@ export class PopoService implements OnModuleInit {
     private readonly potService: PotService,
     private readonly deliveryRepository: PopoChatDeliveryRepository,
     private readonly potRoomRepository: PotRoomRepository,
-    private readonly delayCheckService: DelayCheckService,
   ) {}
 
   async onModuleInit() {
@@ -106,7 +105,7 @@ export class PopoService implements OnModuleInit {
       if (
         !pot.pk ||
         pot.isArchived ||
-        !(await this.shouldSendReservation(type, pot, tx))
+        !(await this.shouldSendReservation(type, pot))
       ) {
         await this.popoChatReservationRepository.deleteByPk(pk, tx);
         return;
@@ -116,24 +115,29 @@ export class PopoService implements OnModuleInit {
       if (!template)
         throw new Error("Popo message template not found: " + type);
 
-      const formatArguments = { ...reservation.formatArguments };
-      if (type === "popo-reminder-taxi-call-v1" && pot.departureTime) {
-        formatArguments.remainDepartureTime = Math.max(
-          0,
-          Math.floor((pot.departureTime.getTime() - Date.now()) / 60_000),
+      // 팟 해산은 메시지가 아니라 로직이므로, 메시지 발송을 꺼도 해산은 그대로 진행한다.
+      const archivesPot =
+        type === "popo-auto-archive-no-departure-confirm-v1" ||
+        type === "popo-auto-archive-v1";
+      if (!template.enabled && !archivesPot) {
+        await this.popoChatReservationRepository.deleteByPk(pk, tx);
+        return;
+      }
+
+      const events: PotEvent<any, any>[] = [];
+      if (template.enabled) {
+        const formatArguments = { ...reservation.formatArguments };
+        if (type === "popo-reminder-taxi-call-v1" && pot.departureTime) {
+          formatArguments.remainDepartureTime = Math.max(
+            0,
+            Math.floor((pot.departureTime.getTime() - Date.now()) / 60_000),
+          );
+        }
+        events.push(
+          await this.savePopoChatEvent(template, pot, formatArguments, tx),
         );
       }
-      const message = await this.savePopoChatEvent(
-        template,
-        pot,
-        formatArguments,
-        tx,
-      );
-      const events: PotEvent<any, any>[] = [message];
-      if (
-        type === "popo-auto-archive-no-departure-confirm-v1" ||
-        type === "popo-auto-archive-v1"
-      ) {
+      if (archivesPot) {
         events.push(await this.potService.archivePotInTransaction(pot, tx));
       }
 
@@ -163,7 +167,6 @@ export class PopoService implements OnModuleInit {
   private async shouldSendReservation(
     type: PopoChatStringType,
     pot: Pot,
-    tx: TxType,
   ): Promise<boolean> {
     switch (type) {
       case "popo-departure-confirm-request-v1":
@@ -175,11 +178,7 @@ export class PopoService implements OnModuleInit {
       case "popo-accounting-reminder-v1":
         return !pot.accountingRequestUserId;
       case "popo-delay-check-request-v1":
-        return (
-          !!pot.departureTime &&
-          pot.departureTime > new Date() &&
-          this.delayCheckService.isEnabled(tx)
-        );
+        return !!pot.departureTime && pot.departureTime > new Date();
       default:
         return false;
     }
@@ -238,6 +237,35 @@ export class PopoService implements OnModuleInit {
     event.toDto();
     await this.potEventRepository.saveEvent(event, tx);
     return event;
+  }
+
+  /**
+   * 기준 시각에 메시지 정책의 오프셋을 적용한 발송 시각을 계산한다.
+   * 즉시 발송 메시지(offsetMinutes 가 null)는 기준 시각을 그대로 돌려준다.
+   */
+  resolveSendAt(popoChatMsg: PopoChatMsgEntity, anchor: Date): Date {
+    return addMinutes(anchor, popoChatMsg.offsetMinutes ?? 0);
+  }
+
+  /**
+   * 정책 오프셋을 적용해 발송을 예약한다. 계산된 시각이 이미 지났다면 곧바로 발송되도록 예약한다.
+   */
+  asyncReservePopoChatMsgFromAnchor(
+    popoChatMsg: PopoChatMsgEntity,
+    anchor: Date,
+    potPk?: string,
+    pot?: Pot,
+    formatArguments?: any,
+  ) {
+    const earliest = new Date(Date.now() + 1_000);
+    const sendAfter = this.resolveSendAt(popoChatMsg, anchor);
+    this.asyncReservePopoChatMsg(
+      popoChatMsg,
+      sendAfter > earliest ? sendAfter : earliest,
+      potPk,
+      pot,
+      formatArguments,
+    );
   }
 
   asyncReservePopoChatMsg(
@@ -347,6 +375,8 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
+    if (!popoChatMsg.enabled) return;
+
     pot = await this.resolvePot(potPk, pot);
 
     const now = new Date();
@@ -443,6 +473,11 @@ export class PopoService implements OnModuleInit {
     }
 
     return pot;
+  }
+
+  /** 어드민에서 메시지 정책을 수정한 뒤 캐시를 갱신한다. */
+  async reloadPopoChatMsgs() {
+    await this.cachePopoChatMsgs();
   }
 
   private async cachePopoChatMsgs() {

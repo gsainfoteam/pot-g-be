@@ -70,7 +70,6 @@ localTests("Popo durable reservation processing", () => {
       archiveService,
       new PopoChatDeliveryRepository(dbService),
       new PotRoomRepository(dbService),
-      { isEnabled: async () => true } as any,
     );
     if (initialize) await popo.onModuleInit();
     return popo;
