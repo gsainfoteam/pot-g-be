@@ -8,6 +8,7 @@ import { AdminUserRepository } from "@src/admin-database/repository/admin-user.r
 import { AdminChatViewLogRepository } from "@src/admin-database/repository/admin-chat-view-log.admin.repository";
 import { ReportAdminRepository } from "@src/admin-database/repository/report.admin.repository";
 import { PopoChatMsgAdminRepository } from "@src/admin-database/repository/popo-chat-msg.admin.repository";
+import { PopoChatStatusAdminRepository } from "@src/admin-database/repository/popo-chat-status.admin.repository";
 
 /**
  * 어드민 전용 레포지토리만 모아서 export 하는 모듈입니다.
@@ -24,6 +25,7 @@ import { PopoChatMsgAdminRepository } from "@src/admin-database/repository/popo-
     ReportAdminRepository,
     AdminChatViewLogRepository,
     PopoChatMsgAdminRepository,
+    PopoChatStatusAdminRepository,
   ],
   exports: [
     AdminAccountRepository,
@@ -34,6 +36,7 @@ import { PopoChatMsgAdminRepository } from "@src/admin-database/repository/popo-
     ReportAdminRepository,
     AdminChatViewLogRepository,
     PopoChatMsgAdminRepository,
+    PopoChatStatusAdminRepository,
   ],
 })
 export class AdminDatabaseModule {}
