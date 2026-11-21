@@ -11,6 +11,8 @@ import { UsersPage } from "./pages/UsersPage";
 import { UserDetailPage } from "./pages/UserDetailPage";
 import { isLoggedIn } from "./lib/auth";
 import { PotCleanupPage } from "./pages/PotCleanupPage";
+import { PopoMessagesPage } from "./pages/PopoMessagesPage";
+import { PopoMessageStatusPage } from "./pages/PopoMessageStatusPage";
 import { StatusPage } from "./pages/StatusPage";
 import { StatsPage } from "./pages/StatsPage";
 
@@ -40,6 +42,8 @@ export function App() {
         <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="users/:pk" element={<UserDetailPage />} />
+        <Route path="popo-messages" element={<PopoMessagesPage />} />
+        <Route path="popo-message-status" element={<PopoMessageStatusPage />} />
         <Route path="admin-accounts" element={<AdminAccountsPage />} />
         <Route path="pot-cleanup" element={<PotCleanupPage />} />
         <Route index element={<StatusPage />} />
