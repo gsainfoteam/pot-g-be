@@ -237,7 +237,66 @@ export function StatsPage() {
 
           {/* 노선별 팟 생성 그래프 */}
           <div style={cardStyle}>
-            <h2 style={sectionTitleStyle}>노선별 팟 생성 (전체 / 2인+ 확정)</h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
+                노선별 팟 생성
+              </h2>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  fontSize: 12,
+                  color: "#4b5563",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 3,
+                      background: "#93c5fd",
+                      display: "inline-block",
+                    }}
+                  />
+                  전체 생성
+                </span>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 3,
+                      background: "#2563eb",
+                      display: "inline-block",
+                    }}
+                  />
+                  2인+ 확정
+                </span>
+              </div>
+            </div>
             {data.potsByRoute.length === 0 ? (
               <p style={{ color: "#6b7280", fontSize: 13 }}>
                 데이터가 없습니다.
@@ -299,8 +358,15 @@ export function StatsPage() {
                           }}
                         />
                       </div>
-                      <span style={{ textAlign: "right", color: "#374151" }}>
-                        {r.totalCount} / <strong>{r.confirmedCount}</strong>
+                      <span
+                        style={{ textAlign: "right", color: "#374151" }}
+                        title={`전체 ${r.totalCount}개 중 2인+ 확정 ${r.confirmedCount}개`}
+                      >
+                        <span style={{ color: "#6b7280" }}>{r.totalCount}</span>{" "}
+                        /{" "}
+                        <strong style={{ color: "#2563eb" }}>
+                          {r.confirmedCount}
+                        </strong>
                       </span>
                     </div>
                   ));
