@@ -1,8 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { asc, eq, lte } from "drizzle-orm";
+import { and, asc, eq, isNull, lte, or } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
-import { popoChatDelivery } from "../../../drizzle/schema/popo-chat-delivery";
+import {
+  DeliveryProgress,
+  popoChatDelivery,
+} from "../../../drizzle/schema/popo-chat-delivery";
 
 export type PopoChatDelivery = typeof popoChatDelivery.$inferSelect;
 
@@ -29,7 +33,15 @@ export class PopoChatDeliveryRepository {
     return this.dbService.db
       .select()
       .from(popoChatDelivery)
-      .where(lte(popoChatDelivery.nextAttemptAt, new Date()))
+      .where(
+        and(
+          lte(popoChatDelivery.nextAttemptAt, new Date()),
+          or(
+            isNull(popoChatDelivery.leaseUntil),
+            lte(popoChatDelivery.leaseUntil, new Date()),
+          ),
+        ),
+      )
       .orderBy(asc(popoChatDelivery.createdAt), asc(popoChatDelivery.pk));
   }
 
@@ -49,20 +61,66 @@ export class PopoChatDeliveryRepository {
     return delivery;
   }
 
-  /*
-  DELETE FROM popo_chat_delivery WHERE pk = $1;
-   */
-  async deleteByPk(pk: string, tx: TxType) {
-    await tx.delete(popoChatDelivery).where(eq(popoChatDelivery.pk, pk));
+  // Claim in a short transaction; never hold a connection during network I/O.
+  async claim(pk: string): Promise<PopoChatDelivery | undefined> {
+    return this.dbService.db.transaction(async (tx) => {
+      const delivery = await this.findByPkForUpdate(pk, tx);
+      const now = new Date();
+      if (
+        !delivery ||
+        delivery.nextAttemptAt > now ||
+        delivery.leaseUntil > now
+      )
+        return undefined;
+      const [claimed] = await tx
+        .update(popoChatDelivery)
+        .set({
+          leaseToken: randomUUID(),
+          leaseUntil: new Date(Date.now() + 5 * 60_000),
+        })
+        .where(eq(popoChatDelivery.pk, pk))
+        .returning();
+      return claimed;
+    });
   }
 
-  /*
-  UPDATE popo_chat_delivery SET next_attempt_at = $1 WHERE pk = $2;
-   */
-  async retryLater(pk: string, nextAttemptAt: Date, tx: TxType) {
-    await tx
+  async saveProgress(
+    pk: string,
+    leaseToken: string,
+    progress: DeliveryProgress,
+  ) {
+    const updated = await this.dbService.db
       .update(popoChatDelivery)
-      .set({ nextAttemptAt })
-      .where(eq(popoChatDelivery.pk, pk));
+      .set({
+        progress,
+        leaseUntil: new Date(Date.now() + 5 * 60_000),
+      })
+      .where(
+        and(
+          eq(popoChatDelivery.pk, pk),
+          eq(popoChatDelivery.leaseToken, leaseToken),
+        ),
+      )
+      .returning({ pk: popoChatDelivery.pk });
+    if (!updated.length) throw new Error("Reserved delivery lease lost");
+  }
+
+  async finishAttempt(pk: string, leaseToken: string, nextAttemptAt?: Date) {
+    const condition = and(
+      eq(popoChatDelivery.pk, pk),
+      eq(popoChatDelivery.leaseToken, leaseToken),
+    );
+    if (nextAttemptAt) {
+      await this.dbService.db
+        .update(popoChatDelivery)
+        .set({
+          nextAttemptAt,
+          leaseToken: null,
+          leaseUntil: null,
+        })
+        .where(condition);
+    } else {
+      await this.dbService.db.delete(popoChatDelivery).where(condition);
+    }
   }
 }

@@ -1,6 +1,6 @@
 {
-  "id": "8933b3e8-67d0-43ae-a73f-3cc4bcb7af4c",
-  "prevId": "09dc1e9d-c1be-446f-b398-eb30463b7057",
+  "id": "c193da9e-3018-493b-8aa3-0c60e95779f6",
+  "prevId": "6843df3a-8b10-4200-9c2f-4398550496ee",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -207,6 +207,55 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.delay_check_policy": {
+      "name": "delay_check_policy",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "varchar(32)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "minutes_before_departure": {
+          "name": "minutes_before_departure",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "delay_check_policy_singleton": {
+          "name": "delay_check_policy_singleton",
+          "value": "\"delay_check_policy\".\"key\" = 'default'"
+        },
+        "delay_check_policy_positive_minutes": {
+          "name": "delay_check_policy_positive_minutes",
+          "value": "\"delay_check_policy\".\"minutes_before_departure\" >= 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.device": {
       "name": "device",
       "schema": "",
@@ -385,6 +434,31 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "progress": {
+          "name": "progress",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_token": {
+          "name": "lease_token",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_until": {
+          "name": "lease_until",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "next_attempt_at": {
           "name": "next_attempt_at",

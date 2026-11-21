@@ -1,5 +1,5 @@
 {
-  "id": "64fa7989-e313-4d12-a98d-6719dc4c2a10",
+  "id": "4aeedf27-d4ec-45b4-b2ea-baf71f6eaae5",
   "prevId": "0fb4e2cc-a2ee-43d9-86d1-965255117d3c",
   "version": "7",
   "dialect": "postgresql",
@@ -435,6 +435,31 @@
           "primaryKey": false,
           "notNull": true
         },
+        "progress": {
+          "name": "progress",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_token": {
+          "name": "lease_token",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_until": {
+          "name": "lease_until",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "next_attempt_at": {
           "name": "next_attempt_at",
           "type": "timestamp with time zone",
@@ -525,19 +550,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "offset_minutes": {
-          "name": "offset_minutes",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},

@@ -28,6 +28,7 @@ export class PopoSchedulerService
   private readonly processing = new Map<string, Promise<void>>();
   private readonly subscriptions = new Subscription();
   private refreshPromise?: Promise<void>;
+  private deliveryPromise?: Promise<void>;
   private stopping = false;
 
   constructor(
@@ -37,7 +38,7 @@ export class PopoSchedulerService
   ) {}
 
   async onApplicationBootstrap() {
-    // ??? ??? ??? ??? ? ?? ??? ?????.
+    // 예약 생성과 취소 이벤트를 구독해 타이머에 즉시 반영합니다.
     this.subscriptions.add(
       this.popoService.reservationCreated$.subscribe((reservation) => {
         this.scheduleReservation(reservation);
@@ -48,7 +49,7 @@ export class PopoSchedulerService
         this.cancelReservations(potPk, type);
       }),
     );
-    // ?? ?? ? ?? ??? ?? ??? ?? ?????.
+    // 서버 시작 시 DB의 예약을 조회해 지난 예약을 처리하고 예정된 타이머를 복구합니다.
     await this.handleCron();
   }
 
@@ -74,6 +75,19 @@ export class PopoSchedulerService
     }
   }
 
+  @Cron("*/10 * * * * *", { waitForCompletion: true })
+  async handleDeliveryCron() {
+    if (this.stopping || this.deliveryPromise) return;
+    this.deliveryPromise = this.popoService.processPendingDeliveries();
+    try {
+      await this.deliveryPromise;
+    } catch (error) {
+      this.logger.error("Failed to process pending Popo deliveries", error);
+    } finally {
+      this.deliveryPromise = undefined;
+    }
+  }
+
   private async refreshReservations() {
     const previousTimers = new Map(this.timers);
     const reservations =
@@ -85,7 +99,7 @@ export class PopoSchedulerService
       reservations.map((reservation) => reservation.pk),
     );
     for (const [pk, timer] of previousTimers) {
-      // ?? ?? ?? ??? ???? ?????.
+      // DB에서 사라진 예약의 타이머를 제거하되, 조회 중 교체된 타이머는 유지합니다.
       if (!remainingIds.has(pk) && this.timers.get(pk) === timer)
         this.clearTimer(pk);
     }
@@ -137,7 +151,7 @@ export class PopoSchedulerService
     const work = this.popoService
       .processReservedPopoChatReservation(pk)
       .catch((error) => {
-        // ??? ??? DB? ?? ?? Cron?? ??? ? ?? ?????.
+        // DB에 남은 예약이나 전달 작업은 이후 Cron 실행에서 재시도합니다.
         this.logger.error("Failed to process Popo reservation " + pk, error);
       })
       .finally(() => this.processing.delete(pk));
@@ -167,6 +181,7 @@ export class PopoSchedulerService
     this.subscriptions.unsubscribe();
     for (const pk of this.timers.keys()) this.clearTimer(pk);
     await this.refreshPromise?.catch(() => undefined);
+    await this.deliveryPromise?.catch(() => undefined);
     await Promise.allSettled(this.processing.values());
   }
 }

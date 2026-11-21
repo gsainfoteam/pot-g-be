@@ -21,6 +21,7 @@ import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-lea
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
 import { Trace } from "@gsainfoteam/nest-observability";
+import { DeliveryUserProgress } from "../../drizzle/schema/popo-chat-delivery";
 
 @Trace()
 @Injectable()
@@ -32,6 +33,106 @@ export class BroadcastingService {
     private readonly fcmService: FcmService,
     private readonly deviceRepository: DeviceRepository,
   ) {}
+
+  // Durable reservations keep ACK fallback and push retries separate from WS sends.
+  async broadcastReservedPotEvent(
+    event: PotEventDto<any>,
+    userPks: string[],
+    potName: string,
+    progress: Record<string, DeliveryUserProgress>,
+    saveProgress: () => Promise<void>,
+    expiresAt?: Date,
+  ): Promise<Date | undefined> {
+    let nextAttempt: number | undefined;
+    const retryAt = (time: number) => {
+      nextAttempt = Math.min(nextAttempt ?? time, time);
+    };
+    for (const userPk of userPks) {
+      if (expiresAt && expiresAt.getTime() <= Date.now()) break;
+      let state = progress[userPk];
+      const clients = this.websocketService.findClientByUserId(userPk);
+      if (!state) {
+        const message: WsBaseDto<PotEventDto<any>> = {
+          type: "pot_event_receive",
+          request_id: randomUUID(),
+          body: event,
+        };
+        state = clients.length
+          ? {
+              stage: "ack",
+              requestId: message.request_id,
+              checkAfter: Date.now() + 10_000,
+            }
+          : { stage: "push" };
+        progress[userPk] = state;
+        // Persist before sending: recovery must not replay an already sent WS event.
+        // If interrupted before sending, the durable ACK fallback still sends a push.
+        await saveProgress();
+        for (const client of clients) {
+          if (client.getIsAuthorized()) client.sendMessage(message);
+          // Do not queue reserved messages across reauthorization: membership may
+          // change before the queue drains. The durable fallback handles these.
+        }
+      }
+      if (state.stage === "done") continue;
+      if (state.stage === "ack") {
+        const requestId = state.requestId;
+        const acknowledged = clients.some((client) =>
+          client.findAckMessage(requestId, "pot_event_receive_res"),
+        );
+        if (acknowledged || event.event_type !== "popo_chat_v1") {
+          progress[userPk] = { stage: "done" };
+          await saveProgress();
+          continue;
+        }
+        if (state.checkAfter > Date.now()) {
+          retryAt(state.checkAfter);
+          continue;
+        }
+        state = progress[userPk] = { stage: "push" };
+        await saveProgress();
+      }
+      if (event.event_type !== "popo_chat_v1") {
+        progress[userPk] = { stage: "done" };
+        await saveProgress();
+        continue;
+      }
+      // Re-read devices and push preferences even for an already pending device.
+      const devices = (
+        await this.getFcmTokensForUsers([userPk], "chatPush")
+      ).filter(
+        (device) =>
+          !state.pendingDevicePks ||
+          state.pendingDevicePks.includes(device.devicePk),
+      );
+      state.pendingDevicePks = devices.map((device) => device.devicePk);
+      await saveProgress();
+      if (expiresAt && expiresAt.getTime() <= Date.now()) break;
+      if (devices.length) {
+        const { results } = await this.fcmService.sendBulkPushNotification({
+          fcmTokens: devices.map((device) => device.fcmToken),
+          title: `${potName}: 포포`,
+          body: (event.data as PotEventPopoChatV1Dto).content,
+          deepLink: this.createDeeplink(event.pot_pk),
+        });
+        const permanentErrors = new Set([
+          "messaging/registration-token-not-registered",
+          "messaging/invalid-registration-token",
+        ]);
+        state.pendingDevicePks = devices
+          .filter((_, index) => {
+            const result = results[index];
+            return !result?.success && !permanentErrors.has(result?.errorCode);
+          })
+          .map((device) => device.devicePk);
+      }
+      if (!state.pendingDevicePks.length) progress[userPk] = { stage: "done" };
+      else retryAt(Date.now() + 60_000);
+      // Record partial FCM success before another user or event is attempted.
+      await saveProgress();
+    }
+    return nextAttempt === undefined ? undefined : new Date(nextAttempt);
+  }
 
   asyncBroadcastPotEvent(
     potEventDto: PotEventDto<any>,
@@ -192,7 +293,12 @@ export class BroadcastingService {
         senderName,
       );
     } else if (potEventDto.event_type === "popo_chat_v1") {
-      await this.sendPopoChatPush(potEventDto, pushAlarmTargetUserPks, potName, retryPushFailures);
+      await this.sendPopoChatPush(
+        potEventDto,
+        pushAlarmTargetUserPks,
+        potName,
+        retryPushFailures,
+      );
     } else if (potEventDto.event_type === "user_in_v1") {
       await this.sendUserInPush(potEventDto, pushAlarmTargetUserPks, potName);
     } else if (potEventDto.event_type === "user_leave_v1") {
@@ -403,9 +509,12 @@ export class BroadcastingService {
         "messaging/registration-token-not-registered",
         "messaging/invalid-registration-token",
       ]);
-      if (retryFailures && results.some((result) =>
-        !result.success && !permanentErrors.has(result.errorCode),
-      )) {
+      if (
+        retryFailures &&
+        results.some(
+          (result) => !result.success && !permanentErrors.has(result.errorCode),
+        )
+      ) {
         throw new Error("Reserved notification push was not accepted by FCM");
       }
     } catch (e) {

@@ -40,7 +40,7 @@ bun install
 POSTGRES_PASSWORD=password
 POSTGRES_USER=potg
 POSTGRES_DB=potg
-DATABASE_URL=postgresql://potg:password@localhost:5432/potg
+DATABASE_URL=postgresql://potg:password@localhost:55432/potg
 # (Postgres 관련 환경 변수는 모두 수정 불필요)
 
 # IDP Server

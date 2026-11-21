@@ -87,7 +87,7 @@ export class PopoService implements OnModuleInit {
       );
       if (!candidate) return;
 
-      // ? ?? ? ?? ??? ???? ?? ?? ?? ??? ?????.
+      // 팟을 먼저 잠근 뒤 예약을 잠가 동시 처리 시 잠금 순서를 일관되게 유지합니다.
       const room = await this.potRoomRepository.lockByPk(candidate.potFk, tx);
       const reservation =
         await this.popoChatReservationRepository.findByPkForUpdate(pk, tx);
@@ -141,13 +141,15 @@ export class PopoService implements OnModuleInit {
         events.push(await this.potService.archivePotInTransaction(pot, tx));
       }
 
-      // ??? ???? ?? ?? ???? ?? ??? ?? ????? ?????.
+      // 이벤트와 전달 작업을 같은 트랜잭션에 저장해 전송 실패 시 재시도할 수 있도록 합니다.
       await this.deliveryRepository.insert(
         {
           pk: reservation.pk,
           potFk: pot.pk,
           potName: pot.name,
           userPks: pot.joinedUserPks,
+          expiresAt:
+            type === "popo-delay-check-request-v1" ? pot.departureTime : null,
           events: events.map((event) => ({
             pot_pk: pot.pk,
             timestamp: getUnixTime(event.timestamp),
@@ -192,30 +194,66 @@ export class PopoService implements OnModuleInit {
   }
 
   private async deliverReservedEvents(pk: string): Promise<void> {
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      const delivery = await this.deliveryRepository.findByPkForUpdate(pk, tx);
-      if (!delivery || delivery.nextAttemptAt > new Date()) return;
-      try {
-        for (const event of delivery.events) {
-          await this.broadcastingService.broadcastPotEvent(
-            event,
-            delivery.userPks,
-            delivery.potName,
-            undefined,
-            true,
-          );
-        }
-        await this.deliveryRepository.deleteByPk(pk, tx);
-      } catch (error) {
-        // ??? ??? ?? ??? ???? ??? ??????.
-        await this.deliveryRepository.retryLater(
-          pk,
-          new Date(Date.now() + 60_000),
-          tx,
+    const delivery = await this.deliveryRepository.claim(pk);
+    if (!delivery) return;
+    let nextAttemptAt: Date | undefined;
+    try {
+      const pot = await this.potEventRepository.findByIdWithoutChat(
+        delivery.potFk,
+      );
+      const archiveDelivery = delivery.events.some(
+        (event) => event.event_type === "archive_v1",
+      );
+      const delayCheck = delivery.events.some(
+        (event) =>
+          event.event_type === "popo_chat_v1" &&
+          (event.data as { popo_chat_type?: string }).popo_chat_type ===
+            "popo-delay-check-request-v1",
+      );
+      // Old queued deliveries may not yet have expiresAt populated.
+      const expiresAt =
+        delivery.expiresAt ?? (delayCheck ? pot.departureTime : undefined);
+      const expired =
+        delayCheck && (!expiresAt || expiresAt.getTime() <= Date.now());
+      const eligible =
+        pot.pk &&
+        !pot.isDeleted &&
+        !expired &&
+        (!pot.isArchived || archiveDelivery);
+      const userPks = !eligible
+        ? []
+        : archiveDelivery
+          ? delivery.userPks
+          : delivery.userPks.filter((userPk) =>
+              pot.joinedUserPks.includes(userPk),
+            );
+      for (const event of delivery.events) {
+        const progress = (delivery.progress[event.id] ??= {});
+        const next = await this.broadcastingService.broadcastReservedPotEvent(
+          event,
+          userPks,
+          delivery.potName,
+          progress,
+          () =>
+            this.deliveryRepository.saveProgress(
+              pk,
+              delivery.leaseToken,
+              delivery.progress,
+            ),
+          expiresAt,
         );
-        this.logger.error("Failed to deliver reserved events " + pk, error);
+        if (next && (!nextAttemptAt || next < nextAttemptAt))
+          nextAttemptAt = next;
       }
-    });
+    } catch (error) {
+      nextAttemptAt = new Date(Date.now() + 60_000);
+      this.logger.error("Failed to deliver reserved events " + pk, error);
+    }
+    await this.deliveryRepository.finishAttempt(
+      pk,
+      delivery.leaseToken,
+      nextAttemptAt,
+    );
   }
 
   private async savePopoChatEvent(
@@ -233,7 +271,7 @@ export class PopoService implements OnModuleInit {
       formatArguments,
     });
     PotEventReducer.reduce(pot, event, true);
-    // ??? ?? ??? ???? ?? ?? ?????.
+    // 이벤트를 저장하기 전에 메시지 포맷팅 오류가 없는지 확인합니다.
     event.toDto();
     await this.potEventRepository.saveEvent(event, tx);
     return event;
