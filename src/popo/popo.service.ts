@@ -88,7 +88,7 @@ export class PopoService implements OnModuleInit {
       );
       if (!candidate) return;
 
-      // ? ?? ? ?? ??? ???? ?? ?? ?? ??? ?????.
+      // 팟을 먼저 잠근 뒤 예약을 잠가 동시 처리 시 잠금 순서를 일관되게 유지합니다.
       const room = await this.potRoomRepository.lockByPk(candidate.potFk, tx);
       const reservation =
         await this.popoChatReservationRepository.findByPkForUpdate(pk, tx);
@@ -137,7 +137,7 @@ export class PopoService implements OnModuleInit {
         events.push(await this.potService.archivePotInTransaction(pot, tx));
       }
 
-      // ??? ???? ?? ?? ???? ?? ??? ?? ????? ?????.
+      // 이벤트와 전달 작업을 같은 트랜잭션에 저장해 전송 실패 시 재시도할 수 있도록 합니다.
       await this.deliveryRepository.insert(
         {
           pk: reservation.pk,
@@ -272,7 +272,7 @@ export class PopoService implements OnModuleInit {
       formatArguments,
     });
     PotEventReducer.reduce(pot, event, true);
-    // ??? ?? ??? ???? ?? ?? ?????.
+    // 이벤트를 저장하기 전에 메시지 포맷팅 오류가 없는지 확인합니다.
     event.toDto();
     await this.potEventRepository.saveEvent(event, tx);
     return event;
