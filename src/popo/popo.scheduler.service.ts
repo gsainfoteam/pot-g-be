@@ -28,6 +28,7 @@ export class PopoSchedulerService
   private readonly processing = new Map<string, Promise<void>>();
   private readonly subscriptions = new Subscription();
   private refreshPromise?: Promise<void>;
+  private deliveryPromise?: Promise<void>;
   private stopping = false;
 
   constructor(
@@ -71,6 +72,19 @@ export class PopoSchedulerService
         );
     } finally {
       this.refreshPromise = undefined;
+    }
+  }
+
+  @Cron("*/10 * * * * *", { waitForCompletion: true })
+  async handleDeliveryCron() {
+    if (this.stopping || this.deliveryPromise) return;
+    this.deliveryPromise = this.popoService.processPendingDeliveries();
+    try {
+      await this.deliveryPromise;
+    } catch (error) {
+      this.logger.error("Failed to process pending Popo deliveries", error);
+    } finally {
+      this.deliveryPromise = undefined;
     }
   }
 
@@ -167,6 +181,7 @@ export class PopoSchedulerService
     this.subscriptions.unsubscribe();
     for (const pk of this.timers.keys()) this.clearTimer(pk);
     await this.refreshPromise?.catch(() => undefined);
+    await this.deliveryPromise?.catch(() => undefined);
     await Promise.allSettled(this.processing.values());
   }
 }

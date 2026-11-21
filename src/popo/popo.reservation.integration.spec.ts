@@ -39,7 +39,7 @@ localTests("Popo durable reservation processing", () => {
   let reservationPk: string;
   let service: PopoService;
   const broadcaster = {
-    broadcastPotEvent: jest.fn(),
+    broadcastReservedPotEvent: jest.fn(),
     asyncBroadcastPotEvent: jest.fn(),
   };
 
@@ -163,8 +163,8 @@ localTests("Popo durable reservation processing", () => {
         .from(popoChatReservation)
         .where(eq(popoChatReservation.pk, reservationPk)),
     ).toHaveLength(0);
-    expect(broadcaster.broadcastPotEvent).toHaveBeenCalledTimes(1);
-    expect(broadcaster.broadcastPotEvent).toHaveBeenCalledWith(
+    expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
+    expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           popo_chat_type: "popo-delay-check-request-v1",
@@ -173,8 +173,9 @@ localTests("Popo durable reservation processing", () => {
       }),
       expect.anything(),
       expect.anything(),
-      undefined,
-      true,
+      expect.any(Object),
+      expect.any(Function),
+      expect.any(Date),
     );
   });
 
@@ -191,7 +192,9 @@ localTests("Popo durable reservation processing", () => {
     [{ pk: routePk }] = await db.select({ pk: route.pk }).from(route).limit(1);
   });
   beforeEach(async () => {
-    broadcaster.broadcastPotEvent.mockReset().mockResolvedValue(undefined);
+    broadcaster.broadcastReservedPotEvent
+      .mockReset()
+      .mockResolvedValue(undefined);
     jest.spyOn(Logger.prototype, "error").mockImplementation(() => undefined);
     service = await makeService();
   });
@@ -218,7 +221,7 @@ localTests("Popo durable reservation processing", () => {
 
   it("commits one event and removes its reservation before broadcasting", async () => {
     await seed();
-    broadcaster.broadcastPotEvent.mockImplementationOnce(async () => {
+    broadcaster.broadcastReservedPotEvent.mockImplementationOnce(async () => {
       expect(await messageRows()).toHaveLength(1);
       expect(
         await db
@@ -234,7 +237,7 @@ localTests("Popo durable reservation processing", () => {
       ).toHaveLength(1);
     });
     await service.processReservedPopoChatReservation(reservationPk);
-    expect(broadcaster.broadcastPotEvent).toHaveBeenCalledTimes(1);
+    expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
     expect(
       await db
         .select()
@@ -251,7 +254,33 @@ localTests("Popo durable reservation processing", () => {
       otherWorker.processReservedPopoChatReservation(reservationPk),
     ]);
     expect(await messageRows()).toHaveLength(1);
-    expect(broadcaster.broadcastPotEvent).toHaveBeenCalledTimes(1);
+    expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("releases the sole pool connection before network delivery needs another query", async () => {
+    await seed();
+    const singlePool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 1,
+      connectionTimeoutMillis: 1000,
+    });
+    try {
+      const singleDatabase = { db: drizzle(singlePool) } as DatabaseService;
+      const worker = await makeService(singleDatabase);
+      broadcaster.broadcastReservedPotEvent.mockImplementationOnce(async () => {
+        await singlePool.query("SELECT 1");
+      });
+      await worker.processReservedPopoChatReservation(reservationPk);
+      expect(
+        await db
+          .select()
+          .from(popoChatDelivery)
+          .where(eq(popoChatDelivery.pk, reservationPk)),
+      ).toHaveLength(0);
+      expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
+    } finally {
+      await singlePool.end();
+    }
   });
 
   it("recovers a committed delivery after simulated shutdown before network sending", async () => {
@@ -277,12 +306,12 @@ localTests("Popo durable reservation processing", () => {
     const restartedService = await makeService();
     await restartedService.processPendingDeliveries();
     expect(await messageRows()).toHaveLength(1);
-    expect(broadcaster.broadcastPotEvent).toHaveBeenCalledTimes(1);
+    expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
   });
 
   it("keeps failed deliveries for retry and reuses the original event", async () => {
     await seed();
-    broadcaster.broadcastPotEvent.mockRejectedValueOnce(
+    broadcaster.broadcastReservedPotEvent.mockRejectedValueOnce(
       new Error("Network unavailable"),
     );
     await service.processReservedPopoChatReservation(reservationPk);
@@ -291,6 +320,8 @@ localTests("Popo durable reservation processing", () => {
       .from(popoChatDelivery)
       .where(eq(popoChatDelivery.pk, reservationPk));
     expect(pending).toBeDefined();
+    const originalEventId =
+      broadcaster.broadcastReservedPotEvent.mock.calls[0][0].id;
     expect(await messageRows()).toHaveLength(1);
     await db
       .update(popoChatDelivery)
@@ -298,6 +329,10 @@ localTests("Popo durable reservation processing", () => {
       .where(eq(popoChatDelivery.pk, reservationPk));
     const restartedService = await makeService();
     await restartedService.processPendingDeliveries();
+    expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(2);
+    expect(broadcaster.broadcastReservedPotEvent.mock.calls[1][0].id).toBe(
+      originalEventId,
+    );
     expect(await messageRows()).toHaveLength(1);
     expect(
       await db
@@ -322,7 +357,50 @@ localTests("Popo durable reservation processing", () => {
         .from(popoChatReservation)
         .where(eq(popoChatReservation.pk, reservationPk)),
     ).toHaveLength(1);
-    expect(broadcaster.broadcastPotEvent).not.toHaveBeenCalled();
+    expect(broadcaster.broadcastReservedPotEvent).not.toHaveBeenCalled();
+  });
+
+  it("recovers an expired lease and rejects writes from the previous worker", async () => {
+    await seed();
+    broadcaster.broadcastReservedPotEvent.mockRejectedValueOnce(
+      new Error("Network unavailable"),
+    );
+    await service.processReservedPopoChatReservation(reservationPk);
+    await db
+      .update(popoChatDelivery)
+      .set({ nextAttemptAt: new Date(Date.now() - 1000) })
+      .where(eq(popoChatDelivery.pk, reservationPk));
+    const repository = new PopoChatDeliveryRepository(database);
+    const claims = await Promise.all([
+      repository.claim(reservationPk),
+      repository.claim(reservationPk),
+    ]);
+    const claimed = claims.filter(Boolean);
+    expect(claimed).toHaveLength(1);
+    const first = claimed[0];
+    await db
+      .update(popoChatDelivery)
+      .set({ leaseUntil: new Date(Date.now() - 1000) })
+      .where(eq(popoChatDelivery.pk, reservationPk));
+    const recovered = await repository.claim(reservationPk);
+    expect(recovered.leaseToken).not.toBe(first.leaseToken);
+    await expect(
+      repository.saveProgress(reservationPk, first.leaseToken, {}),
+    ).rejects.toThrow("lease lost");
+    await repository.finishAttempt(reservationPk, first.leaseToken);
+    expect(
+      await db
+        .select()
+        .from(popoChatDelivery)
+        .where(eq(popoChatDelivery.pk, reservationPk)),
+    ).toHaveLength(1);
+    await repository.finishAttempt(reservationPk, recovered.leaseToken);
+    expect(
+      await db
+        .select()
+        .from(popoChatDelivery)
+        .where(eq(popoChatDelivery.pk, reservationPk)),
+    ).toHaveLength(0);
   });
 
   it("rechecks cancelled and rescheduled reservations before sending", async () => {
@@ -337,7 +415,7 @@ localTests("Popo durable reservation processing", () => {
       .delete(popoChatReservation)
       .where(eq(popoChatReservation.pk, reservationPk));
     await service.processReservedPopoChatReservation(reservationPk);
-    expect(broadcaster.broadcastPotEvent).not.toHaveBeenCalled();
+    expect(broadcaster.broadcastReservedPotEvent).not.toHaveBeenCalled();
   });
 
   it("archives a pot and saves both notifications atomically", async () => {
@@ -347,7 +425,7 @@ localTests("Popo durable reservation processing", () => {
     expect(room.isArchived).toBe(true);
     expect(await messageRows()).toHaveLength(1);
     expect(
-      broadcaster.broadcastPotEvent.mock.calls.map(
+      broadcaster.broadcastReservedPotEvent.mock.calls.map(
         ([event]) => event.event_type,
       ),
     ).toEqual(["popo_chat_v1", "archive_v1"]);

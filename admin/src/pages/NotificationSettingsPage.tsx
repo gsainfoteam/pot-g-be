@@ -71,7 +71,7 @@ export function NotificationSettingsPage() {
 
     try {
       const data = await api.patch<DelayCheckPolicyDto>(POLICY_PATH, {
-        enabled: true,
+        enabled: policy.enabled,
         minutes_before_departure: parsedMinutes,
       });
 
@@ -156,9 +156,7 @@ export function NotificationSettingsPage() {
               <span id="delay-check-timing-unit">분 전</span>
             </div>
           </div>
-          <p className="notification-notice">
-            기본 알림 설정: 출발 10분 전
-          </p>
+          <p className="notification-notice">기본 알림 설정: 출발 10분 전</p>
           <div className="notification-footer">
             <p className="notification-updated">
               마지막 수정{" "}
