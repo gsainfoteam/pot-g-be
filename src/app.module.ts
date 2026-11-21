@@ -21,6 +21,7 @@ import { ConfigService } from "@nestjs/config";
 import { HealthModule } from "./health/health.module";
 import { AdminUserModule } from "@src/admin-user/admin-user.module";
 import { AdminPopoMessageModule } from "@src/admin-popo-message/admin-popo-message.module";
+import { AdminDashboardModule } from "./admin-dashboard/admin-dashboard.module";
 
 @Module({
   imports: [
@@ -79,7 +80,6 @@ import { AdminPopoMessageModule } from "@src/admin-popo-message/admin-popo-messa
       inject: [ConfigService],
     }),
     AdminUserModule,
-    AdminPopoMessageModule,
   ],
   controllers: [],
   providers: [],
