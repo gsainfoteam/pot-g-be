@@ -25,6 +25,7 @@ type ReservationList = {
 };
 
 type SentMessage = {
+  event_id: number;
   pot_pk: string;
   pot_name: string;
   type: string;
@@ -91,54 +92,54 @@ export function PopoMessageStatusPage() {
         {!reservations.data && !reservations.error && (
           <p className="popo-message-hint">불러오는 중...</p>
         )}
-        {reservations.data && reservations.data.items.length === 0 && (
+        {reservations.data && reservations.data.total === 0 && (
           <p className="popo-message-hint">예약된 메시지가 없습니다.</p>
         )}
         {reservations.data && reservations.data.items.length > 0 && (
-          <>
-            <div className="user-table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>발송 예정</th>
-                    <th>메시지</th>
-                    <th>팟</th>
-                    <th>상태</th>
-                    <th>예약 생성</th>
+          <div className="user-table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>발송 예정</th>
+                  <th>메시지</th>
+                  <th>팟</th>
+                  <th>상태</th>
+                  <th>예약 생성</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reservations.data.items.map((reservation) => (
+                  <tr key={reservation.pk}>
+                    <td>{formatDateTime(reservation.send_after)}</td>
+                    <td>
+                      {reservation.title}
+                      <div className="popo-message-type">
+                        {reservation.type}
+                      </div>
+                    </td>
+                    <td>
+                      <Link
+                        className="table-link"
+                        to={`/pots/${reservation.pot_pk}`}
+                      >
+                        {reservation.pot_name}
+                      </Link>
+                    </td>
+                    <td>{RESERVATION_STATUS_LABELS[reservation.status]}</td>
+                    <td>{formatDateTime(reservation.created_at)}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {reservations.data.items.map((reservation) => (
-                    <tr key={reservation.pk}>
-                      <td>{formatDateTime(reservation.send_after)}</td>
-                      <td>
-                        {reservation.title}
-                        <div className="popo-message-type">
-                          {reservation.type}
-                        </div>
-                      </td>
-                      <td>
-                        <Link
-                          className="table-link"
-                          to={`/pots/${reservation.pot_pk}`}
-                        >
-                          {reservation.pot_name}
-                        </Link>
-                      </td>
-                      <td>{RESERVATION_STATUS_LABELS[reservation.status]}</td>
-                      <td>{formatDateTime(reservation.created_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <UserPagination
-              page={reservationPage}
-              size={PAGE_SIZE}
-              total={reservations.data.total}
-              onChange={setReservationPage}
-            />
-          </>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {reservations.data && reservations.data.total > 0 && (
+          <UserPagination
+            page={reservationPage}
+            size={PAGE_SIZE}
+            total={reservations.data.total}
+            onChange={setReservationPage}
+          />
         )}
       </section>
 
@@ -155,52 +156,52 @@ export function PopoMessageStatusPage() {
         {!sent.data && !sent.error && (
           <p className="popo-message-hint">불러오는 중...</p>
         )}
-        {sent.data && sent.data.items.length === 0 && (
+        {sent.data && sent.data.total === 0 && (
           <p className="popo-message-hint">발송된 메시지가 없습니다.</p>
         )}
         {sent.data && sent.data.items.length > 0 && (
-          <>
-            <div className="user-table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>발송 시각</th>
-                    <th>메시지</th>
-                    <th>팟</th>
-                    <th>내용</th>
+          <div className="user-table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>발송 시각</th>
+                  <th>메시지</th>
+                  <th>팟</th>
+                  <th>내용</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sent.data.items.map((message) => (
+                  <tr
+                    key={`${message.pot_pk}-${message.sent_at}-${message.event_id}`}
+                  >
+                    <td>{formatDateTime(message.sent_at)}</td>
+                    <td>
+                      {message.title}
+                      <div className="popo-message-type">{message.type}</div>
+                    </td>
+                    <td>
+                      <Link
+                        className="table-link"
+                        to={`/pots/${message.pot_pk}`}
+                      >
+                        {message.pot_name}
+                      </Link>
+                    </td>
+                    <td>{message.content}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {sent.data.items.map((message) => (
-                    <tr
-                      key={`${message.pot_pk}-${message.sent_at}-${message.type}`}
-                    >
-                      <td>{formatDateTime(message.sent_at)}</td>
-                      <td>
-                        {message.title}
-                        <div className="popo-message-type">{message.type}</div>
-                      </td>
-                      <td>
-                        <Link
-                          className="table-link"
-                          to={`/pots/${message.pot_pk}`}
-                        >
-                          {message.pot_name}
-                        </Link>
-                      </td>
-                      <td>{message.content}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <UserPagination
-              page={sentPage}
-              size={PAGE_SIZE}
-              total={sent.data.total}
-              onChange={setSentPage}
-            />
-          </>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {sent.data && sent.data.total > 0 && (
+          <UserPagination
+            page={sentPage}
+            size={PAGE_SIZE}
+            total={sent.data.total}
+            onChange={setSentPage}
+          />
         )}
       </section>
     </div>

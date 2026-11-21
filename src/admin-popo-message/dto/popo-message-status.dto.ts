@@ -38,6 +38,8 @@ export class PopoReservationListResDto {
 }
 
 export class PopoSentDto {
+  /** Part of the pot_event key (pot_pk, sent_at, event_id); not unique on its own. */
+  event_id: number;
   pot_pk: string;
   pot_name: string;
   type: string;

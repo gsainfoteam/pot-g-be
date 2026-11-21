@@ -67,6 +67,7 @@ describe("AdminPopoMessageStatusService", () => {
     expect(res.total).toBe(2);
     expect(res.items[0].content).toBe("출발 3시");
     expect(res.items[1].content).toBe("{} and {name}");
+    expect(res.items.map((i) => i.event_id)).toEqual([1, 2]);
     expect(res.items[0].sent_at).toBe(sentAt.toISOString());
   });
 });

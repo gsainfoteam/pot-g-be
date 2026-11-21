@@ -61,6 +61,7 @@ export class AdminPopoMessageStatusService {
   private toSentDto(row: PopoSentRow): PopoSentDto {
     const { popoChatType, message, formatArguments, actionBtns } = row.data;
     return {
+      event_id: row.eventId,
       pot_pk: row.potPk,
       pot_name: row.potName,
       type: popoChatType,
