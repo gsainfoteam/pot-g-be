@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { to: "/pots", label: "팟 관리" },
   { to: "/routes", label: "노선/정류장 관리" },
   { to: "/versions", label: "앱 버전" },
-  { to: "/notification-settings", label: "알림 설정" },
+  { to: "/popo-messages", label: "포포 메시지" },
   { to: "/users", label: "사용자" },
   { to: "/stats", label: "통계" },
   { to: "/admin-accounts", label: "관리자 계정" },
