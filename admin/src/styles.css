@@ -257,6 +257,113 @@ body {
   font-weight: 500;
 }
 
+.notification-description {
+  margin: -4px 0 20px;
+  color: var(--text-grey);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.notification-card {
+  padding: 24px;
+}
+
+.notification-fields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.notification-legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notification-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-grey);
+}
+
+.notification-setting-label {
+  color: var(--text-grey);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notification-time-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-grey);
+  font-size: 14px;
+}
+
+.notification-time-input input {
+  width: 100px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-grey);
+  border-radius: 10px;
+  background: var(--field-grey);
+  color: var(--dark);
+  font: inherit;
+}
+
+.notification-time-input input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.notification-notice,
+.notification-updated {
+  color: var(--text-grey);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.notification-notice {
+  margin: 16px 0 24px;
+}
+
+.notification-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.notification-updated {
+  margin: 0;
+}
+
+.notification-save {
+  min-height: 38px;
+  min-width: 76px;
+  margin-left: auto;
+}
+
+.notification-success {
+  margin: 16px 0 0;
+  color: var(--primary-pressed);
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .notification-setting-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
 .map-container {
   height: 420px;
   width: 100%;

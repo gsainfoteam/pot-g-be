@@ -78,7 +78,7 @@
     "@types/pg": "^8.11.14",
     "@types/supertest": "^6.0.2",
     "@types/ws": "^8.18.1",
-    "drizzle-kit": "^0.31.0",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.24.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
