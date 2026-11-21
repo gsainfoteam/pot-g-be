@@ -46,6 +46,7 @@ import {
   subMinutes,
 } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
+import { DelayCheckService } from "@src/popo/delay-check.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
@@ -76,6 +77,7 @@ export class PotService {
     private readonly userRepository: UserRepository,
     private readonly reportRepository: ReportRepository,
     private readonly slackService: SlackService,
+    private readonly delayCheckService: DelayCheckService,
   ) {}
 
   async createPot(
@@ -747,10 +749,32 @@ export class PotService {
       throw error; // 알 수 없는 오류는 다시 던짐
     }
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.potRoomRepository.setDepartureTime(pot.pk, tx);
-      await this.potEventRepository.saveEvent(potDepartureConfirmEvent, tx);
-    });
+    const confirmation = await this.dbService.db.transaction(
+      async (tx: TxType) => {
+        const room = await this.potRoomRepository.lockByPk(pot.pk, tx);
+        if (!room || room.isDeleted || room.isArchived) {
+          return { result: BaseResultDto.PotAlreadyClosed };
+        }
+        if (room.isDepartureConfirmed) {
+          return { result: BaseResultDto.AfterDepartureConfirmed };
+        }
+        await this.potRoomRepository.setDepartureTime(pot.pk, tx);
+        await this.potEventRepository.saveEvent(potDepartureConfirmEvent, tx);
+        const reservation = await this.delayCheckService.reserveIfEligible(
+          pot,
+          pot.departureTime,
+          tx,
+        );
+        return { result: BaseResultDto.OK, reservation };
+      },
+    );
+
+    if (confirmation.result !== BaseResultDto.OK) {
+      return confirmation.result;
+    }
+    if (confirmation.reservation) {
+      this.popoService.reservationCreated$.next(confirmation.reservation);
+    }
 
     this.broadcastingService.asyncBroadcastPotEvent(
       {
@@ -931,49 +955,50 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
-  async archivePot(pot: Pot, tx?: TxType): Promise<BaseResultDto> {
-    const now = new Date();
-
-    const potArchiveEvent: PotArchiveEventV1 =
-      PotArchiveEventV1.generatePotArchiveEvent(pot.pk, now, {
+  async archivePotInTransaction(
+    pot: Pot,
+    tx: TxType,
+  ): Promise<PotArchiveEventV1> {
+    const event = PotArchiveEventV1.generatePotArchiveEvent(
+      pot.pk,
+      new Date(),
+      {
         potRoomPk: pot.pk,
-      });
+      },
+    );
+    PotEventReducer.reduce(pot, event, true);
+    await this.potRoomRepository.archivePotRoom(pot.pk, tx);
+    await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
+    await this.potEventRepository.saveEvent(event, tx);
+    await this.popoService.deleteAllPopoChatReservationInTransaction(
+      pot.pk,
+      tx,
+    );
+    return event;
+  }
 
+  async archivePot(pot: Pot, tx?: TxType): Promise<BaseResultDto> {
+    let event: PotArchiveEventV1;
     try {
-      PotEventReducer.reduce(pot, potArchiveEvent, true);
+      event = tx
+        ? await this.archivePotInTransaction(pot, tx)
+        : await this.dbService.db.transaction((transaction: TxType) =>
+            this.archivePotInTransaction(pot, transaction),
+          );
     } catch (error) {
-      if (error instanceof PotEventError) {
-        return error.baseResultDto;
-      }
+      if (error instanceof PotEventError) return error.baseResultDto;
       throw error;
     }
-
-    const runQueries = async (tx: TxType) => {
-      await this.potRoomRepository.archivePotRoom(pot.pk, tx);
-      await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
-      await this.potEventRepository.saveEvent(potArchiveEvent, tx);
-    };
-
-    if (tx) {
-      await runQueries(tx);
-    } else {
-      await this.dbService.db.transaction(runQueries);
-    }
-
     this.broadcastingService.asyncBroadcastPotEvent(
       {
         pot_pk: pot.pk,
-        timestamp: getUnixTime(potArchiveEvent.timestamp),
-        id: potArchiveEvent.id,
-        event_type: potArchiveEvent.eventType,
-        data: potArchiveEvent.toDto(),
+        timestamp: getUnixTime(event.timestamp),
+        id: event.id,
+        event_type: event.eventType,
+        data: event.toDto(),
       },
       pot.joinedUserPks,
     );
-
-    // 포포 예약 모두 삭제
-    await this.popoService.deleteAllPopoChatReservation(pot.pk);
-
     return BaseResultDto.OK;
   }
 

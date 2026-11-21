@@ -10,6 +10,7 @@ export interface FcmResult {
   success: boolean;
   messageId?: string;
   error?: string;
+  errorCode?: string;
   fcmToken?: string;
 }
 
@@ -229,6 +230,7 @@ export class FcmService implements OnModuleInit, IFcmService {
       success: res.success,
       messageId: res.messageId,
       error: res.error ? res.error.message : undefined,
+      errorCode: res.error?.code,
       fcmToken: fcmTokens[index],
     }));
 
