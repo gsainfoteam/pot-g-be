@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { LoginPage } from "./pages/LoginPage";
 import { CallbackPage } from "./pages/CallbackPage";
 import { DashboardLayout } from "./pages/DashboardLayout";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { AdminAccountsPage } from "./pages/AdminAccountsPage";
 import { PotsPage } from "./pages/PotsPage";
 import { PotDetailPage } from "./pages/PotDetailPage";
@@ -12,6 +11,8 @@ import { UsersPage } from "./pages/UsersPage";
 import { UserDetailPage } from "./pages/UserDetailPage";
 import { isLoggedIn } from "./lib/auth";
 import { PotCleanupPage } from "./pages/PotCleanupPage";
+import { StatusPage } from "./pages/StatusPage";
+import { StatsPage } from "./pages/StatsPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!isLoggedIn()) {
@@ -33,19 +34,16 @@ export function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<PlaceholderPage title="현황" refreshable />} />
         <Route path="pots" element={<PotsPage />} />
         <Route path="pots/:pk" element={<PotDetailPage />} />
         <Route path="routes" element={<RoutesPage />} />
         <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="users/:pk" element={<UserDetailPage />} />
-        <Route
-          path="stats"
-          element={<PlaceholderPage title="통계" refreshable />}
-        />
         <Route path="admin-accounts" element={<AdminAccountsPage />} />
         <Route path="pot-cleanup" element={<PotCleanupPage />} />
+        <Route index element={<StatusPage />} />
+        <Route path="stats" element={<StatsPage />} />
       </Route>
     </Routes>
   );

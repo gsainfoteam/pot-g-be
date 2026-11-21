@@ -203,4 +203,22 @@ export class WebsocketService implements OnModuleDestroy {
       this.AUTHORIZATION_TIMEOUT_MS + 5 * 1000,
     ); // 5초 여유
   }
+
+  // WebSocket 서버에 연결된 클라이언트의 전체 연결 수, 인증된 연결 수, 중복을 제외한 실제 사용자 수
+  getConnectedSessionStats(): {
+    totalConnections: number;
+    authorizedConnections: number;
+    uniqueUsers: number;
+  } {
+    const authorizedClients = this.clients.filter((c) => c.getIsAuthorized());
+    const uniqueUserIds = new Set(
+      authorizedClients.map((c) => c.getUserId()).filter(Boolean),
+    );
+
+    return {
+      totalConnections: this.clients.length,
+      authorizedConnections: authorizedClients.length,
+      uniqueUsers: uniqueUserIds.size,
+    };
+  }
 }

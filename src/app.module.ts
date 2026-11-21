@@ -20,6 +20,7 @@ import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
 import { HealthModule } from "./health/health.module";
 import { AdminUserModule } from "@src/admin-user/admin-user.module";
+import { AdminDashboardModule } from "./admin-dashboard/admin-dashboard.module";
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { AdminUserModule } from "@src/admin-user/admin-user.module";
       inject: [ConfigService],
     }),
     AdminUserModule,
+    AdminDashboardModule,
   ],
   controllers: [],
   providers: [],
