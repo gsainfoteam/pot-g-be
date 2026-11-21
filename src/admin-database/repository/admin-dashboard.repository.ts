@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
+import { getPotDepartureTime } from "../query/pot-departure-time";
 
 export interface DashboardDateRange {
   from?: Date;
@@ -44,9 +45,16 @@ export class AdminDashboardRepository {
 
   /**
    * 현재 활성화된 팟(is_archived = false, is_deleted = false) 상태별 개수
-   * - waitingDeparture: 출발 대기
-   * - departedBeforeAccounting: 출발 확정 ~ 정산 요청 이전
-   * - stalePots: 출발/생성 후 staleDays(기본 7일) 이상 지난 장기 방치 팟
+   * - waitingDeparture: 출발 대기 (출발 시각 기준 staleDays 미경과)
+   * - departedBeforeAccounting: 출발 확정 ~ 정산 요청 이전 (출발 시각 기준 staleDays 미경과)
+   * - stalePots: 출발 시각(starts_at) 기준 staleDays(기본 7일) 이상 지난 장기 방치 팟
+   */
+  /**
+   * 현재 활성화된 팟(is_archived = false, is_deleted = false) 상태별 개수
+   * - 기준 시각(effective_departure_time): 출발 확정 이벤트(departure_confirm_v1)의 departureTime, 없으면 starts_at
+   * - waitingDeparture: 출발 대기 (출발 시각 기준 staleDays 미경과)
+   * - departedBeforeAccounting: 출발 확정 ~ 정산 요청 이전 (출발 시각 기준 staleDays 미경과)
+   * - stalePots: 출발 시각 기준 staleDays(기본 7일) 이상 지난 장기 방치 팟
    */
   async getActivePotStatus(staleDays = 7): Promise<{
     waitingDeparture: number;
@@ -58,27 +66,34 @@ export class AdminDashboardRepository {
       departed_before_accounting: number;
       stale_pots: number;
     }>(sql`
+      WITH active_pots AS (
+        SELECT
+          pot_room.pk,
+          pot_room.is_departure_confirmed,
+          COALESCE(${getPotDepartureTime()}, pot_room.starts_at) AS effective_departure_time
+        FROM pot_room
+        WHERE pot_room.is_archived = false
+          AND pot_room.is_deleted = false
+      )
       SELECT
         COUNT(*) FILTER (
-          WHERE pr.is_departure_confirmed = false
-            AND pr.created_at > NOW() - (${staleDays} * INTERVAL '1 day')
+          WHERE ap.is_departure_confirmed = false
+            AND ap.effective_departure_time > NOW() - (${staleDays} * INTERVAL '1 day')
         )::int AS waiting_departure,
         COUNT(*) FILTER (
-          WHERE pr.is_departure_confirmed = true
-            AND pr.created_at > NOW() - (${staleDays} * INTERVAL '1 day')
+          WHERE ap.is_departure_confirmed = true
+            AND ap.effective_departure_time > NOW() - (${staleDays} * INTERVAL '1 day')
             AND NOT EXISTS (
               SELECT 1
               FROM pot_event AS pe
-              WHERE pe.pot_fk = pr.pk
+              WHERE pe.pot_fk = ap.pk
                 AND pe.type = 'accounting_request_v1'
             )
         )::int AS departed_before_accounting,
         COUNT(*) FILTER (
-          WHERE pr.created_at <= NOW() - (${staleDays} * INTERVAL '1 day')
+          WHERE ap.effective_departure_time <= NOW() - (${staleDays} * INTERVAL '1 day')
         )::int AS stale_pots
-      FROM pot_room AS pr
-      WHERE pr.is_archived = false
-        AND pr.is_deleted = false
+      FROM active_pots AS ap
     `);
 
     const row = res.rows[0];
