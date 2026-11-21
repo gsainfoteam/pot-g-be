@@ -36,6 +36,7 @@ export const popoChatReservation = pgTable(
     formatArguments: jsonb("format_arguments"),
   },
   (table) => [
+    index().on(table.sendAfter),
     index().on(table.potFk),
     index().on(table.popoChatMsgType),
     index().on(table.potFk, table.popoChatMsgType),

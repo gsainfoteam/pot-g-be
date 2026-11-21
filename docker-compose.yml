@@ -18,7 +18,7 @@ services:
       - TZ=Asia/Seoul
       - PGTZ=Asia/Seoul
     ports:
-      - "5432:5432"
+      - "55432:5432"
 
   potg-backend:
     image: potg-backend:latest

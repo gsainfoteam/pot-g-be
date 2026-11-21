@@ -21,6 +21,15 @@ export class PotRoomRepository {
     private readonly dbService: DatabaseService,
   ) {}
 
+  /*
+  SELECT * FROM pot_room WHERE pk = $1 FOR UPDATE;
+   */
+  async lockByPk(pk: string, tx: TxType): Promise<PotRoomEntity | null> {
+    const [row] = await tx.select().from(potRoom)
+      .where(eq(potRoom.pk, pk)).for("update");
+    return row ? this.resultToPotRoomEntity(row) : null;
+  }
+
   async insert(
     potRoomEntity: PotRoomEntity,
     tx: TxType,

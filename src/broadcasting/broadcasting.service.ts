@@ -66,6 +66,7 @@ export class BroadcastingService {
     userPks: string[] = [],
     potName?: string,
     senderName?: string,
+    retryPushFailures = false,
   ) {
     const potEventReceiveDto: WsBaseDto<PotEventDto<any>> = {
       type: "pot_event_receive",
@@ -133,6 +134,7 @@ export class BroadcastingService {
       pushAlarmTargetUserPks,
       potName,
       senderName,
+      retryPushFailures,
     );
   }
 
@@ -179,6 +181,7 @@ export class BroadcastingService {
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
     senderName?: string,
+    retryPushFailures = false,
   ) {
     // 채팅 관련 이벤트인 경우에만 푸시 알람 발송
     if (potEventDto.event_type === "chat_v1") {
@@ -189,7 +192,7 @@ export class BroadcastingService {
         senderName,
       );
     } else if (potEventDto.event_type === "popo_chat_v1") {
-      await this.sendPopoChatPush(potEventDto, pushAlarmTargetUserPks, potName);
+      await this.sendPopoChatPush(potEventDto, pushAlarmTargetUserPks, potName, retryPushFailures);
     } else if (potEventDto.event_type === "user_in_v1") {
       await this.sendUserInPush(potEventDto, pushAlarmTargetUserPks, potName);
     } else if (potEventDto.event_type === "user_leave_v1") {
@@ -237,6 +240,7 @@ export class BroadcastingService {
     potEventDto: PotEventDto<any>,
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
+    retryPushFailures = false,
   ) {
     const targetDevices = await this.getFcmTokensForUsers(
       pushAlarmTargetUserPks,
@@ -249,6 +253,7 @@ export class BroadcastingService {
       targetDevices,
       `${potName}: 포포`,
       potEventPopoChatV1Dto.content,
+      retryPushFailures,
     );
   }
 
@@ -365,6 +370,7 @@ export class BroadcastingService {
     devices: { devicePk: string; fcmToken: string }[],
     title: string,
     body: string,
+    retryFailures = false,
   ) {
     if (devices.length === 0) {
       this.logger.debug(
@@ -393,11 +399,21 @@ export class BroadcastingService {
       this.logger.debug(
         `[sendPushToUser] ${potEventDto.event_type} results=${JSON.stringify(outcomes)}`,
       );
+      const permanentErrors = new Set([
+        "messaging/registration-token-not-registered",
+        "messaging/invalid-registration-token",
+      ]);
+      if (retryFailures && results.some((result) =>
+        !result.success && !permanentErrors.has(result.errorCode),
+      )) {
+        throw new Error("Reserved notification push was not accepted by FCM");
+      }
     } catch (e) {
       this.logger.error(
         `[sendPushToUser] Failed to send FCM notification for ${potEventDto.event_type}:.`,
         e,
       );
+      if (retryFailures) throw e;
     }
   }
 
