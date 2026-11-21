@@ -5,6 +5,9 @@ import { PotRoomAdminRepository } from "@src/admin-database/repository/pot-room.
 import { PotEventAdminRepository } from "@src/admin-database/repository/pot-event.admin.repository";
 import { RouteAdminRepository } from "@src/admin-database/repository/route.admin.repository";
 import { AdminUserRepository } from "@src/admin-database/repository/admin-user.repository";
+import { AdminChatViewLogRepository } from "@src/admin-database/repository/admin-chat-view-log.admin.repository";
+import { ReportAdminRepository } from "@src/admin-database/repository/report.admin.repository";
+import { PopoChatMsgAdminRepository } from "@src/admin-database/repository/popo-chat-msg.admin.repository";
 import { AdminDashboardRepository } from "./repository/admin-dashboard.repository";
 
 /**
@@ -19,6 +22,9 @@ import { AdminDashboardRepository } from "./repository/admin-dashboard.repositor
     PotEventAdminRepository,
     RouteAdminRepository,
     AdminUserRepository,
+    ReportAdminRepository,
+    AdminChatViewLogRepository,
+    PopoChatMsgAdminRepository,
     AdminDashboardRepository,
   ],
   exports: [
@@ -27,6 +33,9 @@ import { AdminDashboardRepository } from "./repository/admin-dashboard.repositor
     PotEventAdminRepository,
     RouteAdminRepository,
     AdminUserRepository,
+    ReportAdminRepository,
+    AdminChatViewLogRepository,
+    PopoChatMsgAdminRepository,
     AdminDashboardRepository,
   ],
 })

@@ -38,14 +38,9 @@ import {
 import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
 import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
-import {
-  addHours,
-  fromUnixTime,
-  getUnixTime,
-  subHours,
-  subMinutes,
-} from "date-fns";
+import { fromUnixTime, getUnixTime } from "date-fns";
 import { PopoService } from "@src/popo/popo.service";
+import { DelayCheckService } from "@src/popo/delay-check.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
 import { PotOverviewDto } from "@src/pot/dto/pot.overview.dto";
 import { AccountingResultDto } from "@src/accounting/dto/confirm-accounting.dto";
@@ -76,6 +71,7 @@ export class PotService {
     private readonly userRepository: UserRepository,
     private readonly reportRepository: ReportRepository,
     private readonly slackService: SlackService,
+    private readonly delayCheckService: DelayCheckService,
   ) {}
 
   async createPot(
@@ -126,11 +122,16 @@ export class PotService {
         "popo-departure-confirm-request-v1",
       );
 
-    if (subHours(req.starts_at, 6) > new Date()) {
-      // starts_at 시간 6시간 전 메세지 발송 예약
+    const departureConfirmRequestSendAt = this.popoService.resolveSendAt(
+      popoDepartureConfirmRequestChatMsg,
+      req.starts_at,
+    );
+
+    if (departureConfirmRequestSendAt > new Date()) {
+      // starts_at 기준 정책 오프셋 시점에 메세지 발송 예약
       this.popoService.asyncReservePopoChatMsg(
         popoDepartureConfirmRequestChatMsg,
-        subHours(req.starts_at, 6),
+        departureConfirmRequestSendAt,
         null,
         pot,
         {
@@ -143,7 +144,7 @@ export class PotService {
         },
       );
     } else {
-      // 탑승 종료 시간이 6시간 이내로 남은 경우 즉시 메세지 발송
+      // 발송 시점이 이미 지난 경우 즉시 메세지 발송
       this.popoService.asyncSendPopoChatMsgToPotRoom(
         popoDepartureConfirmRequestChatMsg,
         null,
@@ -164,7 +165,7 @@ export class PotService {
       "popo-auto-archive-no-departure-confirm-v1",
     );
 
-    this.popoService.asyncReservePopoChatMsg(
+    this.popoService.asyncReservePopoChatMsgFromAnchor(
       popoAutoArchiveChatMsg,
       req.ends_at,
       null,
@@ -747,10 +748,32 @@ export class PotService {
       throw error; // 알 수 없는 오류는 다시 던짐
     }
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.potRoomRepository.setDepartureTime(pot.pk, tx);
-      await this.potEventRepository.saveEvent(potDepartureConfirmEvent, tx);
-    });
+    const confirmation = await this.dbService.db.transaction(
+      async (tx: TxType) => {
+        const room = await this.potRoomRepository.lockByPk(pot.pk, tx);
+        if (!room || room.isDeleted || room.isArchived) {
+          return { result: BaseResultDto.PotAlreadyClosed };
+        }
+        if (room.isDepartureConfirmed) {
+          return { result: BaseResultDto.AfterDepartureConfirmed };
+        }
+        await this.potRoomRepository.setDepartureTime(pot.pk, tx);
+        await this.potEventRepository.saveEvent(potDepartureConfirmEvent, tx);
+        const reservation = await this.delayCheckService.reserveIfEligible(
+          pot,
+          pot.departureTime,
+          tx,
+        );
+        return { result: BaseResultDto.OK, reservation };
+      },
+    );
+
+    if (confirmation.result !== BaseResultDto.OK) {
+      return confirmation.result;
+    }
+    if (confirmation.reservation) {
+      this.popoService.reservationCreated$.next(confirmation.reservation);
+    }
 
     this.broadcastingService.asyncBroadcastPotEvent(
       {
@@ -798,8 +821,13 @@ export class PotService {
       "popo-reminder-taxi-call-v1",
     );
 
-    // 출발 확정을 20분 안으로 했을 경우 바로 발송
-    if (subMinutes(req.departure_time, 20) < new Date()) {
+    const taxiCallSendAt = this.popoService.resolveSendAt(
+      taxiCallPopoChatMsg,
+      req.departure_time,
+    );
+
+    // 출발 확정 시점이 이미 발송 시점을 지났을 경우 바로 발송
+    if (taxiCallSendAt < new Date()) {
       this.popoService.asyncSendPopoChatMsgToPotRoom(
         taxiCallPopoChatMsg,
         null,
@@ -811,14 +839,16 @@ export class PotService {
         },
       );
     } else {
-      // departureTime 시간 20분 전 taxi call reminder 메세지 발송 예약
+      // departureTime 기준 정책 오프셋 시점에 taxi call reminder 메세지 발송 예약
       this.popoService.asyncReservePopoChatMsg(
         taxiCallPopoChatMsg,
-        subMinutes(req.departure_time, 20),
+        taxiCallSendAt,
         null,
         pot,
         {
-          remainDepartureTime: 20,
+          remainDepartureTime: Math.round(
+            (req.departure_time.getTime() - taxiCallSendAt.getTime()) / 60000,
+          ),
         },
       );
     }
@@ -827,10 +857,10 @@ export class PotService {
       "popo-accounting-reminder-v1",
     );
 
-    // departureTime 시간 2시간 후 accounting reminder 메세지 발송 예약
-    this.popoService.asyncReservePopoChatMsg(
+    // departureTime 기준 정책 오프셋 시점에 accounting reminder 메세지 발송 예약
+    this.popoService.asyncReservePopoChatMsgFromAnchor(
       accountingPopoChatMsg,
-      addHours(req.departure_time, 2),
+      req.departure_time,
       null,
       pot,
     );
@@ -931,49 +961,50 @@ export class PotService {
     return BaseResultDto.OK;
   }
 
-  async archivePot(pot: Pot, tx?: TxType): Promise<BaseResultDto> {
-    const now = new Date();
-
-    const potArchiveEvent: PotArchiveEventV1 =
-      PotArchiveEventV1.generatePotArchiveEvent(pot.pk, now, {
+  async archivePotInTransaction(
+    pot: Pot,
+    tx: TxType,
+  ): Promise<PotArchiveEventV1> {
+    const event = PotArchiveEventV1.generatePotArchiveEvent(
+      pot.pk,
+      new Date(),
+      {
         potRoomPk: pot.pk,
-      });
+      },
+    );
+    PotEventReducer.reduce(pot, event, true);
+    await this.potRoomRepository.archivePotRoom(pot.pk, tx);
+    await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
+    await this.potEventRepository.saveEvent(event, tx);
+    await this.popoService.deleteAllPopoChatReservationInTransaction(
+      pot.pk,
+      tx,
+    );
+    return event;
+  }
 
+  async archivePot(pot: Pot, tx?: TxType): Promise<BaseResultDto> {
+    let event: PotArchiveEventV1;
     try {
-      PotEventReducer.reduce(pot, potArchiveEvent, true);
+      event = tx
+        ? await this.archivePotInTransaction(pot, tx)
+        : await this.dbService.db.transaction((transaction: TxType) =>
+            this.archivePotInTransaction(pot, transaction),
+          );
     } catch (error) {
-      if (error instanceof PotEventError) {
-        return error.baseResultDto;
-      }
+      if (error instanceof PotEventError) return error.baseResultDto;
       throw error;
     }
-
-    const runQueries = async (tx: TxType) => {
-      await this.potRoomRepository.archivePotRoom(pot.pk, tx);
-      await this.userPotRoomRepository.archiveByPotRoomFk(pot.pk, tx);
-      await this.potEventRepository.saveEvent(potArchiveEvent, tx);
-    };
-
-    if (tx) {
-      await runQueries(tx);
-    } else {
-      await this.dbService.db.transaction(runQueries);
-    }
-
     this.broadcastingService.asyncBroadcastPotEvent(
       {
         pot_pk: pot.pk,
-        timestamp: getUnixTime(potArchiveEvent.timestamp),
-        id: potArchiveEvent.id,
-        event_type: potArchiveEvent.eventType,
-        data: potArchiveEvent.toDto(),
+        timestamp: getUnixTime(event.timestamp),
+        id: event.id,
+        event_type: event.eventType,
+        data: event.toDto(),
       },
       pot.joinedUserPks,
     );
-
-    // 포포 예약 모두 삭제
-    await this.popoService.deleteAllPopoChatReservation(pot.pk);
-
     return BaseResultDto.OK;
   }
 

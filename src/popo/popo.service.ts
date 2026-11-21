@@ -5,6 +5,7 @@ import {
   Logger,
   OnModuleInit,
 } from "@nestjs/common";
+import { addMinutes } from "date-fns";
 import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
 import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
 import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
@@ -20,6 +21,9 @@ import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
 import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
+import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-delivery.repository";
+import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
+import { PotEvent } from "@src/pot/event/pot-event";
 import {
   asyncScheduler,
   catchError,
@@ -27,8 +31,8 @@ import {
   delay,
   EMPTY,
   subscribeOn,
+  Subject,
 } from "rxjs";
-import { SlackService } from "nestjs-slack";
 import { Trace } from "@gsainfoteam/nest-observability";
 
 @Trace()
@@ -36,6 +40,13 @@ import { Trace } from "@gsainfoteam/nest-observability";
 export class PopoService implements OnModuleInit {
   private readonly logger = new Logger(PopoService.name);
   private cachedPopoChatMsgs: PopoChatMsgEntity[] = [];
+  private cacheGeneration = 0;
+  private appliedCacheGeneration = 0;
+  readonly reservationCreated$ = new Subject<PopoChatReservationEntity>();
+  readonly reservationsCancelled$ = new Subject<{
+    potPk: string;
+    type?: PopoChatStringType;
+  }>();
 
   constructor(
     private readonly dbService: DatabaseService,
@@ -46,7 +57,8 @@ export class PopoService implements OnModuleInit {
     private readonly broadcastingService: BroadcastingService,
     @Inject(forwardRef(() => PotService))
     private readonly potService: PotService,
-    private readonly slackService: SlackService,
+    private readonly deliveryRepository: PopoChatDeliveryRepository,
+    private readonly potRoomRepository: PotRoomRepository,
   ) {}
 
   async onModuleInit() {
@@ -54,178 +66,250 @@ export class PopoService implements OnModuleInit {
   }
 
   async processReservedPopoChatMsg() {
-    // Implementation for processing reserved Popo chat messages
     const reservations =
       await this.popoChatReservationRepository.findAllReadyToSend();
-
-    /*
-    예약 되어있는것들
-    popo-departure-confirm-request (출발 시간 확정 시 무시)
-    popo-reminder-taxi-call (반드시 발송)
-    popo-accounting-reminder (정산 요청 들어왔을 경우 무시)
-    나머지 -> 무시
-
-    같은 팟의 같은 타입이 여러가 있는 경우는 이론상 없으므로 반드시 매번 pot 을 조회해 주어야 함.
-    -> 느려지는 원인이 될 수 있긴 하지만 유저 요청도 아니기 때문에 우선 무시
-     */
     for (const reservation of reservations) {
-      // try catch 로 감싸서 하나 실패해도 계속 진행되도록 함
       try {
-        switch (reservation.popoChatMsgType) {
-          case "popo-departure-confirm-request-v1":
-            await this.processDepartureConfirmRequest(reservation);
-            break;
-          case "popo-reminder-taxi-call-v1":
-            await this.processReminderTaxiCall(reservation);
-            break;
-          case "popo-accounting-reminder-v1":
-            await this.processAccountingReminder(reservation);
-            break;
-          case "popo-auto-archive-no-departure-confirm-v1":
-            await this.processAutoArchiveNoDepartureConfirm(reservation);
-            break;
-          case "popo-auto-archive-v1":
-            await this.processAutoArchive(reservation);
-            break;
-          default:
-            // Do nothing for other types
-            break;
-        }
-
-        // 처리 완료 후 삭제
-        await this.dbService.db.transaction(async (tx: TxType) => {
-          await this.popoChatReservationRepository.deleteByPk(
-            reservation.pk,
-            tx,
-          );
-        });
+        await this.processReservedPopoChatReservation(reservation.pk);
       } catch (error) {
-        // TODO: 에러 핸들링 필요 -> 재예약?
-        this.logger.error(error);
-        await this.slackService.sendText(
-          `:warning: Error occurred while process PopoReservation: ${
-            error instanceof Error ? error.message : String(error)
-          }\n\nStack Trace:\n\`\`\`${error instanceof Error ? error.stack : "N/A"}\`\`\``,
+        this.logger.error(
+          "Failed to process reservation " + reservation.pk,
+          error,
         );
       }
     }
+    await this.processPendingDeliveries();
   }
 
-  private async processDepartureConfirmRequest(
-    reservation: PopoChatReservationEntity,
+  async processReservedPopoChatReservation(pk: string): Promise<void> {
+    await this.dbService.db.transaction(async (tx: TxType) => {
+      const candidate = await this.popoChatReservationRepository.findByPk(
+        pk,
+        tx,
+      );
+      if (!candidate) return;
+
+      // 팟을 먼저 잠근 뒤 예약을 잠가 동시 처리 시 잠금 순서를 일관되게 유지합니다.
+      const room = await this.potRoomRepository.lockByPk(candidate.potFk, tx);
+      const reservation =
+        await this.popoChatReservationRepository.findByPkForUpdate(pk, tx);
+      if (!reservation || reservation.sendAfter > new Date()) return;
+      if (!room || room.isArchived || room.isDeleted) {
+        await this.popoChatReservationRepository.deleteByPk(pk, tx);
+        return;
+      }
+
+      const pot = await this.potEventRepository.findByIdWithoutChat(
+        reservation.potFk,
+        tx,
+      );
+      const type = reservation.popoChatMsgType;
+      if (
+        !pot.pk ||
+        pot.isArchived ||
+        !(await this.shouldSendReservation(type, pot))
+      ) {
+        await this.popoChatReservationRepository.deleteByPk(pk, tx);
+        return;
+      }
+
+      const template = this.getPopoChatMsgByType(type);
+      if (!template)
+        throw new Error("Popo message template not found: " + type);
+
+      // 팟 해산은 메시지가 아니라 로직이므로, 메시지 발송을 꺼도 해산은 그대로 진행한다.
+      const archivesPot =
+        type === "popo-auto-archive-no-departure-confirm-v1" ||
+        type === "popo-auto-archive-v1";
+      if (!template.enabled && !archivesPot) {
+        await this.popoChatReservationRepository.deleteByPk(pk, tx);
+        return;
+      }
+
+      const events: PotEvent<any, any>[] = [];
+      if (template.enabled) {
+        const formatArguments = { ...reservation.formatArguments };
+        if (type === "popo-reminder-taxi-call-v1" && pot.departureTime) {
+          formatArguments.remainDepartureTime = Math.max(
+            0,
+            Math.floor((pot.departureTime.getTime() - Date.now()) / 60_000),
+          );
+        }
+        events.push(
+          await this.savePopoChatEvent(template, pot, formatArguments, tx),
+        );
+      }
+      if (archivesPot) {
+        events.push(await this.potService.archivePotInTransaction(pot, tx));
+      }
+
+      // 이벤트와 전달 작업을 같은 트랜잭션에 저장해 전송 실패 시 재시도할 수 있도록 합니다.
+      await this.deliveryRepository.insert(
+        {
+          pk: reservation.pk,
+          potFk: pot.pk,
+          potName: pot.name,
+          userPks: pot.joinedUserPks,
+          expiresAt:
+            type === "popo-delay-check-request-v1" ? pot.departureTime : null,
+          events: events.map((event) => ({
+            pot_pk: pot.pk,
+            timestamp: getUnixTime(event.timestamp),
+            id: event.id,
+            event_type: event.eventType,
+            data: event.toDto(),
+          })),
+        },
+        tx,
+      );
+      await this.popoChatReservationRepository.deleteByPk(pk, tx);
+    });
+
+    await this.deliverReservedEvents(pk);
+  }
+
+  private async shouldSendReservation(
+    type: PopoChatStringType,
+    pot: Pot,
+  ): Promise<boolean> {
+    switch (type) {
+      case "popo-departure-confirm-request-v1":
+      case "popo-auto-archive-no-departure-confirm-v1":
+        return !pot.departureTime;
+      case "popo-reminder-taxi-call-v1":
+      case "popo-auto-archive-v1":
+        return true;
+      case "popo-accounting-reminder-v1":
+        return !pot.accountingRequestUserId;
+      case "popo-delay-check-request-v1":
+        return !!pot.departureTime && pot.departureTime > new Date();
+      default:
+        return false;
+    }
+  }
+
+  async processPendingDeliveries(): Promise<void> {
+    const deliveries = await this.deliveryRepository.findReady();
+    for (const delivery of deliveries) {
+      await this.deliverReservedEvents(delivery.pk);
+    }
+  }
+
+  private async deliverReservedEvents(pk: string): Promise<void> {
+    const delivery = await this.deliveryRepository.claim(pk);
+    if (!delivery) return;
+    let nextAttemptAt: Date | undefined;
+    try {
+      const pot = await this.potEventRepository.findByIdWithoutChat(
+        delivery.potFk,
+      );
+      const archiveDelivery = delivery.events.some(
+        (event) => event.event_type === "archive_v1",
+      );
+      const delayCheck = delivery.events.some(
+        (event) =>
+          event.event_type === "popo_chat_v1" &&
+          (event.data as { popo_chat_type?: string }).popo_chat_type ===
+            "popo-delay-check-request-v1",
+      );
+      // Old queued deliveries may not yet have expiresAt populated.
+      const expiresAt =
+        delivery.expiresAt ?? (delayCheck ? pot.departureTime : undefined);
+      const expired =
+        delayCheck && (!expiresAt || expiresAt.getTime() <= Date.now());
+      const eligible =
+        pot.pk &&
+        !pot.isDeleted &&
+        !expired &&
+        (!pot.isArchived || archiveDelivery);
+      const userPks = !eligible
+        ? []
+        : archiveDelivery
+          ? delivery.userPks
+          : delivery.userPks.filter((userPk) =>
+              pot.joinedUserPks.includes(userPk),
+            );
+      for (const event of delivery.events) {
+        const progress = (delivery.progress[event.id] ??= {});
+        const next = await this.broadcastingService.broadcastReservedPotEvent(
+          event,
+          userPks,
+          delivery.potName,
+          progress,
+          () =>
+            this.deliveryRepository.saveProgress(
+              pk,
+              delivery.leaseToken,
+              delivery.progress,
+            ),
+          expiresAt,
+        );
+        if (next && (!nextAttemptAt || next < nextAttemptAt))
+          nextAttemptAt = next;
+      }
+    } catch (error) {
+      nextAttemptAt = new Date(Date.now() + 60_000);
+      this.logger.error("Failed to deliver reserved events " + pk, error);
+    }
+    await this.deliveryRepository.finishAttempt(
+      pk,
+      delivery.leaseToken,
+      nextAttemptAt,
+    );
+  }
+
+  private async savePopoChatEvent(
+    template: PopoChatMsgEntity,
+    pot: Pot,
+    formatArguments: any,
+    tx: TxType,
+  ): Promise<PotPopoChatEventV1> {
+    const now = new Date();
+    const event = PotPopoChatEventV1.generateEvent(pot.pk, now, {
+      popoChatType: template.type,
+      message: template.message,
+      actionBtns: template.actionBtns,
+      timestamp: now,
+      formatArguments,
+    });
+    PotEventReducer.reduce(pot, event, true);
+    // 이벤트를 저장하기 전에 메시지 포맷팅 오류가 없는지 확인합니다.
+    event.toDto();
+    await this.potEventRepository.saveEvent(event, tx);
+    return event;
+  }
+
+  /**
+   * 기준 시각에 메시지 정책의 오프셋을 적용한 발송 시각을 계산한다.
+   * 즉시 발송 메시지(offsetMinutes 가 null)는 기준 시각을 그대로 돌려준다.
+   */
+  resolveSendAt(popoChatMsg: PopoChatMsgEntity, anchor: Date): Date {
+    return addMinutes(anchor, popoChatMsg.offsetMinutes ?? 0);
+  }
+
+  /**
+   * 정책 오프셋을 적용해 발송을 예약한다. 계산된 시각이 이미 지났다면 곧바로 발송되도록 예약한다.
+   */
+  asyncReservePopoChatMsgFromAnchor(
+    popoChatMsg: PopoChatMsgEntity,
+    anchor: Date,
+    potPk?: string,
+    pot?: Pot,
+    formatArguments?: any,
   ) {
-    // 출발 시간 확정 시 무시
-    const pot = await this.potService.getPot(reservation.potFk);
-
-    if (pot.departureTime) {
-      // 출발 시간 확정 되어있음 -> 무시
-      return;
-    }
-
-    const departureConfirmRequestPopoChatMsg = this.getPopoChatMsgByType(
-      "popo-departure-confirm-request-v1",
-    );
-
-    this.asyncSendPopoChatMsgToPotRoom(
-      departureConfirmRequestPopoChatMsg,
-      reservation.potFk,
-      pot,
-      reservation.formatArguments,
-    );
-  }
-
-  private async processReminderTaxiCall(
-    reservation: PopoChatReservationEntity,
-  ) {
-    // 반드시 발송
-    const reminderTaxiCallPopoChatMsg = this.getPopoChatMsgByType(
-      "popo-reminder-taxi-call-v1",
-    );
-
-    this.asyncSendPopoChatMsgToPotRoom(
-      reminderTaxiCallPopoChatMsg,
-      reservation.potFk,
-      null,
-      reservation.formatArguments,
-    );
-  }
-
-  private async processAccountingReminder(
-    reservation: PopoChatReservationEntity,
-  ) {
-    // 정산 요청 들어왔을 경우 무시
-    const pot = await this.potService.getPot(reservation.potFk);
-
-    if (pot.accountingRequestUserId) {
-      // 정산 요청 들어왔음 -> 무시
-      return;
-    }
-
-    const accountingReminderPopoChatMsg = this.getPopoChatMsgByType(
-      "popo-accounting-reminder-v1",
-    );
-
-    this.asyncSendPopoChatMsgToPotRoom(
-      accountingReminderPopoChatMsg,
-      reservation.potFk,
-      pot,
-      reservation.formatArguments,
-    );
-  }
-
-  private async processAutoArchiveNoDepartureConfirm(
-    reservation: PopoChatReservationEntity,
-  ) {
-    // 출발 시간이 확정된 경우 무시
-    const pot = await this.potService.getPot(reservation.potFk);
-
-    // 이미 아카이브 된 경우 무시
-    if (pot.isArchived) {
-      return;
-    }
-
-    if (pot.departureTime) {
-      // 출발 시간 확정됨 -> 무시
-      return;
-    }
-
-    // 출발 시간이 확정되지 않은 경우 팟 자동 아카이브
-    const autoArchiveNoDeparturePopoChatMsg = this.getPopoChatMsgByType(
-      "popo-auto-archive-no-departure-confirm-v1",
-    );
-
-    this.asyncSendPopoChatMsgToPotRoom(
-      autoArchiveNoDeparturePopoChatMsg,
-      reservation.potFk,
-      pot,
-      reservation.formatArguments,
-    );
-
-    // 팟 아카이브 진행
-    await this.potService.archivePot(pot);
-  }
-
-  private async processAutoArchive(reservation: PopoChatReservationEntity) {
-    const pot = await this.potService.getPot(reservation.potFk);
-
-    // 이미 아카이브 된 경우 무시
-    if (pot.isArchived) {
-      return;
-    }
-
-    const autoArchivePopoChatMsg = this.getPopoChatMsgByType(
-      "popo-auto-archive-v1",
-    );
-
-    await this.sendPopoChatMsgToPotRoom(
-      autoArchivePopoChatMsg,
-      reservation.potFk,
-      pot,
-      reservation.formatArguments,
-    );
-
-    // 팟 아카이브 진행
-    await this.potService.archivePot(pot);
+    const scheduledAt = this.resolveSendAt(popoChatMsg, anchor);
+    this.runAsync(async () => {
+      // 팟 조회 등으로 시간이 지체될 수 있으므로, 실제 예약 직전에 지난 시각을 보정한다.
+      const resolvedPot = await this.resolvePot(potPk, pot);
+      const earliest = new Date(Date.now() + 1_000);
+      await this.reservePopoChatMsg(
+        popoChatMsg,
+        scheduledAt > earliest ? scheduledAt : earliest,
+        undefined,
+        resolvedPot,
+        formatArguments,
+      );
+    });
   }
 
   asyncReservePopoChatMsg(
@@ -235,7 +319,7 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
-    defer(() =>
+    this.runAsync(() =>
       this.reservePopoChatMsg(
         popoChatMsg,
         sendAfter,
@@ -243,7 +327,11 @@ export class PopoService implements OnModuleInit {
         pot,
         formatArguments,
       ),
-    )
+    );
+  }
+
+  private runAsync(task: () => Promise<void>) {
+    defer(task)
       .pipe(
         subscribeOn(asyncScheduler),
         catchError((err) => {
@@ -278,12 +366,15 @@ export class PopoService implements OnModuleInit {
       formatArguments: formatArguments,
     };
 
-    await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.popoChatReservationRepository.insert(
-        newPopoChatReservation,
-        tx,
-      );
-    });
+    const reservation = await this.dbService.db.transaction(
+      async (tx: TxType) => {
+        return this.popoChatReservationRepository.insert(
+          newPopoChatReservation,
+          tx,
+        );
+      },
+    );
+    this.reservationCreated$.next(reservation);
   }
 
   asyncSendPopoChatMsgToPotRoom(
@@ -332,6 +423,8 @@ export class PopoService implements OnModuleInit {
     pot?: Pot,
     formatArguments?: any,
   ) {
+    if (!popoChatMsg.enabled) return;
+
     pot = await this.resolvePot(potPk, pot);
 
     const now = new Date();
@@ -397,12 +490,18 @@ export class PopoService implements OnModuleInit {
         tx,
       );
     });
+    this.reservationsCancelled$.next({ potPk, type: popoChatMsgType });
   }
 
   async deleteAllPopoChatReservation(potPk: string) {
     await this.dbService.db.transaction(async (tx: TxType) => {
       await this.popoChatReservationRepository.deleteByPotFk(potPk, tx);
     });
+    this.reservationsCancelled$.next({ potPk });
+  }
+
+  async deleteAllPopoChatReservationInTransaction(potPk: string, tx: TxType) {
+    await this.popoChatReservationRepository.deleteByPotFk(potPk, tx);
   }
 
   getPopoChatMsgByType(type: PopoChatStringType): PopoChatMsgEntity | null {
@@ -424,7 +523,32 @@ export class PopoService implements OnModuleInit {
     return pot;
   }
 
+  /**
+   * 어드민에서 메시지 정책을 수정한 뒤 캐시를 갱신한다.
+   * 일시적인 DB 오류에 대비해 몇 번 재시도하고, 모두 실패하면 에러를 던진다.
+   */
+  async reloadPopoChatMsgs(retries = 3) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await this.cachePopoChatMsgs();
+        return;
+      } catch (err) {
+        if (attempt >= retries) throw err;
+        this.logger.warn(
+          `Reload popo chat msg cache failed (attempt ${attempt}/${retries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
+  }
+
   private async cachePopoChatMsgs() {
-    this.cachedPopoChatMsgs = await this.popoChatMsgRepository.findAll();
+    // 요청이 겹칠 때 먼저 시작한 조회가 나중에 끝나도 최신 결과를 덮어쓰지 않도록 한다.
+    const generation = ++this.cacheGeneration;
+    const msgs = await this.popoChatMsgRepository.findAll();
+    if (generation > this.appliedCacheGeneration) {
+      this.appliedCacheGeneration = generation;
+      this.cachedPopoChatMsgs = msgs;
+    }
   }
 }

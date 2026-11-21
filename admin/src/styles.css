@@ -565,3 +565,267 @@ a.button {
 .table-link:focus-visible {
   text-decoration: underline;
 }
+
+.popo-messages-notice {
+  margin: -4px 0 20px;
+  color: var(--text-grey);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.popo-messages-layout {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.popo-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.popo-message-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-grey);
+  border-radius: 10px;
+  background: var(--white);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.popo-message-item:hover {
+  border-color: var(--border-grey-2);
+}
+
+.popo-message-item.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.popo-message-item.disabled .popo-message-item-title {
+  color: var(--grey);
+}
+
+.popo-message-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.popo-message-item-meta {
+  font-size: 13px;
+  color: var(--text-grey);
+}
+
+.popo-message-detail {
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+}
+
+.popo-message-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.popo-message-card.disabled {
+  background: var(--light-grey);
+}
+
+.popo-message-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.popo-message-head h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.popo-message-type {
+  color: var(--grey);
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.popo-message-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-grey);
+  white-space: nowrap;
+}
+
+.popo-message-logic {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--primary-light);
+  border: 1px solid var(--border-grey);
+  border-radius: 8px;
+  color: var(--text-grey);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.popo-message-logic strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--primary-pressed);
+}
+
+.popo-message-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.popo-message-field textarea {
+  min-height: 110px;
+  overflow: hidden;
+  padding: 10px 12px;
+  border: 1px solid var(--border-grey-2);
+  border-radius: 8px;
+  background: var(--field-grey);
+  font: inherit;
+  color: var(--dark);
+  line-height: 1.5;
+  resize: none;
+}
+
+.popo-message-field textarea:focus,
+.popo-timing input:focus,
+.popo-timing select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+}
+
+.popo-message-hint {
+  color: var(--grey);
+  font-size: 12px;
+}
+
+.popo-timing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.popo-timing input,
+.popo-timing select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-grey-2);
+  border-radius: 8px;
+  background: var(--white);
+  font: inherit;
+  color: var(--dark);
+}
+
+.popo-timing input {
+  width: 80px;
+}
+
+.popo-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.popo-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--field-grey);
+  border: 1px solid var(--border-grey);
+  font-size: 12px;
+}
+
+.popo-message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.popo-message-updated {
+  color: var(--grey);
+  font-size: 12px;
+}
+
+.popo-message-success {
+  color: var(--primary-pressed);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .popo-messages-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .popo-message-detail {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .popo-message-head {
+    flex-direction: column;
+  }
+}
+
+.popo-variables {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-grey);
+}
+
+.popo-variables ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.popo-variables li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+
+.popo-variables code {
+  padding: 2px 8px;
+  border: 1px solid var(--border-grey);
+  border-radius: 6px;
+  background: var(--field-grey);
+  color: var(--dark);
+  font-size: 12px;
+}
