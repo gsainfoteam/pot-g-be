@@ -34,6 +34,7 @@ export class AdminDashboardRepository {
         FROM user_pot_room AS upr
         INNER JOIN pot_room AS pr ON pr.pk = upr.pot_room_fk
         WHERE pr.created_at >= NOW() - (${recentDays} * INTERVAL '1 day')
+           OR upr.created_at >= NOW() - (${recentDays} * INTERVAL '1 day')
       `),
     ]);
 
@@ -393,10 +394,10 @@ export class AdminDashboardRepository {
       count: number;
     }>(sql`
       SELECT
-        TO_CHAR(DATE_TRUNC('month', created_at AT TIME ZONE 'Asia/Seoul'), 'YYYY-MM') AS month,
+        TO_CHAR(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM') AS month,
         COUNT(*)::int AS count
       FROM users
-      WHERE is_deleted = false
+      WHERE 1 = 1
         ${dateFilter}
       GROUP BY month
       ORDER BY month ASC

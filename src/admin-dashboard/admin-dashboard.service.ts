@@ -136,28 +136,30 @@ export class AdminDashboardService {
   private parseDateRange(
     query: AdminDashboardStatsQueryDto,
   ): DashboardDateRange {
-    const range: DashboardDateRange = {};
+    const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
 
+    let from: Date | undefined;
     if (query.from) {
-      const fromDate = new Date(query.from);
-      if (Number.isNaN(fromDate.getTime())) {
-        throw new BadRequestException("Invalid 'from' date format");
+      const fromDate = dateOnlyRegex.test(query.from)
+        ? new Date(`${query.from}T00:00:00.000+09:00`)
+        : new Date(query.from);
+
+      if (!Number.isNaN(fromDate.getTime())) {
+        from = fromDate;
       }
-      range.from = fromDate;
     }
 
+    let to: Date | undefined;
     if (query.to) {
-      const toDate = new Date(query.to);
-      if (Number.isNaN(toDate.getTime())) {
-        throw new BadRequestException("Invalid 'to' date format");
+      const toDate = dateOnlyRegex.test(query.to)
+        ? new Date(`${query.to}T23:59:59.999+09:00`)
+        : new Date(query.to);
+
+      if (!Number.isNaN(toDate.getTime())) {
+        to = toDate;
       }
-      // 날짜만(YYYY-MM-DD) 들어온 경우 해당 날짜의 23:59:59.999까지 포함
-      if (/^\d{4}-\d{2}-\d{2}$/.test(query.to)) {
-        toDate.setHours(23, 59, 59, 999);
-      }
-      range.to = toDate;
     }
 
-    return range;
+    return { from, to };
   }
 }

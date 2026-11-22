@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { dashboardApi, type DashboardStatsResponse } from "../lib/api";
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -16,8 +16,10 @@ export function StatsPage() {
   const [data, setData] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const latestRequestIIdRef = useRef(0);
   const fetchStats = useCallback(async (f: string, t: string) => {
+    const requestId = ++latestRequestIIdRef.current;
+
     setLoading(true);
     setError(null);
     try {
@@ -25,14 +27,24 @@ export function StatsPage() {
         from: f || undefined,
         to: t || undefined,
       });
+      if (requestId !== latestRequestIIdRef.current) return;
       setData(res);
     } catch (err) {
+      if (requestId !== latestRequestIIdRef.current) return;
       setError(
         err instanceof Error ? err.message : "통계를 불러오지 못했습니다.",
       );
     } finally {
-      setLoading(false);
+      if (requestId === latestRequestIIdRef.current) {
+        setLoading(false);
+      }
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      latestRequestIIdRef.current += 1;
+    };
   }, []);
 
   useEffect(() => {
@@ -96,6 +108,7 @@ export function StatsPage() {
           </button>
           <input
             type="date"
+            aria-label="시작일"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             style={dateInputStyle}
@@ -103,6 +116,7 @@ export function StatsPage() {
           <span>~</span>
           <input
             type="date"
+            aria-label="종료일"
             value={to}
             onChange={(e) => setTo(e.target.value)}
             style={dateInputStyle}
