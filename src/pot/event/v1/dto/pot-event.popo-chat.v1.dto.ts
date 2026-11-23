@@ -1,10 +1,9 @@
-import {
-  PopoActionBtnStringType,
-  PopoChatStringType,
-} from "../../../../../drizzle/schema/popo-chat-msg";
+import { FofoActionBtnStringType } from "../../../../../drizzle/schema/fofo-chat-msg";
+import { StoredFofoChatType } from "@src/fofo/fofo-chat-type";
 
 export class PotEventPopoChatV1Dto {
-  popo_chat_type: PopoChatStringType;
+  // Existing mobile clients consume this v1 payload key.
+  popo_chat_type: StoredFofoChatType;
   content: string;
-  action_btns: PopoActionBtnStringType[];
+  action_btns: FofoActionBtnStringType[];
 }

@@ -12,8 +12,8 @@ import { UsersPage } from "./pages/UsersPage";
 import { UserDetailPage } from "./pages/UserDetailPage";
 import { isLoggedIn } from "./lib/auth";
 import { PotCleanupPage } from "./pages/PotCleanupPage";
-import { PopoMessagesPage } from "./pages/PopoMessagesPage";
-import { PopoMessageStatusPage } from "./pages/PopoMessageStatusPage";
+import { FofoMessagesPage } from "./pages/FofoMessagesPage";
+import { FofoMessageStatusPage } from "./pages/FofoMessageStatusPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!isLoggedIn()) {
@@ -42,8 +42,8 @@ export function App() {
         <Route path="versions" element={<VersionPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="users/:pk" element={<UserDetailPage />} />
-        <Route path="popo-messages" element={<PopoMessagesPage />} />
-        <Route path="popo-message-status" element={<PopoMessageStatusPage />} />
+        <Route path="fofo-messages" element={<FofoMessagesPage />} />
+        <Route path="fofo-message-status" element={<FofoMessageStatusPage />} />
         <Route
           path="stats"
           element={<PlaceholderPage title="통계" refreshable />}

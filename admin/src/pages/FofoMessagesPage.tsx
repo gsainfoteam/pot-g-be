@@ -1,0 +1,358 @@
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { api, ApiError } from "../lib/api";
+import { useFetch } from "../lib/use-fetch";
+
+type TimingAnchor =
+  | "departure_available_start"
+  | "departure_available_end"
+  | "departure_time"
+  | "accounting_completed";
+
+type FofoMessageVariable = {
+  name: string;
+  description: string;
+};
+
+type FofoMessagePolicy = {
+  type: string;
+  title: string;
+  description: string;
+  message: string;
+  action_btns: string[];
+  /** 문구에 {name} 형태로 쓸 수 있는 변수 (코드에서 정해지므로 읽기 전용) */
+  variables: FofoMessageVariable[];
+  enabled: boolean;
+  timing_anchor: TimingAnchor | null;
+  /** 음수 = 기준 시각 전, 양수 = 기준 시각 후 */
+  offset_minutes: number | null;
+  updated_at: string;
+};
+
+const ANCHOR_LABELS: Record<TimingAnchor, string> = {
+  departure_available_start: "출발 가능 시작 시각",
+  departure_available_end: "출발 가능 종료 시각",
+  departure_time: "출발 시각",
+  accounting_completed: "정산 완료 시각",
+};
+
+const ACTION_BTN_LABELS: Record<string, string> = {
+  "departure-confirm-btn": "출발 시간 확정",
+  "taxi-call-btn": "택시 호출",
+  "accounting-request-btn": "정산 요청",
+  "accounting-info-check-btn": "정산 정보 확인",
+  "accounting-process-btn": "정산 처리",
+  "delay-check-btn": "지연 확인",
+};
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+type CardProps = {
+  policy: FofoMessagePolicy;
+  onSave: (next: FofoMessagePolicy) => Promise<void>;
+};
+
+function FofoMessageCard({ policy, onSave }: CardProps) {
+  const [message, setMessage] = useState(policy.message);
+  const [enabled, setEnabled] = useState(policy.enabled);
+  const [direction, setDirection] = useState<"before" | "after">(
+    (policy.offset_minutes ?? 0) > 0 ? "after" : "before",
+  );
+  const [minutes, setMinutes] = useState(
+    String(Math.abs(policy.offset_minutes ?? 0)),
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  // 저장 요청 중에 편집이 있었는지 구분하기 위한 편집 버전
+  const editVersion = useRef(0);
+  const markEdited = () => {
+    editVersion.current += 1;
+    setSaved(false);
+  };
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 문구 길이에 맞춰 입력칸 높이를 늘립니다.
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [message]);
+
+  const hasTiming = policy.timing_anchor !== null;
+
+  const handleSave = async () => {
+    setError(null);
+    setSaved(false);
+    const submittedVersion = editVersion.current;
+
+    if (message.trim() === "") {
+      setError("메시지 문구를 입력해 주세요.");
+      return;
+    }
+
+    let offset: number | null = null;
+    if (hasTiming) {
+      const parsed = Number(minutes);
+      if (minutes.trim() === "" || !Number.isInteger(parsed) || parsed < 0) {
+        setError("발송 시점은 0 이상의 정수(분)로 입력해 주세요.");
+        return;
+      }
+      offset = direction === "before" ? -parsed : parsed;
+    }
+
+    try {
+      await onSave({ ...policy, message, enabled, offset_minutes: offset });
+      // 저장하는 동안 다시 편집했다면 저장 완료 표시를 하지 않는다.
+      if (editVersion.current === submittedVersion) setSaved(true);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? `저장하지 못했습니다. (${err.status})`
+          : "저장하지 못했습니다.",
+      );
+    }
+  };
+
+  return (
+    <section className={`card fofo-message-card${enabled ? "" : " disabled"}`}>
+      <div className="fofo-message-head">
+        <div>
+          <h3>{policy.title}</h3>
+          <span className="fofo-message-type">{policy.type}</span>
+        </div>
+        <label className="fofo-message-switch">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(event) => {
+              setEnabled(event.target.checked);
+              markEdited();
+            }}
+          />
+          {enabled ? "발송 중" : "발송 안 함"}
+        </label>
+      </div>
+
+      <p className="fofo-message-logic">
+        <strong>발송 조건 (코드에서만 수정 가능)</strong>
+        {policy.description}
+      </p>
+
+      <label className="fofo-message-field">
+        메시지 문구
+        <textarea
+          ref={textareaRef}
+          value={message}
+          onChange={(event) => {
+            setMessage(event.target.value);
+            markEdited();
+          }}
+        />
+        <span className="fofo-message-hint">
+          **굵게** 표기를 쓸 수 있습니다.
+        </span>
+      </label>
+
+      <div className="fofo-variables">
+        <span>사용할 수 있는 변수</span>
+        {policy.variables.length === 0 ? (
+          <span className="fofo-message-hint">없음</span>
+        ) : (
+          <>
+            <ul>
+              {policy.variables.map((variable) => (
+                <li key={variable.name}>
+                  <code>{`{${variable.name}}`}</code>
+                  <span>{variable.description}</span>
+                </li>
+              ))}
+            </ul>
+            <span className="fofo-message-hint">
+              변수는 발송할 때 실제 값으로 바뀝니다. 변수 이름은 정확히 입력해
+              주세요.
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="fofo-timing">
+        <span>발송 시점</span>
+        {policy.timing_anchor ? (
+          <>
+            <span>{ANCHOR_LABELS[policy.timing_anchor]}</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              aria-label="발송 시점(분)"
+              value={minutes}
+              onChange={(event) => {
+                setMinutes(event.target.value);
+                markEdited();
+              }}
+            />
+            <span>분</span>
+            <select
+              aria-label="기준 시각 전후"
+              value={direction}
+              onChange={(event) => {
+                setDirection(event.target.value as "before" | "after");
+                markEdited();
+              }}
+            >
+              <option value="before">전</option>
+              <option value="after">후</option>
+            </select>
+          </>
+        ) : (
+          <span>이벤트 발생 즉시 (수정 불가)</span>
+        )}
+      </div>
+
+      <div className="fofo-chip-row">
+        <span>버튼</span>
+        {policy.action_btns.length === 0 ? (
+          <span className="fofo-message-hint">없음</span>
+        ) : (
+          policy.action_btns.map((btn) => (
+            <span key={btn} className="fofo-chip">
+              {ACTION_BTN_LABELS[btn] ?? btn}
+            </span>
+          ))
+        )}
+      </div>
+
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
+
+      <div className="fofo-message-footer">
+        <span className="fofo-message-updated">
+          마지막 수정 {formatDateTime(policy.updated_at)}
+        </span>
+        <div>
+          {saved && (
+            <span className="fofo-message-success" role="status">
+              저장했습니다.{" "}
+            </span>
+          )}
+          <button type="button" className="button small" onClick={handleSave}>
+            저장
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function formatTiming(policy: FofoMessagePolicy): string {
+  if (!policy.timing_anchor || policy.offset_minutes === null)
+    return "즉시 발송";
+  const anchor = ANCHOR_LABELS[policy.timing_anchor];
+  const minutes = Math.abs(policy.offset_minutes);
+  if (minutes === 0) return `${anchor} 정각`;
+  return `${anchor} ${minutes}분 ${policy.offset_minutes < 0 ? "전" : "후"}`;
+}
+
+export function FofoMessagesPage() {
+  const { data, error } = useFetch<FofoMessagePolicy[]>(
+    "/api/manager/v1/fofo-messages",
+    "포포 메시지를 불러오지 못했습니다.",
+  );
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+
+  const [policies, setPolicies] = useState<FofoMessagePolicy[]>([]);
+
+  useEffect(() => {
+    if (data) setPolicies(data);
+  }, [data]);
+
+  const selected =
+    policies.find((policy) => policy.type === selectedType) ?? policies[0];
+
+  const handleSave = async (next: FofoMessagePolicy) => {
+    const updated = await api.patch<FofoMessagePolicy>(
+      `/api/manager/v1/fofo-messages/${next.type}`,
+      {
+        message: next.message,
+        enabled: next.enabled,
+        offset_minutes: next.offset_minutes,
+      },
+    );
+    setPolicies((prev) =>
+      prev.map((policy) => (policy.type === updated.type ? updated : policy)),
+    );
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>포포 메시지 정책</h2>
+      </div>
+      <p className="fofo-messages-notice">
+        포포 메시지의 문구, 발송 여부, 기준 시각 대비 발송 시점을 관리합니다.
+        <br />
+        발송 예약이 걸리는 조건과 취소 흐름은 로직에 해당하므로 이 페이지에서는
+        설명만 제공하며, 변경하려면 코드를 수정해야 합니다. 변경한 정책은 이후에
+        새로 만들어지는 예약부터 적용되고, 이미 예약된 메시지의 발송 시각은
+        바뀌지 않지만, 문구와 발송 여부는 발송 시점의 정책을 따릅니다.
+      </p>
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
+      {!data && !error && <p className="fofo-message-hint">불러오는 중...</p>}
+      {data && data.length === 0 && (
+        <p className="fofo-message-hint">등록된 포포 메시지가 없습니다.</p>
+      )}
+      <div className="fofo-messages-layout">
+        <ul className="fofo-message-list" aria-label="포포 메시지 목록">
+          {policies.map((policy) => (
+            <li key={policy.type}>
+              <button
+                type="button"
+                className={`fofo-message-item${
+                  policy.type === selected?.type ? " active" : ""
+                }${policy.enabled ? "" : " disabled"}`}
+                aria-current={policy.type === selected?.type}
+                onClick={() => setSelectedType(policy.type)}
+              >
+                <span className="fofo-message-item-title">{policy.title}</span>
+                <span className="fofo-message-type">{policy.type}</span>
+                <span className="fofo-message-item-meta">
+                  {formatTiming(policy)}
+                </span>
+                {!policy.enabled && (
+                  <span className="fofo-chip">발송 안 함</span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className="fofo-message-detail">
+          {selected && (
+            <FofoMessageCard
+              key={selected.type}
+              policy={selected}
+              onSave={handleSave}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

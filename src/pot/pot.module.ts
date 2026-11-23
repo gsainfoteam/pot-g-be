@@ -5,7 +5,7 @@ import { PotController } from "@src/pot/pot.controller";
 import { PotService } from "@src/pot/pot.service";
 import { DiscoveryModule } from "@src/discovery/discovery.module";
 import { BroadcastingModule } from "@src/broadcasting/broadcasting.module";
-import { PopoModule } from "@src/popo/popo.module";
+import { FofoModule } from "@src/fofo/fofo.module";
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { PopoModule } from "@src/popo/popo.module";
     DatabaseModule,
     DiscoveryModule,
     forwardRef(() => BroadcastingModule),
-    PopoModule,
+    FofoModule,
   ],
   providers: [PotService],
   controllers: [PotController],

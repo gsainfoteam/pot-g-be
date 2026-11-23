@@ -2,17 +2,16 @@ import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
 import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
 import { parseSeoulDate } from "@src/global/utils/convert-date";
-import {
-  PopoActionBtnStringType,
-  PopoChatStringType,
-} from "../../../../drizzle/schema/popo-chat-msg";
+import { FofoActionBtnStringType } from "../../../../drizzle/schema/fofo-chat-msg";
+import { StoredFofoChatType } from "@src/fofo/fofo-chat-type";
 import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
 import * as format from "string-format";
 
 export type PotPopoChatEventV1Schema = {
-  popoChatType: PopoChatStringType;
+  // This key is persisted in pot_event.data; preserve the v1 storage contract.
+  popoChatType: StoredFofoChatType;
   message: string; // 채팅 메시지
-  actionBtns: PopoActionBtnStringType[]; // 메시지에 포함된 액션 버튼들
+  actionBtns: FofoActionBtnStringType[]; // 메시지에 포함된 액션 버튼들
   timestamp: Date; // 메시지 전송 시간
   formatArguments?: any; // 메시지 포맷팅에 사용되는 인자들
 };
