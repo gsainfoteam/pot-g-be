@@ -566,21 +566,21 @@ a.button {
   text-decoration: underline;
 }
 
-.popo-messages-notice {
+.fofo-messages-notice {
   margin: -4px 0 20px;
   color: var(--text-grey);
   font-size: 14px;
   line-height: 1.5;
 }
 
-.popo-messages-layout {
+.fofo-messages-layout {
   display: grid;
   grid-template-columns: 2fr 3fr;
   gap: 20px;
   align-items: start;
 }
 
-.popo-message-list {
+.fofo-message-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -589,7 +589,7 @@ a.button {
   list-style: none;
 }
 
-.popo-message-item {
+.fofo-message-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -604,67 +604,67 @@ a.button {
   cursor: pointer;
 }
 
-.popo-message-item:hover {
+.fofo-message-item:hover {
   border-color: var(--border-grey-2);
 }
 
-.popo-message-item.active {
+.fofo-message-item.active {
   border-color: var(--primary);
   background: var(--primary-light);
 }
 
-.popo-message-item.disabled .popo-message-item-title {
+.fofo-message-item.disabled .fofo-message-item-title {
   color: var(--grey);
 }
 
-.popo-message-item-title {
+.fofo-message-item-title {
   font-size: 15px;
   font-weight: 700;
   color: var(--dark);
 }
 
-.popo-message-item-meta {
+.fofo-message-item-meta {
   font-size: 13px;
   color: var(--text-grey);
 }
 
-.popo-message-detail {
+.fofo-message-detail {
   position: sticky;
   top: 20px;
   min-width: 0;
 }
 
-.popo-message-card {
+.fofo-message-card {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.popo-message-card.disabled {
+.fofo-message-card.disabled {
   background: var(--light-grey);
 }
 
-.popo-message-head {
+.fofo-message-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
 
-.popo-message-head h3 {
+.fofo-message-head h3 {
   margin: 0 0 4px;
   font-size: 16px;
   font-weight: 700;
   color: var(--dark);
 }
 
-.popo-message-type {
+.fofo-message-type {
   color: var(--grey);
   font-size: 12px;
   font-family: monospace;
 }
 
-.popo-message-switch {
+.fofo-message-switch {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -673,7 +673,7 @@ a.button {
   white-space: nowrap;
 }
 
-.popo-message-logic {
+.fofo-message-logic {
   margin: 0;
   padding: 12px 14px;
   background: var(--primary-light);
@@ -684,13 +684,13 @@ a.button {
   line-height: 1.5;
 }
 
-.popo-message-logic strong {
+.fofo-message-logic strong {
   display: block;
   margin-bottom: 4px;
   color: var(--primary-pressed);
 }
 
-.popo-message-field {
+.fofo-message-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -698,7 +698,7 @@ a.button {
   color: var(--text-grey);
 }
 
-.popo-message-field textarea {
+.fofo-message-field textarea {
   min-height: 110px;
   overflow: hidden;
   padding: 10px 12px;
@@ -711,19 +711,19 @@ a.button {
   resize: none;
 }
 
-.popo-message-field textarea:focus,
-.popo-timing input:focus,
-.popo-timing select:focus {
+.fofo-message-field textarea:focus,
+.fofo-timing input:focus,
+.fofo-timing select:focus {
   outline: 2px solid var(--primary);
   outline-offset: 0;
 }
 
-.popo-message-hint {
+.fofo-message-hint {
   color: var(--grey);
   font-size: 12px;
 }
 
-.popo-timing {
+.fofo-timing {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -732,8 +732,8 @@ a.button {
   color: var(--text-grey);
 }
 
-.popo-timing input,
-.popo-timing select {
+.fofo-timing input,
+.fofo-timing select {
   padding: 6px 10px;
   border: 1px solid var(--border-grey-2);
   border-radius: 8px;
@@ -742,11 +742,11 @@ a.button {
   color: var(--dark);
 }
 
-.popo-timing input {
+.fofo-timing input {
   width: 80px;
 }
 
-.popo-chip-row {
+.fofo-chip-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -755,7 +755,7 @@ a.button {
   color: var(--text-grey);
 }
 
-.popo-chip {
+.fofo-chip {
   padding: 2px 10px;
   border-radius: 999px;
   background: var(--field-grey);
@@ -763,40 +763,40 @@ a.button {
   font-size: 12px;
 }
 
-.popo-message-footer {
+.fofo-message-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.popo-message-updated {
+.fofo-message-updated {
   color: var(--grey);
   font-size: 12px;
 }
 
-.popo-message-success {
+.fofo-message-success {
   color: var(--primary-pressed);
   font-size: 13px;
 }
 
 @media (max-width: 900px) {
-  .popo-messages-layout {
+  .fofo-messages-layout {
     grid-template-columns: 1fr;
   }
 
-  .popo-message-detail {
+  .fofo-message-detail {
     position: static;
   }
 }
 
 @media (max-width: 640px) {
-  .popo-message-head {
+  .fofo-message-head {
     flex-direction: column;
   }
 }
 
-.popo-variables {
+.fofo-variables {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -804,7 +804,7 @@ a.button {
   color: var(--text-grey);
 }
 
-.popo-variables ul {
+.fofo-variables ul {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -813,7 +813,7 @@ a.button {
   list-style: none;
 }
 
-.popo-variables li {
+.fofo-variables li {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -821,7 +821,7 @@ a.button {
   font-size: 13px;
 }
 
-.popo-variables code {
+.fofo-variables code {
   padding: 2px 8px;
   border: 1px solid var(--border-grey);
   border-radius: 6px;

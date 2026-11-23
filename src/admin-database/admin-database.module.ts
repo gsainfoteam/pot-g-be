@@ -7,8 +7,8 @@ import { RouteAdminRepository } from "@src/admin-database/repository/route.admin
 import { AdminUserRepository } from "@src/admin-database/repository/admin-user.repository";
 import { AdminChatViewLogRepository } from "@src/admin-database/repository/admin-chat-view-log.admin.repository";
 import { ReportAdminRepository } from "@src/admin-database/repository/report.admin.repository";
-import { PopoChatMsgAdminRepository } from "@src/admin-database/repository/popo-chat-msg.admin.repository";
-import { PopoChatStatusAdminRepository } from "@src/admin-database/repository/popo-chat-status.admin.repository";
+import { FofoChatMsgAdminRepository } from "@src/admin-database/repository/fofo-chat-msg.admin.repository";
+import { FofoChatStatusAdminRepository } from "@src/admin-database/repository/fofo-chat-status.admin.repository";
 import { AdminDashboardRepository } from "./repository/admin-dashboard.repository";
 
 /**
@@ -27,7 +27,6 @@ import { AdminDashboardRepository } from "./repository/admin-dashboard.repositor
     AdminChatViewLogRepository,
     PopoChatMsgAdminRepository,
     PopoChatStatusAdminRepository,
-    AdminDashboardRepository,
   ],
   exports: [
     AdminAccountRepository,
@@ -37,8 +36,8 @@ import { AdminDashboardRepository } from "./repository/admin-dashboard.repositor
     AdminUserRepository,
     ReportAdminRepository,
     AdminChatViewLogRepository,
-    PopoChatMsgAdminRepository,
-    PopoChatStatusAdminRepository,
+    FofoChatMsgAdminRepository,
+    FofoChatStatusAdminRepository,
     AdminDashboardRepository,
   ],
 })

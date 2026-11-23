@@ -21,7 +21,7 @@ import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-lea
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
 import { Trace } from "@gsainfoteam/nest-observability";
-import { DeliveryUserProgress } from "../../drizzle/schema/popo-chat-delivery";
+import { DeliveryUserProgress } from "../../drizzle/schema/fofo-chat-delivery";
 
 @Trace()
 @Injectable()
@@ -293,7 +293,7 @@ export class BroadcastingService {
         senderName,
       );
     } else if (potEventDto.event_type === "popo_chat_v1") {
-      await this.sendPopoChatPush(
+      await this.sendFofoChatPush(
         potEventDto,
         pushAlarmTargetUserPks,
         potName,
@@ -342,7 +342,7 @@ export class BroadcastingService {
     );
   }
 
-  private async sendPopoChatPush(
+  private async sendFofoChatPush(
     potEventDto: PotEventDto<any>,
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,

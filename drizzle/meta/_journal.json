@@ -169,6 +169,20 @@
       "when": 1795258080902,
       "tag": "0023_drop_delay_check_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795415117456,
+      "tag": "0024_rename_fofo_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795419512646,
+      "tag": "0025_rename_delay_check_chat_type",
+      "breakpoints": true
     }
   ]
 }
