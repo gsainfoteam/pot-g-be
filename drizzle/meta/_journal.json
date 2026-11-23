@@ -152,8 +152,29 @@
     {
       "idx": 21,
       "version": "7",
-      "when": 1795413391172,
-      "tag": "0021_rename_fofo_tables",
+      "when": 1795258080900,
+      "tag": "0021_popo_chat_msg_policy_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795258080901,
+      "tag": "0022_seed_popo_chat_msg_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795258080902,
+      "tag": "0023_drop_delay_check_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795415117456,
+      "tag": "0024_rename_fofo_tables",
       "breakpoints": true
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "id": "9b629035-c273-44a2-b4da-c0b63d177ad0",
+  "id": "6843df3a-8b10-4200-9c2f-4398550496ee",
   "prevId": "4aeedf27-d4ec-45b4-b2ea-baf71f6eaae5",
   "version": "7",
   "dialect": "postgresql",
@@ -395,6 +395,330 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.popo_chat_delivery": {
+      "name": "popo_chat_delivery",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pot_fk": {
+          "name": "pot_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "events": {
+          "name": "events",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_pks": {
+          "name": "user_pks",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pot_name": {
+          "name": "pot_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "progress": {
+          "name": "progress",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_token": {
+          "name": "lease_token",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lease_until": {
+          "name": "lease_until",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "next_attempt_at": {
+          "name": "next_attempt_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "popo_chat_delivery_next_attempt_at_index": {
+          "name": "popo_chat_delivery_next_attempt_at_index",
+          "columns": [
+            {
+              "expression": "next_attempt_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "popo_chat_delivery_pot_fk_pot_room_pk_fk": {
+          "name": "popo_chat_delivery_pot_fk_pot_room_pk_fk",
+          "tableFrom": "popo_chat_delivery",
+          "tableTo": "pot_room",
+          "columnsFrom": [
+            "pot_fk"
+          ],
+          "columnsTo": [
+            "pk"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.popo_chat_msg": {
+      "name": "popo_chat_msg",
+      "schema": "",
+      "columns": {
+        "type": {
+          "name": "type",
+          "type": "popo_chat_type",
+          "typeSchema": "public",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "action_btns": {
+          "name": "action_btns",
+          "type": "popo_action_btn_type[]",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "offset_minutes": {
+          "name": "offset_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.popo_chat_reservation": {
+      "name": "popo_chat_reservation",
+      "schema": "",
+      "columns": {
+        "pk": {
+          "name": "pk",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pot_fk": {
+          "name": "pot_fk",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "popo_chat_msg_type": {
+          "name": "popo_chat_msg_type",
+          "type": "popo_chat_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "send_after": {
+          "name": "send_after",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "format_arguments": {
+          "name": "format_arguments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "popo_chat_reservation_send_after_index": {
+          "name": "popo_chat_reservation_send_after_index",
+          "columns": [
+            {
+              "expression": "send_after",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "popo_chat_reservation_pot_fk_index": {
+          "name": "popo_chat_reservation_pot_fk_index",
+          "columns": [
+            {
+              "expression": "pot_fk",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "popo_chat_reservation_popo_chat_msg_type_index": {
+          "name": "popo_chat_reservation_popo_chat_msg_type_index",
+          "columns": [
+            {
+              "expression": "popo_chat_msg_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "popo_chat_reservation_pot_fk_popo_chat_msg_type_index": {
+          "name": "popo_chat_reservation_pot_fk_popo_chat_msg_type_index",
+          "columns": [
+            {
+              "expression": "pot_fk",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "popo_chat_msg_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "popo_chat_reservation_pot_fk_pot_room_pk_fk": {
+          "name": "popo_chat_reservation_pot_fk_pot_room_pk_fk",
+          "tableFrom": "popo_chat_reservation",
+          "tableTo": "pot_room",
+          "columnsFrom": [
+            "pot_fk"
+          ],
+          "columnsTo": [
+            "pk"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "popo_chat_reservation_popo_chat_msg_type_popo_chat_msg_type_fk": {
+          "name": "popo_chat_reservation_popo_chat_msg_type_popo_chat_msg_type_fk",
+          "tableFrom": "popo_chat_reservation",
+          "tableTo": "popo_chat_msg",
+          "columnsFrom": [
+            "popo_chat_msg_type"
+          ],
+          "columnsTo": [
+            "type"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1367,317 +1691,6 @@
       },
       "indexes": {},
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.fofo_chat_delivery": {
-      "name": "fofo_chat_delivery",
-      "schema": "",
-      "columns": {
-        "pk": {
-          "name": "pk",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "pot_fk": {
-          "name": "pot_fk",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "events": {
-          "name": "events",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_pks": {
-          "name": "user_pks",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "pot_name": {
-          "name": "pot_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "progress": {
-          "name": "progress",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "lease_token": {
-          "name": "lease_token",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "lease_until": {
-          "name": "lease_until",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "next_attempt_at": {
-          "name": "next_attempt_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "fofo_chat_delivery_next_attempt_at_index": {
-          "name": "fofo_chat_delivery_next_attempt_at_index",
-          "columns": [
-            {
-              "expression": "next_attempt_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "fofo_chat_delivery_pot_fk_pot_room_pk_fk": {
-          "name": "fofo_chat_delivery_pot_fk_pot_room_pk_fk",
-          "tableFrom": "fofo_chat_delivery",
-          "tableTo": "pot_room",
-          "columnsFrom": [
-            "pot_fk"
-          ],
-          "columnsTo": [
-            "pk"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.fofo_chat_msg": {
-      "name": "fofo_chat_msg",
-      "schema": "",
-      "columns": {
-        "type": {
-          "name": "type",
-          "type": "popo_chat_type",
-          "typeSchema": "public",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "action_btns": {
-          "name": "action_btns",
-          "type": "popo_action_btn_type[]",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "message": {
-          "name": "message",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.fofo_chat_reservation": {
-      "name": "fofo_chat_reservation",
-      "schema": "",
-      "columns": {
-        "pk": {
-          "name": "pk",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "pot_fk": {
-          "name": "pot_fk",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fofo_chat_msg_type": {
-          "name": "fofo_chat_msg_type",
-          "type": "popo_chat_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "send_after": {
-          "name": "send_after",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "format_arguments": {
-          "name": "format_arguments",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "fofo_chat_reservation_send_after_index": {
-          "name": "fofo_chat_reservation_send_after_index",
-          "columns": [
-            {
-              "expression": "send_after",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "fofo_chat_reservation_pot_fk_index": {
-          "name": "fofo_chat_reservation_pot_fk_index",
-          "columns": [
-            {
-              "expression": "pot_fk",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "fofo_chat_reservation_fofo_chat_msg_type_index": {
-          "name": "fofo_chat_reservation_fofo_chat_msg_type_index",
-          "columns": [
-            {
-              "expression": "fofo_chat_msg_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "fofo_chat_reservation_pot_fk_fofo_chat_msg_type_index": {
-          "name": "fofo_chat_reservation_pot_fk_fofo_chat_msg_type_index",
-          "columns": [
-            {
-              "expression": "pot_fk",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "fofo_chat_msg_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "fofo_chat_reservation_pot_fk_pot_room_pk_fk": {
-          "name": "fofo_chat_reservation_pot_fk_pot_room_pk_fk",
-          "tableFrom": "fofo_chat_reservation",
-          "tableTo": "pot_room",
-          "columnsFrom": [
-            "pot_fk"
-          ],
-          "columnsTo": [
-            "pk"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "fofo_chat_reservation_fofo_chat_msg_type_fofo_chat_msg_type_fk": {
-          "name": "fofo_chat_reservation_fofo_chat_msg_type_fofo_chat_msg_type_fk",
-          "tableFrom": "fofo_chat_reservation",
-          "tableTo": "fofo_chat_msg",
-          "columnsFrom": [
-            "fofo_chat_msg_type"
-          ],
-          "columnsTo": [
-            "type"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

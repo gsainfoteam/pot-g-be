@@ -38,13 +38,7 @@ import {
 import { PotDetailDto } from "@src/pot/dto/pot.detail.dto";
 import { PotInfoDto } from "@src/pot/dto/pot.info.dto";
 import { UserRepository } from "@src/database/repository/user.repository";
-import {
-  addHours,
-  fromUnixTime,
-  getUnixTime,
-  subHours,
-  subMinutes,
-} from "date-fns";
+import { fromUnixTime, getUnixTime } from "date-fns";
 import { FofoService } from "@src/fofo/fofo.service";
 import { DelayCheckService } from "@src/fofo/delay-check.service";
 import { PotArchiveEventV1 } from "@src/pot/event/v1/pot-archive-event";
@@ -128,11 +122,16 @@ export class PotService {
         "popo-departure-confirm-request-v1",
       );
 
-    if (subHours(req.starts_at, 6) > new Date()) {
-      // starts_at 시간 6시간 전 메세지 발송 예약
+    const departureConfirmRequestSendAt = this.fofoService.resolveSendAt(
+      fofoDepartureConfirmRequestChatMsg,
+      req.starts_at,
+    );
+
+    if (departureConfirmRequestSendAt > new Date()) {
+      // starts_at 기준 정책 오프셋 시점에 메세지 발송 예약
       this.fofoService.asyncReserveFofoChatMsg(
         fofoDepartureConfirmRequestChatMsg,
-        subHours(req.starts_at, 6),
+        departureConfirmRequestSendAt,
         null,
         pot,
         {
@@ -145,7 +144,7 @@ export class PotService {
         },
       );
     } else {
-      // 탑승 종료 시간이 6시간 이내로 남은 경우 즉시 메세지 발송
+      // 발송 시점이 이미 지난 경우 즉시 메세지 발송
       this.fofoService.asyncSendFofoChatMsgToPotRoom(
         fofoDepartureConfirmRequestChatMsg,
         null,
@@ -166,7 +165,7 @@ export class PotService {
       "popo-auto-archive-no-departure-confirm-v1",
     );
 
-    this.fofoService.asyncReserveFofoChatMsg(
+    this.fofoService.asyncReserveFofoChatMsgFromAnchor(
       fofoAutoArchiveChatMsg,
       req.ends_at,
       null,
@@ -822,8 +821,13 @@ export class PotService {
       "popo-reminder-taxi-call-v1",
     );
 
-    // 출발 확정을 20분 안으로 했을 경우 바로 발송
-    if (subMinutes(req.departure_time, 20) < new Date()) {
+    const taxiCallSendAt = this.fofoService.resolveSendAt(
+      taxiCallFofoChatMsg,
+      req.departure_time,
+    );
+
+    // 출발 확정 시점이 이미 발송 시점을 지났을 경우 바로 발송
+    if (taxiCallSendAt < new Date()) {
       this.fofoService.asyncSendFofoChatMsgToPotRoom(
         taxiCallFofoChatMsg,
         null,
@@ -835,14 +839,16 @@ export class PotService {
         },
       );
     } else {
-      // departureTime 시간 20분 전 taxi call reminder 메세지 발송 예약
+      // departureTime 기준 정책 오프셋 시점에 taxi call reminder 메세지 발송 예약
       this.fofoService.asyncReserveFofoChatMsg(
         taxiCallFofoChatMsg,
-        subMinutes(req.departure_time, 20),
+        taxiCallSendAt,
         null,
         pot,
         {
-          remainDepartureTime: 20,
+          remainDepartureTime: Math.round(
+            (req.departure_time.getTime() - taxiCallSendAt.getTime()) / 60000,
+          ),
         },
       );
     }
@@ -851,10 +857,10 @@ export class PotService {
       "popo-accounting-reminder-v1",
     );
 
-    // departureTime 시간 2시간 후 accounting reminder 메세지 발송 예약
-    this.fofoService.asyncReserveFofoChatMsg(
+    // departureTime 기준 정책 오프셋 시점에 accounting reminder 메세지 발송 예약
+    this.fofoService.asyncReserveFofoChatMsgFromAnchor(
       accountingFofoChatMsg,
-      addHours(req.departure_time, 2),
+      req.departure_time,
       null,
       pot,
     );

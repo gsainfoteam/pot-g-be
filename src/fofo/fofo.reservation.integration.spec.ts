@@ -70,7 +70,6 @@ localTests("Fofo durable reservation processing", () => {
       archiveService,
       new FofoChatDeliveryRepository(dbService),
       new PotRoomRepository(dbService),
-      { isEnabled: async () => true } as any,
     );
     if (initialize) await fofo.onModuleInit();
     return fofo;
@@ -152,6 +151,11 @@ localTests("Fofo durable reservation processing", () => {
   }
 
   it("sends a delay check through the shared durable reservation path", async () => {
+    // The seeded policy is disabled by default; enable only this worker's template.
+    const template = service.getFofoChatMsgByType("popo-delay-check-request-v1");
+    jest
+      .spyOn(service, "getFofoChatMsgByType")
+      .mockReturnValue({ ...template, enabled: true });
     await seed("popo-delay-check-request-v1");
     await service.processReservedFofoChatReservation(reservationPk);
     await service.processReservedFofoChatReservation(reservationPk);
@@ -177,6 +181,25 @@ localTests("Fofo durable reservation processing", () => {
       expect.any(Function),
       expect.any(Date),
     );
+  });
+
+  it("removes a disabled delay-check reservation without sending an event", async () => {
+    const template = service.getFofoChatMsgByType("popo-delay-check-request-v1");
+    jest
+      .spyOn(service, "getFofoChatMsgByType")
+      .mockReturnValue({ ...template, enabled: false });
+    await seed("popo-delay-check-request-v1");
+
+    await service.processReservedFofoChatReservation(reservationPk);
+
+    expect(await messageRows()).toHaveLength(0);
+    expect(
+      await db
+        .select()
+        .from(fofoChatReservation)
+        .where(eq(fofoChatReservation.pk, reservationPk)),
+    ).toHaveLength(0);
+    expect(broadcaster.broadcastReservedPotEvent).not.toHaveBeenCalled();
   });
 
   beforeAll(async () => {

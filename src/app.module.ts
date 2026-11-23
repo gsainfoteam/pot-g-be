@@ -20,7 +20,7 @@ import { SlackModule } from "nestjs-slack";
 import { ConfigService } from "@nestjs/config";
 import { HealthModule } from "./health/health.module";
 import { AdminUserModule } from "@src/admin-user/admin-user.module";
-import { AdminNotificationModule } from "@src/admin-notification/admin-notification.module";
+import { AdminFofoMessageModule } from "@src/admin-fofo-message/admin-fofo-message.module";
 
 @Module({
   imports: [
@@ -79,7 +79,7 @@ import { AdminNotificationModule } from "@src/admin-notification/admin-notificat
       inject: [ConfigService],
     }),
     AdminUserModule,
-    AdminNotificationModule,
+    AdminFofoMessageModule,
   ],
   controllers: [],
   providers: [],

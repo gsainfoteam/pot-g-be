@@ -1,5 +1,5 @@
 import { ConfigService } from "@nestjs/config";
-import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/delay-check-policy.admin.repository";
+import { FofoChatMsgRepository } from "@src/database/repository/fofo-chat-msg.repository";
 import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
 import { RouteService } from "@src/discovery/route.service";
 import { TxType } from "@src/global/types/tx.types";
@@ -15,7 +15,7 @@ describe("DelayCheckService reservation", () => {
   const getRouteById = jest.fn();
   const service = new DelayCheckService(
     new ConfigService({ DELAY_CHECK_ROUTE_IDS: "songjeong, usquare" }),
-    { find } as unknown as DelayCheckPolicyAdminRepository,
+    { findByType: find } as unknown as FofoChatMsgRepository,
     {
       insert,
       deleteByPotFkAndType,
@@ -26,7 +26,7 @@ describe("DelayCheckService reservation", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers({ now });
-    find.mockResolvedValue({ enabled: true, minutesBeforeDeparture: 10 });
+    find.mockResolvedValue({ enabled: true, offsetMinutes: -10 });
   });
 
   afterEach(() => jest.useRealTimers());
@@ -38,7 +38,10 @@ describe("DelayCheckService reservation", () => {
     "reserves the %s notice at the configured offset",
     async (routePk, stationName, minutesBeforeDeparture, sendTime) => {
       getRouteById.mockReturnValue({ fromStop: { nameKor: stationName } });
-      find.mockResolvedValue({ enabled: true, minutesBeforeDeparture });
+      find.mockResolvedValue({
+        enabled: true,
+        offsetMinutes: -minutesBeforeDeparture,
+      });
       const departure = new Date("2026-11-20T15:30:00+09:00");
 
       await service.reserveIfEligible(
@@ -87,7 +90,7 @@ describe("DelayCheckService reservation", () => {
     "skips route %s with enabled=%s when ineligible",
     async (routePk, enabled) => {
       getRouteById.mockReturnValue({ fromStop: { nameKor: "광주송정역" } });
-      find.mockResolvedValue({ enabled, minutesBeforeDeparture: 10 });
+      find.mockResolvedValue({ enabled, offsetMinutes: -10 });
       await service.reserveIfEligible(
         { pk: "pot", routePk } as Pot,
         new Date("2026-11-20T15:30:00+09:00"),

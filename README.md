@@ -108,11 +108,11 @@ bun run db:seed-admin -- <email>@gm.gist.ac.kr superadmin
 
 ### fofo 이름 변경 (PGB-116)
 
-`0021_rename_fofo_tables.sql`은 기존 `popo_chat_msg`, `popo_chat_reservation`,
+`0024_rename_fofo_tables.sql`은 기존 `popo_chat_msg`, `popo_chat_reservation`,
 `popo_chat_delivery`를 각각 `fofo_chat_*`로, 예약 테이블의 컬럼
 `popo_chat_msg_type`을 `fofo_chat_msg_type`으로 이름만 변경합니다.
 관련 인덱스와 PK/FK 제약조건도 이름만 변경하며, 테이블 재생성이나 데이터 복사는
-없습니다. 기존 마이그레이션(0000~0020)은 수정하지 않습니다.
+없습니다. 기존 마이그레이션(0000~0023)은 수정하지 않습니다.
 
 배포할 때는 이전 서버와 예약 발송 워커를 먼저 중지하고, `npm run db:migrate`를
 실행한 뒤 새 서버를 시작하세요. 이전 서버는 변경 전 테이블·컬럼명을 참조하므로 두 버전을
@@ -125,6 +125,8 @@ bun run db:seed-admin -- <email>@gm.gist.ac.kr superadmin
 - `pot_event.data.popoChatType`, API 필드 `popo_chat_type`, 이벤트 종류
   `popo_chat_v1`은 기존 이벤트 기록·API 소비 측·대기 중인 발송 작업과의 호환성을
   위해 유지합니다.
+- 관리자 API 경로 `/api/manager/v1/popo-messages`,
+  `/api/manager/v1/popo-message-status`도 기존 관리자 화면과의 호환성을 위해 유지합니다.
 
 ### Admin 프론트엔드 설정 및 빌드
 

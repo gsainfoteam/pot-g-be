@@ -24,7 +24,7 @@ import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { PotAccountingConfirmEventV1 } from "@src/pot/event/v1/pot-accounting-confirm-event";
 import { Pot } from "@src/pot/model/pot";
-import { addMinutes, getUnixTime } from "date-fns";
+import { getUnixTime } from "date-fns";
 import { FofoService } from "@src/fofo/fofo.service";
 import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-accounting.dto";
 import { Trace } from "@gsainfoteam/nest-observability";
@@ -330,13 +330,13 @@ export class AccountingService implements OnModuleInit {
         pot,
       );
 
-      // 10분 후 팟 자동 해산 예약
+      // 정산 완료 시각 기준 정책 오프셋 시점에 팟 자동 해산 예약
       const fofoAutoArchiveMsg = this.fofoService.getFofoChatMsgByType(
         "popo-auto-archive-v1",
       );
-      this.fofoService.asyncReserveFofoChatMsg(
+      this.fofoService.asyncReserveFofoChatMsgFromAnchor(
         fofoAutoArchiveMsg,
-        addMinutes(now, 10),
+        now,
         null,
         pot,
       );

@@ -44,7 +44,6 @@ describe("reserved delivery eligibility", () => {
       {} as any,
       repository as any,
       {} as any,
-      {} as any,
     );
     return { service, repository, broadcast, pot, delivery, database };
   }

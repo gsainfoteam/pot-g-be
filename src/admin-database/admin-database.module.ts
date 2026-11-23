@@ -7,7 +7,8 @@ import { RouteAdminRepository } from "@src/admin-database/repository/route.admin
 import { AdminUserRepository } from "@src/admin-database/repository/admin-user.repository";
 import { AdminChatViewLogRepository } from "@src/admin-database/repository/admin-chat-view-log.admin.repository";
 import { ReportAdminRepository } from "@src/admin-database/repository/report.admin.repository";
-import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/delay-check-policy.admin.repository";
+import { FofoChatMsgAdminRepository } from "@src/admin-database/repository/fofo-chat-msg.admin.repository";
+import { FofoChatStatusAdminRepository } from "@src/admin-database/repository/fofo-chat-status.admin.repository";
 
 /**
  * 어드민 전용 레포지토리만 모아서 export 하는 모듈입니다.
@@ -23,7 +24,8 @@ import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/
     AdminUserRepository,
     ReportAdminRepository,
     AdminChatViewLogRepository,
-    DelayCheckPolicyAdminRepository,
+    FofoChatMsgAdminRepository,
+    FofoChatStatusAdminRepository,
   ],
   exports: [
     AdminAccountRepository,
@@ -33,7 +35,8 @@ import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/
     AdminUserRepository,
     ReportAdminRepository,
     AdminChatViewLogRepository,
-    DelayCheckPolicyAdminRepository,
+    FofoChatMsgAdminRepository,
+    FofoChatStatusAdminRepository,
   ],
 })
 export class AdminDatabaseModule {}
