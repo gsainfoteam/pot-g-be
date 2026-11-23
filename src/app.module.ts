@@ -80,6 +80,8 @@ import { AdminDashboardModule } from "./admin-dashboard/admin-dashboard.module";
       inject: [ConfigService],
     }),
     AdminUserModule,
+    AdminPopoMessageModule,
+    AdminDashboardModule,
   ],
   controllers: [],
   providers: [],

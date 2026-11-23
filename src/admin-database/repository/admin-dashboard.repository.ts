@@ -30,11 +30,19 @@ export class AdminDashboardRepository {
         WHERE is_deleted = false
       `),
       this.databaseService.db.execute<{ count: number }>(sql`
-        SELECT COUNT(DISTINCT upr.user_fk)::int AS count
-        FROM user_pot_room AS upr
-        INNER JOIN pot_room AS pr ON pr.pk = upr.pot_room_fk
-        WHERE pr.created_at >= NOW() - (${recentDays} * INTERVAL '1 day')
-           OR upr.created_at >= NOW() - (${recentDays} * INTERVAL '1 day')
+        SELECT COUNT(DISTINCT user_pk)::int AS count
+        FROM (
+          SELECT upr.user_fk::text AS user_pk
+          FROM user_pot_room AS upr
+          INNER JOIN pot_room AS pr ON pr.pk = upr.pot_room_fk
+          WHERE pr.created_at >= NOW() - (${recentDays} * INTERVAL '1 day')
+          UNION ALL
+          SELECT pe.data->>'userPk' AS user_pk
+          FROM pot_event AS pe
+          WHERE pe.type = 'user_in_v1'
+            AND pe.timestamp >= NOW() - (${recentDays} * INTERVAL '1 day')
+            AND pe.data->>'userPk' IS NOT NULL
+        ) AS recent_users
       `),
     ]);
 
@@ -170,7 +178,7 @@ export class AdminDashboardRepository {
   /**
    * 최근 N일 이내 접수된 신고 수
    */
-  async getRecentReportCount(recentDays = 7): Promise<number> {
+  async getRecentReportCount(recentDays = 30): Promise<number> {
     const res = await this.databaseService.db.execute<{ count: number }>(sql`
       SELECT COUNT(*)::int AS count
       FROM report
@@ -384,28 +392,72 @@ export class AdminDashboardRepository {
   async getMonthlySignups(range: DashboardDateRange = {}): Promise<
     Array<{
       month: string;
-      count: number;
+      newCount: number;
+      cumulativeCount: number;
+      activeCount: number;
     }>
   > {
-    const dateFilter = this.buildDateRangeCondition(sql`created_at`, range);
+    const fromMonth = range.from
+      ? sql`AND cs.month >= TO_CHAR(${range.from}::timestamptz AT TIME ZONE 'Asia/Seoul', 'YYYY-MM')`
+      : sql``;
+    const toMonth = range.to
+      ? sql`AND cs.month <= TO_CHAR(${range.to}::timestamptz AT TIME ZONE 'Asia/Seoul', 'YYYY-MM')`
+      : sql``;
 
     const res = await this.databaseService.db.execute<{
       month: string;
-      count: number;
+      new_count: number;
+      cumulative_count: number;
+      active_count: number;
     }>(sql`
+      WITH monthly_signups AS (
+        SELECT
+          TO_CHAR(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM') AS month,
+          COUNT(*)::int AS new_count
+        FROM users
+        GROUP BY month
+      ),
+      cumulative_signups AS (
+        SELECT
+          month,
+          new_count,
+          SUM(new_count) OVER (ORDER BY month)::int AS cumulative_count
+        FROM monthly_signups
+      ),
+monthly_active AS (
+        SELECT
+          TO_CHAR(activity_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM') AS month,
+          COUNT(DISTINCT user_pk)::int AS active_count
+        FROM (
+          SELECT upr.user_fk::text AS user_pk, pr.created_at AS activity_at
+          FROM user_pot_room AS upr
+          INNER JOIN pot_room AS pr ON pr.pk = upr.pot_room_fk
+          UNION ALL
+          SELECT pe.data->>'userPk' AS user_pk, pe.timestamp AS activity_at
+          FROM pot_event AS pe
+          WHERE pe.type = 'user_in_v1'
+            AND pe.data->>'userPk' IS NOT NULL
+        ) AS activities
+        GROUP BY month
+      )
       SELECT
-        TO_CHAR(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM') AS month,
-        COUNT(*)::int AS count
-      FROM users
+        cs.month,
+        cs.new_count,
+        cs.cumulative_count,
+        COALESCE(ma.active_count, 0)::int AS active_count
+      FROM cumulative_signups AS cs
+      LEFT JOIN monthly_active AS ma ON ma.month = cs.month
       WHERE 1 = 1
-        ${dateFilter}
-      GROUP BY month
-      ORDER BY month ASC
+        ${fromMonth}
+        ${toMonth}
+      ORDER BY cs.month ASC
     `);
 
     return res.rows.map((row) => ({
       month: row.month,
-      count: Number(row.count),
+      newCount: Number(row.new_count),
+      cumulativeCount: Number(row.cumulative_count),
+      activeCount: Number(row.active_count),
     }));
   }
 

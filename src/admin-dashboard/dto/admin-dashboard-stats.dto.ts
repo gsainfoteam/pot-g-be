@@ -28,8 +28,15 @@ export class PotCreationByRouteDto {
 }
 
 export class MonthlyCountDto {
-  month: string; // YYYY-MM
+  month: string;
   count: number;
+}
+
+export class MonthlySignupDto {
+  month: string;
+  newCount: number;
+  cumulativeCount: number;
+  activeCount: number;
 }
 
 export class AdminDashboardStatsResponseDto {
@@ -37,7 +44,7 @@ export class AdminDashboardStatsResponseDto {
   potsByHour: PotCreationByHourDto[];
   potsByDayOfWeek: PotCreationByDayOfWeekDto[];
   potsByRoute: PotCreationByRouteDto[];
-  monthlySignups: MonthlyCountDto[];
+  monthlySignups: MonthlySignupDto[];
   monthlyReports: MonthlyCountDto[];
   passengerDistribution: PassengerDistributionDto[];
 }

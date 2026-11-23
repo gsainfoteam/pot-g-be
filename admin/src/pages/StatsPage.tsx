@@ -16,9 +16,10 @@ export function StatsPage() {
   const [data, setData] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const latestRequestIIdRef = useRef(0);
+  const latestRequestIdRef = useRef(0);
+
   const fetchStats = useCallback(async (f: string, t: string) => {
-    const requestId = ++latestRequestIIdRef.current;
+    const requestId = ++latestRequestIdRef.current;
 
     setLoading(true);
     setError(null);
@@ -27,15 +28,15 @@ export function StatsPage() {
         from: f || undefined,
         to: t || undefined,
       });
-      if (requestId !== latestRequestIIdRef.current) return;
+      if (requestId !== latestRequestIdRef.current) return;
       setData(res);
     } catch (err) {
-      if (requestId !== latestRequestIIdRef.current) return;
+      if (requestId !== latestRequestIdRef.current) return;
       setError(
         err instanceof Error ? err.message : "통계를 불러오지 못했습니다.",
       );
     } finally {
-      if (requestId === latestRequestIIdRef.current) {
+      if (requestId === latestRequestIdRef.current) {
         setLoading(false);
       }
     }
@@ -43,7 +44,7 @@ export function StatsPage() {
 
   useEffect(() => {
     return () => {
-      latestRequestIIdRef.current += 1;
+      latestRequestIdRef.current += 1;
     };
   }, []);
 
@@ -182,41 +183,7 @@ export function StatsPage() {
             </p>
           </div>
 
-          <div style={cardStyle}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 12,
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
-                출발 확정 팟 탑승 인원 분포
-              </h2>
-              <span style={{ fontSize: 13, color: "#4b5563" }}>
-                평균 <strong>{data.summary.avgPassengers}명</strong> 탑승
-              </span>
-            </div>
-            <VerticalBarChart
-              items={data.passengerDistribution.map((item) => {
-                const ratio =
-                  data.summary.confirmedPots > 0
-                    ? Math.round(
-                        (item.potCount / data.summary.confirmedPots) * 100,
-                      )
-                    : 0;
-                return {
-                  label: `${item.passengerCount}명 (${ratio}%)`,
-                  value: item.potCount,
-                  tooltip: `${item.passengerCount}명 탑승: ${item.potCount}개 (${ratio}%)`,
-                };
-              })}
-              color="#8b5cf6"
-            />
-          </div>
-
-          {/* 시간대별 / 요일별 팟 생성 그래프 */}
+          {/* 1행: 시간대별 / 요일별 팟 생성 그래프 */}
           <div
             style={{
               display: "grid",
@@ -249,147 +216,7 @@ export function StatsPage() {
             </div>
           </div>
 
-          {/* 노선별 팟 생성 그래프 */}
-          <div style={cardStyle}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 8,
-                marginBottom: 14,
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
-                노선별 팟 생성
-              </h2>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  fontSize: 12,
-                  color: "#4b5563",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 3,
-                      background: "#93c5fd",
-                      display: "inline-block",
-                    }}
-                  />
-                  전체 생성
-                </span>
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 3,
-                      background: "#2563eb",
-                      display: "inline-block",
-                    }}
-                  />
-                  출발 확정
-                </span>
-              </div>
-            </div>
-            {data.potsByRoute.length === 0 ? (
-              <p style={{ color: "#6b7280", fontSize: 13 }}>
-                데이터가 없습니다.
-              </p>
-            ) : (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 10 }}
-              >
-                {(() => {
-                  const maxVal = Math.max(
-                    ...data.potsByRoute.map((r) => r.totalCount),
-                    1,
-                  );
-                  return data.potsByRoute.map((r) => (
-                    <div
-                      key={r.routePk}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "140px 1fr 90px",
-                        alignItems: "center",
-                        gap: 12,
-                        fontSize: 13,
-                      }}
-                    >
-                      <span
-                        style={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          fontWeight: 600,
-                        }}
-                        title={r.routeName}
-                      >
-                        {r.routeName}
-                      </span>
-                      <div
-                        style={{
-                          position: "relative",
-                          height: 18,
-                          background: "#f3f4f6",
-                          borderRadius: 6,
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            width: `${(r.totalCount / maxVal) * 100}%`,
-                            background: "#93c5fd",
-                          }}
-                        />
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            width: `${(r.confirmedCount / maxVal) * 100}%`,
-                            background: "#2563eb",
-                          }}
-                        />
-                      </div>
-                      <span
-                        style={{ textAlign: "right", color: "#374151" }}
-                        title={`전체 ${r.totalCount}개 중 출발 확정 ${r.confirmedCount}개`}
-                      >
-                        <span style={{ color: "#6b7280" }}>{r.totalCount}</span>{" "}
-                        /{" "}
-                        <strong style={{ color: "#2563eb" }}>
-                          {r.confirmedCount}
-                        </strong>
-                      </span>
-                    </div>
-                  ));
-                })()}
-              </div>
-            )}
-          </div>
-
-          {/* 월별 가입자 수 / 월별 신고 수 */}
+          {/* 2행: 출발 확정 팟 탑승 인원 분포 / 노선별 팟 생성 */}
           <div
             style={{
               display: "grid",
@@ -398,15 +225,251 @@ export function StatsPage() {
             }}
           >
             <div style={cardStyle}>
-              <h2 style={sectionTitleStyle}>월별 신규 가입자 수</h2>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  marginBottom: 12,
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
+                  출발 확정 팟 탑승 인원 분포
+                </h2>
+                <span style={{ fontSize: 13, color: "#4b5563" }}>
+                  평균 <strong>{data.summary.avgPassengers}명</strong> 탑승
+                </span>
+              </div>
               <VerticalBarChart
-                items={data.monthlySignups.map((item) => ({
-                  label: item.month.slice(2),
-                  value: item.count,
-                  tooltip: `${item.month}: ${item.count}명`,
-                }))}
-                color="#10b981"
+                items={data.passengerDistribution.map((item) => {
+                  const ratio =
+                    data.summary.confirmedPots > 0
+                      ? Math.round(
+                          (item.potCount / data.summary.confirmedPots) * 100,
+                        )
+                      : 0;
+                  return {
+                    label: `${item.passengerCount}명 (${ratio}%)`,
+                    value: item.potCount,
+                    tooltip: `${item.passengerCount}명 탑승: ${item.potCount}개 (${ratio}%)`,
+                  };
+                })}
+                color="#8b5cf6"
               />
+            </div>
+
+            <div style={cardStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginBottom: 14,
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
+                  노선별 팟 생성
+                </h2>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    fontSize: 12,
+                    color: "#4b5563",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 3,
+                        background: "#93c5fd",
+                        display: "inline-block",
+                      }}
+                    />
+                    전체 생성
+                  </span>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 3,
+                        background: "#2563eb",
+                        display: "inline-block",
+                      }}
+                    />
+                    출발 확정
+                  </span>
+                </div>
+              </div>
+              {data.potsByRoute.length === 0 ? (
+                <p style={{ color: "#6b7280", fontSize: 13 }}>
+                  데이터가 없습니다.
+                </p>
+              ) : (
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                >
+                  {(() => {
+                    const maxVal = Math.max(
+                      ...data.potsByRoute.map((r) => r.totalCount),
+                      1,
+                    );
+                    return data.potsByRoute.map((r) => (
+                      <div
+                        key={r.routePk}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "140px 1fr 90px",
+                          alignItems: "center",
+                          gap: 12,
+                          fontSize: 13,
+                        }}
+                      >
+                        <span
+                          style={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            fontWeight: 600,
+                          }}
+                          title={r.routeName}
+                        >
+                          {r.routeName}
+                        </span>
+                        <div
+                          style={{
+                            position: "relative",
+                            height: 18,
+                            background: "#f3f4f6",
+                            borderRadius: 6,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              width: `${(r.totalCount / maxVal) * 100}%`,
+                              background: "#93c5fd",
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              width: `${(r.confirmedCount / maxVal) * 100}%`,
+                              background: "#2563eb",
+                            }}
+                          />
+                        </div>
+                        <span
+                          style={{ textAlign: "right", color: "#374151" }}
+                          title={`전체 ${r.totalCount}개 중 출발 확정 ${r.confirmedCount}개`}
+                        >
+                          <span style={{ color: "#6b7280" }}>
+                            {r.totalCount}
+                          </span>{" "}
+                          /{" "}
+                          <strong style={{ color: "#2563eb" }}>
+                            {r.confirmedCount}
+                          </strong>
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3행: 월별 누적 가입자 및 활성 유저 / 월별 신고 수 */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: 16,
+            }}
+          >
+            <div style={cardStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
+                  월별 누적 가입자 및 활성 유저
+                </h2>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    fontSize: 12,
+                    color: "#4b5563",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 12,
+                        height: 3,
+                        borderRadius: 2,
+                        background: "#2563eb",
+                        display: "inline-block",
+                      }}
+                    />
+                    누적 가입자
+                  </span>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 12,
+                        height: 3,
+                        borderRadius: 2,
+                        background: "#10b981",
+                        display: "inline-block",
+                      }}
+                    />
+                    활성 유저
+                  </span>
+                </div>
+              </div>
+              <UserTrendLineChart items={data.monthlySignups} />
             </div>
 
             <div style={cardStyle}>
@@ -489,6 +552,112 @@ function VerticalBarChart({
         </div>
       ))}
     </div>
+  );
+}
+
+function UserTrendLineChart({
+  items,
+}: {
+  items: DashboardStatsResponse["monthlySignups"];
+}) {
+  if (items.length === 0) {
+    return <p style={{ color: "#6b7280", fontSize: 13 }}>데이터가 없습니다.</p>;
+  }
+
+  const width = 460;
+  const height = 180;
+  const pad = { top: 16, right: 16, bottom: 28, left: 40 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+
+  const maxVal = Math.max(
+    ...items.map((d) => Math.max(d.cumulativeCount, d.activeCount)),
+    1,
+  );
+
+  const getX = (idx: number) =>
+    items.length === 1
+      ? pad.left + plotW / 2
+      : pad.left + (idx / (items.length - 1)) * plotW;
+
+  const getY = (val: number) => pad.top + plotH - (val / maxVal) * plotH;
+
+  const cumulativePoints = items
+    .map((d, i) => `${getX(i)},${getY(d.cumulativeCount)}`)
+    .join(" ");
+  const activePoints = items
+    .map((d, i) => `${getX(i)},${getY(d.activeCount)}`)
+    .join(" ");
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ width: "100%", height: "auto", display: "block" }}
+    >
+      {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+        const val = Math.round(maxVal * ratio);
+        const y = getY(val);
+        return (
+          <g key={ratio}>
+            <line
+              x1={pad.left}
+              y1={y}
+              x2={width - pad.right}
+              y2={y}
+              stroke="#e5e7eb"
+              strokeDasharray="3 3"
+            />
+            <text
+              x={pad.left - 6}
+              y={y + 4}
+              textAnchor="end"
+              fontSize={10}
+              fill="#6b7280"
+            >
+              {val}
+            </text>
+          </g>
+        );
+      })}
+
+      <polyline
+        fill="none"
+        stroke="#2563eb"
+        strokeWidth={2.5}
+        points={cumulativePoints}
+      />
+      <polyline
+        fill="none"
+        stroke="#10b981"
+        strokeWidth={2.5}
+        points={activePoints}
+      />
+
+      {items.map((d, i) => {
+        const x = getX(i);
+        return (
+          <g key={d.month}>
+            <circle cx={x} cy={getY(d.cumulativeCount)} r={3.5} fill="#2563eb">
+              <title>
+                {`${d.month} 누적 가입자: ${d.cumulativeCount}명 (신규 +${d.newCount}명)`}
+              </title>
+            </circle>
+            <circle cx={x} cy={getY(d.activeCount)} r={3.5} fill="#10b981">
+              <title>{`${d.month} 활성 유저: ${d.activeCount}명`}</title>
+            </circle>
+            <text
+              x={x}
+              y={height - 8}
+              textAnchor="middle"
+              fontSize={10}
+              fill="#4b5563"
+            >
+              {d.month.slice(2)}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 

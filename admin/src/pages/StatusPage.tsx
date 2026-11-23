@@ -29,6 +29,24 @@ export function StatusPage() {
     void fetchStatus();
   }, [fetchStatus]);
 
+  useEffect(() => {
+    let active = true;
+    const timer = window.setInterval(async () => {
+      try {
+        const ws = await dashboardApi.getWebsocketStatus();
+        if (!active) return;
+        setData((prev) => (prev ? { ...prev, websocket: ws } : prev));
+      } catch {
+        // 5초 주기 백그라운드 갱신 실패 시 기존 화면 유지
+      }
+    }, 5000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* 헤더 */}
@@ -202,7 +220,7 @@ export function StatusPage() {
             {/* 4. 최근 신고 수 */}
             <div style={cardStyle}>
               <div style={cardHeaderStyle}>
-                <span style={cardLabelStyle}>최근 7일 신고</span>
+                <span style={cardLabelStyle}>최근 1개월 신고</span>
               </div>
               <div
                 style={{
@@ -213,7 +231,7 @@ export function StatusPage() {
                 {data.recentReportCount}
                 <span style={unitStyle}>건</span>
               </div>
-              <div style={subTextStyle}>최근 7일 이내 접수된 신고</div>
+              <div style={subTextStyle}>최근 1개월 이내 접수된 신고</div>
             </div>
           </div>
 

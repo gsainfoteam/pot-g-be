@@ -98,13 +98,22 @@ export interface DashboardStatsResponse {
     totalCount: number;
     confirmedCount: number;
   }>;
-  monthlySignups: Array<{ month: string; count: number }>;
+  monthlySignups: Array<{
+    month: string;
+    newCount: number;
+    cumulativeCount: number;
+    activeCount: number;
+  }>;
   monthlyReports: Array<{ month: string; count: number }>;
 }
 
 export const dashboardApi = {
   getStatus: () =>
     api.get<DashboardStatusResponse>("/api/manager/v1/dashboard/status"),
+  getWebsocketStatus: () =>
+    api.get<DashboardStatusResponse["websocket"]>(
+      "/api/manager/v1/dashboard/websocket-status",
+    ),
   getStats: (params?: { from?: string; to?: string }) => {
     const searchParams = new URLSearchParams();
     if (params?.from) searchParams.set("from", params.from);

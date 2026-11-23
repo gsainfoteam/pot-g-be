@@ -18,7 +18,7 @@ export class AdminDashboardService {
   ) {}
 
   async getStatus(): Promise<AdminDashboardStatusResponseDto> {
-    const wsStats = this.websocketService.getConnectedSessionStats();
+    const websocket = this.getWebsocketStatus();
 
     const [
       users,
@@ -32,21 +32,26 @@ export class AdminDashboardService {
       this.dashboardRepository.getActivePotStatus(7),
       this.dashboardRepository.getActivePotsByRoute(),
       this.dashboardRepository.getReservedPopoMessageCounts(),
-      this.dashboardRepository.getRecentReportCount(7),
+      this.dashboardRepository.getRecentReportCount(30),
       this.dashboardRepository.getAppVersion(),
     ]);
 
     return {
-      websocket: {
-        ...wsStats,
-        canDeploySafely: wsStats.totalConnections === 0,
-      },
+      websocket,
       users,
       activePots,
       activePotsByRoute,
       reservedPopoMessages,
       recentReportCount,
       appVersion,
+    };
+  }
+
+  getWebsocketStatus(): AdminDashboardStatusResponseDto["websocket"] {
+    const wsStats = this.websocketService.getConnectedSessionStats();
+    return {
+      ...wsStats,
+      canDeploySafely: wsStats.totalConnections === 0,
     };
   }
 

@@ -17,6 +17,11 @@ export class AdminDashboardController {
     return this.adminDashboardService.getStatus();
   }
 
+  @Get("websocket-status")
+  getWebsocketStatus(): AdminDashboardStatusResponseDto["websocket"] {
+    return this.adminDashboardService.getWebsocketStatus();
+  }
+
   @Get("stats")
   async getStats(
     @Query() query: AdminDashboardStatsQueryDto,
