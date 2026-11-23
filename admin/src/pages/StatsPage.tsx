@@ -32,6 +32,7 @@ export function StatsPage() {
       setData(res);
     } catch (err) {
       if (requestId !== latestRequestIdRef.current) return;
+      setData(null);
       setError(
         err instanceof Error ? err.message : "통계를 불러오지 못했습니다.",
       );
@@ -141,7 +142,7 @@ export function StatsPage() {
 
       {loading && !data && <p style={{ color: "#6b7280" }}>불러오는 중...</p>}
 
-      {data && (
+      {!loading && !error && data && (
         <>
           {/* 매칭 성사율 요약 배너 */}
           <div
