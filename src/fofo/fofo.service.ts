@@ -12,7 +12,7 @@ import { FofoChatReservationRepository } from "@src/database/repository/fofo-cha
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotService } from "@src/pot/pot.service";
 import { Pot } from "@src/pot/model/pot";
-import { PotFofoChatEventV1 } from "@src/pot/event/v1/pot-fofo-chat-event";
+import { PotPopoChatEventV1 } from "@src/pot/event/v1/pot-popo-chat-event";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { getUnixTime } from "date-fns";
@@ -34,6 +34,7 @@ import {
   Subject,
 } from "rxjs";
 import { Trace } from "@gsainfoteam/nest-observability";
+import { isDelayCheckChatType } from "./fofo-chat-type";
 
 @Trace()
 @Injectable()
@@ -151,7 +152,7 @@ export class FofoService implements OnModuleInit {
           potName: pot.name,
           userPks: pot.joinedUserPks,
           expiresAt:
-            type === "popo-delay-check-request-v1" ? pot.departureTime : null,
+            type === "fofo-delay-check-request-v1" ? pot.departureTime : null,
           events: events.map((event) => ({
             pot_pk: pot.pk,
             timestamp: getUnixTime(event.timestamp),
@@ -181,7 +182,7 @@ export class FofoService implements OnModuleInit {
         return true;
       case "popo-accounting-reminder-v1":
         return !pot.accountingRequestUserId;
-      case "popo-delay-check-request-v1":
+      case "fofo-delay-check-request-v1":
         return !!pot.departureTime && pot.departureTime > new Date();
       default:
         return false;
@@ -209,8 +210,9 @@ export class FofoService implements OnModuleInit {
       const delayCheck = delivery.events.some(
         (event) =>
           event.event_type === "popo_chat_v1" &&
-          (event.data as { popo_chat_type?: string }).popo_chat_type ===
-            "popo-delay-check-request-v1",
+          isDelayCheckChatType(
+            (event.data as { popo_chat_type?: string }).popo_chat_type,
+          ),
       );
       // Old queued deliveries may not yet have expiresAt populated.
       const expiresAt =
@@ -263,9 +265,9 @@ export class FofoService implements OnModuleInit {
     pot: Pot,
     formatArguments: any,
     tx: TxType,
-  ): Promise<PotFofoChatEventV1> {
+  ): Promise<PotPopoChatEventV1> {
     const now = new Date();
-    const event = PotFofoChatEventV1.generateEvent(pot.pk, now, {
+    const event = PotPopoChatEventV1.generateEvent(pot.pk, now, {
       popoChatType: template.type,
       message: template.message,
       actionBtns: template.actionBtns,
@@ -429,8 +431,8 @@ export class FofoService implements OnModuleInit {
 
     const now = new Date();
 
-    const potFofoChatMsgEvent: PotFofoChatEventV1 =
-      PotFofoChatEventV1.generateEvent(pot.pk, now, {
+    const potFofoChatMsgEvent: PotPopoChatEventV1 =
+      PotPopoChatEventV1.generateEvent(pot.pk, now, {
         popoChatType: fofoChatMsg.type,
         message: fofoChatMsg.message,
         actionBtns: fofoChatMsg.actionBtns,

@@ -7,7 +7,7 @@ import {
   FofoStatusListReqDto,
 } from "@src/admin-fofo-message/dto/fofo-message-status.dto";
 
-@Controller("/api/manager/v1/popo-message-status")
+@Controller("/api/manager/v1/fofo-message-status")
 @UseGuards(ManagerGuard)
 export class AdminFofoMessageStatusController {
   constructor(private readonly service: AdminFofoMessageStatusService) {}

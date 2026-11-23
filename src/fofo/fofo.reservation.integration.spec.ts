@@ -78,7 +78,7 @@ localTests("Fofo durable reservation processing", () => {
   async function seed(
     type:
       | "popo-reminder-taxi-call-v1"
-      | "popo-delay-check-request-v1"
+      | "fofo-delay-check-request-v1"
       | "popo-auto-archive-no-departure-confirm-v1" = "popo-reminder-taxi-call-v1",
   ) {
     userPk = randomUUID();
@@ -152,11 +152,11 @@ localTests("Fofo durable reservation processing", () => {
 
   it("sends a delay check through the shared durable reservation path", async () => {
     // The seeded policy is disabled by default; enable only this worker's template.
-    const template = service.getFofoChatMsgByType("popo-delay-check-request-v1");
+    const template = service.getFofoChatMsgByType("fofo-delay-check-request-v1");
     jest
       .spyOn(service, "getFofoChatMsgByType")
       .mockReturnValue({ ...template, enabled: true });
-    await seed("popo-delay-check-request-v1");
+    await seed("fofo-delay-check-request-v1");
     await service.processReservedFofoChatReservation(reservationPk);
     await service.processReservedFofoChatReservation(reservationPk);
 
@@ -171,7 +171,7 @@ localTests("Fofo durable reservation processing", () => {
     expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          popo_chat_type: "popo-delay-check-request-v1",
+          popo_chat_type: "fofo-delay-check-request-v1",
           action_btns: ["delay-check-btn"],
         }),
       }),
@@ -184,11 +184,11 @@ localTests("Fofo durable reservation processing", () => {
   });
 
   it("removes a disabled delay-check reservation without sending an event", async () => {
-    const template = service.getFofoChatMsgByType("popo-delay-check-request-v1");
+    const template = service.getFofoChatMsgByType("fofo-delay-check-request-v1");
     jest
       .spyOn(service, "getFofoChatMsgByType")
       .mockReturnValue({ ...template, enabled: false });
-    await seed("popo-delay-check-request-v1");
+    await seed("fofo-delay-check-request-v1");
 
     await service.processReservedFofoChatReservation(reservationPk);
 

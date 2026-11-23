@@ -56,7 +56,7 @@ export class AdminFofoMessageService {
         );
       }
       if (
-        entity.type === "popo-delay-check-request-v1" &&
+        entity.type === "fofo-delay-check-request-v1" &&
         req.offset_minutes >= 0
       ) {
         throw new BadRequestException(

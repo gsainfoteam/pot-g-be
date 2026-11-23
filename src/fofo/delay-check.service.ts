@@ -42,7 +42,7 @@ export class DelayCheckService {
     }
 
     const policy = await this.fofoChatMsgRepository.findByType(
-      "popo-delay-check-request-v1",
+      "fofo-delay-check-request-v1",
       tx,
     );
 
@@ -64,14 +64,14 @@ export class DelayCheckService {
 
     await this.reservationRepository.deleteByPotFkAndType(
       pot.pk,
-      "popo-delay-check-request-v1",
+      "fofo-delay-check-request-v1",
       tx,
     );
 
     return this.reservationRepository.insert(
       {
         potFk: pot.pk,
-        fofoChatMsgType: "popo-delay-check-request-v1",
+        fofoChatMsgType: "fofo-delay-check-request-v1",
         sendAfter,
         createdAt: now,
         updatedAt: now,

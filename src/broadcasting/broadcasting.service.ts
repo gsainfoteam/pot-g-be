@@ -16,7 +16,7 @@ import {
 import { DeviceRepository } from "@src/database/repository/device.repository";
 import { FcmService } from "@src/fcm/fcm.service";
 import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
-import { PotEventFofoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.fofo-chat.v1.dto";
+import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
 import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
@@ -112,7 +112,7 @@ export class BroadcastingService {
         const { results } = await this.fcmService.sendBulkPushNotification({
           fcmTokens: devices.map((device) => device.fcmToken),
           title: `${potName}: 포포`,
-          body: (event.data as PotEventFofoChatV1Dto).content,
+          body: (event.data as PotEventPopoChatV1Dto).content,
           deepLink: this.createDeeplink(event.pot_pk),
         });
         const permanentErrors = new Set([
@@ -353,12 +353,12 @@ export class BroadcastingService {
       "chatPush",
     );
 
-    const potEventFofoChatV1Dto = potEventDto.data as PotEventFofoChatV1Dto;
+    const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
     await this.sendPushToUser(
       potEventDto,
       targetDevices,
       `${potName}: 포포`,
-      potEventFofoChatV1Dto.content,
+      potEventPopoChatV1Dto.content,
       retryPushFailures,
     );
   }

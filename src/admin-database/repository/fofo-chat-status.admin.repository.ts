@@ -5,7 +5,7 @@ import { fofoChatReservation } from "../../../drizzle/schema/fofo-chat-reservati
 import { potEvent } from "../../../drizzle/schema/pot-event";
 import { potRoom } from "../../../drizzle/schema/pot-room";
 import { FofoChatStringType } from "../../../drizzle/schema/fofo-chat-msg";
-import { PotFofoChatEventV1Schema } from "@src/pot/event/v1/pot-fofo-chat-event";
+import { PotPopoChatEventV1Schema } from "@src/pot/event/v1/pot-popo-chat-event";
 
 export type FofoReservationRow = {
   pk: string;
@@ -21,7 +21,7 @@ export type FofoSentRow = {
   eventId: number;
   potName: string;
   sentAt: Date;
-  data: PotFofoChatEventV1Schema;
+  data: PotPopoChatEventV1Schema;
 };
 
 /**
@@ -94,7 +94,7 @@ export class FofoChatStatusAdminRepository {
 
     return rows.map((row) => ({
       ...row,
-      data: row.data as PotFofoChatEventV1Schema,
+      data: row.data as PotPopoChatEventV1Schema,
     }));
   }
 

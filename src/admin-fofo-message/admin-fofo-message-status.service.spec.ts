@@ -14,6 +14,30 @@ describe("AdminFofoMessageStatusService", () => {
 
   beforeEach(() => jest.clearAllMocks());
 
+  it.each(["popo-delay-check-request-v1", "fofo-delay-check-request-v1"])(
+    "shows the delay-check title for stored %s events",
+    async (type) => {
+      findSent.mockResolvedValue([
+        {
+          potPk: "p1",
+          eventId: 1,
+          potName: "pot",
+          sentAt: new Date(),
+          data: {
+            popoChatType: type,
+            message: "Please confirm your arrival time.",
+            actionBtns: ["delay-check-btn"],
+          },
+        },
+      ]);
+      countSent.mockResolvedValue(1);
+
+      const result = await service.listSent({ page: 0, size: 10 });
+
+      expect(result.items[0]).toMatchObject({ type, title: "지연 확인 요청" });
+    },
+  );
+
   it("marks a reservation overdue once its send time has passed", async () => {
     const row = {
       potPk: "p",

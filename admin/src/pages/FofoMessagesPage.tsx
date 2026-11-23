@@ -8,19 +8,19 @@ type TimingAnchor =
   | "departure_time"
   | "accounting_completed";
 
-type PopoMessageVariable = {
+type FofoMessageVariable = {
   name: string;
   description: string;
 };
 
-type PopoMessagePolicy = {
+type FofoMessagePolicy = {
   type: string;
   title: string;
   description: string;
   message: string;
   action_btns: string[];
   /** 문구에 {name} 형태로 쓸 수 있는 변수 (코드에서 정해지므로 읽기 전용) */
-  variables: PopoMessageVariable[];
+  variables: FofoMessageVariable[];
   enabled: boolean;
   timing_anchor: TimingAnchor | null;
   /** 음수 = 기준 시각 전, 양수 = 기준 시각 후 */
@@ -57,11 +57,11 @@ function formatDateTime(iso: string): string {
 }
 
 type CardProps = {
-  policy: PopoMessagePolicy;
-  onSave: (next: PopoMessagePolicy) => Promise<void>;
+  policy: FofoMessagePolicy;
+  onSave: (next: FofoMessagePolicy) => Promise<void>;
 };
 
-function PopoMessageCard({ policy, onSave }: CardProps) {
+function FofoMessageCard({ policy, onSave }: CardProps) {
   const [message, setMessage] = useState(policy.message);
   const [enabled, setEnabled] = useState(policy.enabled);
   const [direction, setDirection] = useState<"before" | "after">(
@@ -125,13 +125,13 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
   };
 
   return (
-    <section className={`card popo-message-card${enabled ? "" : " disabled"}`}>
-      <div className="popo-message-head">
+    <section className={`card fofo-message-card${enabled ? "" : " disabled"}`}>
+      <div className="fofo-message-head">
         <div>
           <h3>{policy.title}</h3>
-          <span className="popo-message-type">{policy.type}</span>
+          <span className="fofo-message-type">{policy.type}</span>
         </div>
-        <label className="popo-message-switch">
+        <label className="fofo-message-switch">
           <input
             type="checkbox"
             checked={enabled}
@@ -144,12 +144,12 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
         </label>
       </div>
 
-      <p className="popo-message-logic">
+      <p className="fofo-message-logic">
         <strong>발송 조건 (코드에서만 수정 가능)</strong>
         {policy.description}
       </p>
 
-      <label className="popo-message-field">
+      <label className="fofo-message-field">
         메시지 문구
         <textarea
           ref={textareaRef}
@@ -159,15 +159,15 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
             markEdited();
           }}
         />
-        <span className="popo-message-hint">
+        <span className="fofo-message-hint">
           **굵게** 표기를 쓸 수 있습니다.
         </span>
       </label>
 
-      <div className="popo-variables">
+      <div className="fofo-variables">
         <span>사용할 수 있는 변수</span>
         {policy.variables.length === 0 ? (
-          <span className="popo-message-hint">없음</span>
+          <span className="fofo-message-hint">없음</span>
         ) : (
           <>
             <ul>
@@ -178,7 +178,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
                 </li>
               ))}
             </ul>
-            <span className="popo-message-hint">
+            <span className="fofo-message-hint">
               변수는 발송할 때 실제 값으로 바뀝니다. 변수 이름은 정확히 입력해
               주세요.
             </span>
@@ -186,7 +186,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
         )}
       </div>
 
-      <div className="popo-timing">
+      <div className="fofo-timing">
         <span>발송 시점</span>
         {policy.timing_anchor ? (
           <>
@@ -220,13 +220,13 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
         )}
       </div>
 
-      <div className="popo-chip-row">
+      <div className="fofo-chip-row">
         <span>버튼</span>
         {policy.action_btns.length === 0 ? (
-          <span className="popo-message-hint">없음</span>
+          <span className="fofo-message-hint">없음</span>
         ) : (
           policy.action_btns.map((btn) => (
-            <span key={btn} className="popo-chip">
+            <span key={btn} className="fofo-chip">
               {ACTION_BTN_LABELS[btn] ?? btn}
             </span>
           ))
@@ -239,13 +239,13 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
         </p>
       )}
 
-      <div className="popo-message-footer">
-        <span className="popo-message-updated">
+      <div className="fofo-message-footer">
+        <span className="fofo-message-updated">
           마지막 수정 {formatDateTime(policy.updated_at)}
         </span>
         <div>
           {saved && (
-            <span className="popo-message-success" role="status">
+            <span className="fofo-message-success" role="status">
               저장했습니다.{" "}
             </span>
           )}
@@ -258,7 +258,7 @@ function PopoMessageCard({ policy, onSave }: CardProps) {
   );
 }
 
-function formatTiming(policy: PopoMessagePolicy): string {
+function formatTiming(policy: FofoMessagePolicy): string {
   if (!policy.timing_anchor || policy.offset_minutes === null)
     return "즉시 발송";
   const anchor = ANCHOR_LABELS[policy.timing_anchor];
@@ -267,14 +267,14 @@ function formatTiming(policy: PopoMessagePolicy): string {
   return `${anchor} ${minutes}분 ${policy.offset_minutes < 0 ? "전" : "후"}`;
 }
 
-export function PopoMessagesPage() {
-  const { data, error } = useFetch<PopoMessagePolicy[]>(
-    "/api/manager/v1/popo-messages",
+export function FofoMessagesPage() {
+  const { data, error } = useFetch<FofoMessagePolicy[]>(
+    "/api/manager/v1/fofo-messages",
     "포포 메시지를 불러오지 못했습니다.",
   );
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
-  const [policies, setPolicies] = useState<PopoMessagePolicy[]>([]);
+  const [policies, setPolicies] = useState<FofoMessagePolicy[]>([]);
 
   useEffect(() => {
     if (data) setPolicies(data);
@@ -283,9 +283,9 @@ export function PopoMessagesPage() {
   const selected =
     policies.find((policy) => policy.type === selectedType) ?? policies[0];
 
-  const handleSave = async (next: PopoMessagePolicy) => {
-    const updated = await api.patch<PopoMessagePolicy>(
-      `/api/manager/v1/popo-messages/${next.type}`,
+  const handleSave = async (next: FofoMessagePolicy) => {
+    const updated = await api.patch<FofoMessagePolicy>(
+      `/api/manager/v1/fofo-messages/${next.type}`,
       {
         message: next.message,
         enabled: next.enabled,
@@ -302,7 +302,7 @@ export function PopoMessagesPage() {
       <div className="page-header">
         <h2>포포 메시지 정책</h2>
       </div>
-      <p className="popo-messages-notice">
+      <p className="fofo-messages-notice">
         포포 메시지의 문구, 발송 여부, 기준 시각 대비 발송 시점을 관리합니다.
         <br />
         발송 예약이 걸리는 조건과 취소 흐름은 로직에 해당하므로 이 페이지에서는
@@ -315,37 +315,37 @@ export function PopoMessagesPage() {
           {error}
         </p>
       )}
-      {!data && !error && <p className="popo-message-hint">불러오는 중...</p>}
+      {!data && !error && <p className="fofo-message-hint">불러오는 중...</p>}
       {data && data.length === 0 && (
-        <p className="popo-message-hint">등록된 포포 메시지가 없습니다.</p>
+        <p className="fofo-message-hint">등록된 포포 메시지가 없습니다.</p>
       )}
-      <div className="popo-messages-layout">
-        <ul className="popo-message-list" aria-label="포포 메시지 목록">
+      <div className="fofo-messages-layout">
+        <ul className="fofo-message-list" aria-label="포포 메시지 목록">
           {policies.map((policy) => (
             <li key={policy.type}>
               <button
                 type="button"
-                className={`popo-message-item${
+                className={`fofo-message-item${
                   policy.type === selected?.type ? " active" : ""
                 }${policy.enabled ? "" : " disabled"}`}
                 aria-current={policy.type === selected?.type}
                 onClick={() => setSelectedType(policy.type)}
               >
-                <span className="popo-message-item-title">{policy.title}</span>
-                <span className="popo-message-type">{policy.type}</span>
-                <span className="popo-message-item-meta">
+                <span className="fofo-message-item-title">{policy.title}</span>
+                <span className="fofo-message-type">{policy.type}</span>
+                <span className="fofo-message-item-meta">
                   {formatTiming(policy)}
                 </span>
                 {!policy.enabled && (
-                  <span className="popo-chip">발송 안 함</span>
+                  <span className="fofo-chip">발송 안 함</span>
                 )}
               </button>
             </li>
           ))}
         </ul>
-        <div className="popo-message-detail">
+        <div className="fofo-message-detail">
           {selected && (
-            <PopoMessageCard
+            <FofoMessageCard
               key={selected.type}
               policy={selected}
               onSave={handleSave}

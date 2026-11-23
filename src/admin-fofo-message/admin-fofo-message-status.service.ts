@@ -6,6 +6,7 @@ import {
   FofoSentRow,
 } from "@src/admin-database/repository/fofo-chat-status.admin.repository";
 import { FOFO_MESSAGE_META } from "@src/fofo/fofo-message-meta";
+import { isDelayCheckChatType } from "@src/fofo/fofo-chat-type";
 import {
   FofoReservationDto,
   FofoReservationListResDto,
@@ -60,12 +61,15 @@ export class AdminFofoMessageStatusService {
 
   private toSentDto(row: FofoSentRow): FofoSentDto {
     const { popoChatType, message, formatArguments, actionBtns } = row.data;
+    const metadataType = isDelayCheckChatType(popoChatType)
+      ? "fofo-delay-check-request-v1"
+      : popoChatType;
     return {
       event_id: row.eventId,
       pot_pk: row.potPk,
       pot_name: row.potName,
       type: popoChatType,
-      title: FOFO_MESSAGE_META[popoChatType]?.title ?? popoChatType,
+      title: FOFO_MESSAGE_META[metadataType]?.title ?? popoChatType,
       content: this.formatContent(message, formatArguments),
       action_btns: actionBtns,
       sent_at: row.sentAt.toISOString(),

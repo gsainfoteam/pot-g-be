@@ -69,7 +69,7 @@ export const FOFO_MESSAGE_META: Record<FofoChatStringType, FofoMessageMeta> = {
       },
     ],
   },
-  "popo-delay-check-request-v1": {
+  "fofo-delay-check-request-v1": {
     title: "지연 확인 요청",
     description:
       "출발 시간이 확정되면 예약됩니다. 지연 확인 대상 노선의 팟에만 적용됩니다.",

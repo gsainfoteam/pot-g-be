@@ -47,15 +47,15 @@ const RESERVATION_STATUS_LABELS: Record<Reservation["status"], string> = {
   overdue: "발송 처리 대기",
 };
 
-export function PopoMessageStatusPage() {
+export function FofoMessageStatusPage() {
   const [reservationPage, setReservationPage] = useState(0);
   const [sentPage, setSentPage] = useState(0);
   const reservations = useFetch<ReservationList>(
-    `/api/manager/v1/popo-message-status/reservations?page=${reservationPage}&size=${PAGE_SIZE}`,
+    `/api/manager/v1/fofo-message-status/reservations?page=${reservationPage}&size=${PAGE_SIZE}`,
     "예약 현황을 불러오지 못했습니다.",
   );
   const sent = useFetch<SentList>(
-    `/api/manager/v1/popo-message-status/sent?page=${sentPage}&size=${PAGE_SIZE}`,
+    `/api/manager/v1/fofo-message-status/sent?page=${sentPage}&size=${PAGE_SIZE}`,
     "발송 내역을 불러오지 못했습니다.",
   );
 
@@ -72,7 +72,7 @@ export function PopoMessageStatusPage() {
           새로고침
         </button>
       </div>
-      <p className="popo-messages-notice">
+      <p className="fofo-messages-notice">
         위쪽은 아직 발송되지 않은 예약, 아래쪽은 이미 발송된 메시지입니다.
         발송된 메시지는 팟 이벤트 기록을 기준으로 하며 사용자별 푸시 성공 여부는
         포함하지 않습니다. 발송 처리 대기는 예정 시각이 지났지만 아직 처리되지
@@ -90,10 +90,10 @@ export function PopoMessageStatusPage() {
           </p>
         )}
         {!reservations.data && !reservations.error && (
-          <p className="popo-message-hint">불러오는 중...</p>
+          <p className="fofo-message-hint">불러오는 중...</p>
         )}
         {reservations.data && reservations.data.total === 0 && (
-          <p className="popo-message-hint">예약된 메시지가 없습니다.</p>
+          <p className="fofo-message-hint">예약된 메시지가 없습니다.</p>
         )}
         {reservations.data && reservations.data.items.length > 0 && (
           <div className="user-table-scroll">
@@ -113,7 +113,7 @@ export function PopoMessageStatusPage() {
                     <td>{formatDateTime(reservation.send_after)}</td>
                     <td>
                       {reservation.title}
-                      <div className="popo-message-type">
+                      <div className="fofo-message-type">
                         {reservation.type}
                       </div>
                     </td>
@@ -154,10 +154,10 @@ export function PopoMessageStatusPage() {
           </p>
         )}
         {!sent.data && !sent.error && (
-          <p className="popo-message-hint">불러오는 중...</p>
+          <p className="fofo-message-hint">불러오는 중...</p>
         )}
         {sent.data && sent.data.total === 0 && (
-          <p className="popo-message-hint">발송된 메시지가 없습니다.</p>
+          <p className="fofo-message-hint">발송된 메시지가 없습니다.</p>
         )}
         {sent.data && sent.data.items.length > 0 && (
           <div className="user-table-scroll">
@@ -178,7 +178,7 @@ export function PopoMessageStatusPage() {
                     <td>{formatDateTime(message.sent_at)}</td>
                     <td>
                       {message.title}
-                      <div className="popo-message-type">{message.type}</div>
+                      <div className="fofo-message-type">{message.type}</div>
                     </td>
                     <td>
                       <Link

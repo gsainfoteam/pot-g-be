@@ -37,9 +37,9 @@ import {
   PotChatEventV1Schema,
 } from "@src/pot/event/v1/pot-chat-event";
 import {
-  PotFofoChatEventV1,
-  PotFofoChatEventV1Schema,
-} from "@src/pot/event/v1/pot-fofo-chat-event";
+  PotPopoChatEventV1,
+  PotPopoChatEventV1Schema,
+} from "@src/pot/event/v1/pot-popo-chat-event";
 
 export interface PotEvent<S, D> {
   //Metadata of event
@@ -144,10 +144,10 @@ export class PotEventFactory {
         );
       }
       case "popo_chat_v1": {
-        return PotFofoChatEventV1.generateEvent(
+        return PotPopoChatEventV1.generateEvent(
           entity.potFk,
           entity.timestamp,
-          entity.data as PotFofoChatEventV1Schema,
+          entity.data as PotPopoChatEventV1Schema,
           entity.id,
         );
       }

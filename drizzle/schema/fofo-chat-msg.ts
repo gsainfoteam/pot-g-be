@@ -7,7 +7,7 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-// Keep the existing DB enum names and v1 labels for stored events and clients.
+// Keep the existing DB enum names and mobile-released message labels.
 export const fofoChatType = pgEnum("popo_chat_type", [
   "popo-departure-confirm-request-v1",
   "popo-departure-confirmed-v1",
@@ -17,7 +17,7 @@ export const fofoChatType = pgEnum("popo_chat_type", [
   "popo-auto-archive-no-departure-confirm-v1",
   "popo-auto-archive-accounting-fin-v1",
   "popo-auto-archive-v1",
-  "popo-delay-check-request-v1",
+  "fofo-delay-check-request-v1",
 ]);
 
 export const fofoActionBtnType = pgEnum("popo_action_btn_type", [

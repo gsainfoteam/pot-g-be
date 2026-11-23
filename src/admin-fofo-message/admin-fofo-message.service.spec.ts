@@ -47,9 +47,9 @@ describe("AdminFofoMessageService.update", () => {
   });
 
   it("rejects a non-negative offset for delay check messages", async () => {
-    findByType.mockResolvedValue(entity("popo-delay-check-request-v1", -10));
+    findByType.mockResolvedValue(entity("fofo-delay-check-request-v1", -10));
     await expect(
-      service.update("popo-delay-check-request-v1", {
+      service.update("fofo-delay-check-request-v1", {
         message: "{stationName} {departureTime}",
         enabled: true,
         offset_minutes: 0,
@@ -58,8 +58,8 @@ describe("AdminFofoMessageService.update", () => {
   });
 
   it("saves and reloads the cache", async () => {
-    findByType.mockResolvedValue(entity("popo-delay-check-request-v1", -10));
-    const result = await service.update("popo-delay-check-request-v1", {
+    findByType.mockResolvedValue(entity("fofo-delay-check-request-v1", -10));
+    const result = await service.update("fofo-delay-check-request-v1", {
       message: "{stationName} {departureTime}",
       enabled: false,
       offset_minutes: -20,

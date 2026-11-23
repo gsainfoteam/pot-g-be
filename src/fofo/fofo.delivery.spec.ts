@@ -7,7 +7,7 @@ describe("reserved delivery eligibility", () => {
     timestamp: 1,
     id: 42,
     event_type: "popo_chat_v1",
-    data: { popo_chat_type: "popo-delay-check-request-v1" },
+    data: { popo_chat_type: "fofo-delay-check-request-v1" },
   };
   function setup() {
     const delivery = {
@@ -77,15 +77,19 @@ describe("reserved delivery eligibility", () => {
     expect(database.db.transaction).not.toHaveBeenCalled();
   });
 
-  it("expires delay requests at departure even for old rows lacking expiresAt", async () => {
-    for (const legacy of [false, true]) {
-      const { service, delivery, broadcast } = setup();
-      if (legacy) delivery.expiresAt = null;
-      jest.advanceTimersByTime(30_000);
-      await service.processPendingDeliveries();
-      expect(broadcast.broadcastReservedPotEvent.mock.calls[0][1]).toEqual([]);
-    }
-  });
+  it.each(["fofo-delay-check-request-v1", "popo-delay-check-request-v1"])(
+    "expires %s at departure even for old rows lacking expiresAt",
+    async (type) => {
+      for (const legacy of [false, true]) {
+        const { service, delivery, broadcast } = setup();
+        delivery.events = [{ ...event, data: { popo_chat_type: type } }];
+        if (legacy) delivery.expiresAt = null;
+        jest.advanceTimersByTime(30_000);
+        await service.processPendingDeliveries();
+        expect(broadcast.broadcastReservedPotEvent.mock.calls[0][1]).toEqual([]);
+      }
+    },
+  );
 
   it("retains archive recipients after membership has ended", async () => {
     const { service, pot, delivery, broadcast } = setup();

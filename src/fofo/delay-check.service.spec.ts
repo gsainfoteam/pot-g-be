@@ -52,13 +52,13 @@ describe("DelayCheckService reservation", () => {
 
       expect(deleteByPotFkAndType).toHaveBeenCalledWith(
         "pot",
-        "popo-delay-check-request-v1",
+        "fofo-delay-check-request-v1",
         tx,
       );
       expect(insert).toHaveBeenCalledWith(
         expect.objectContaining({
           potFk: "pot",
-          fofoChatMsgType: "popo-delay-check-request-v1",
+          fofoChatMsgType: "fofo-delay-check-request-v1",
           sendAfter: new Date(`2026-11-20T${sendTime}:00+09:00`),
           formatArguments: {
             stationName,

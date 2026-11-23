@@ -4,7 +4,7 @@ import { AdminFofoMessageService } from "@src/admin-fofo-message/admin-fofo-mess
 import { FofoMessageDto } from "@src/admin-fofo-message/dto/fofo-message.dto";
 import { UpdateFofoMessageRequestDto } from "@src/admin-fofo-message/dto/update-fofo-message.dto";
 
-@Controller("/api/manager/v1/popo-messages")
+@Controller("/api/manager/v1/fofo-messages")
 @UseGuards(ManagerGuard)
 export class AdminFofoMessageController {
   constructor(private readonly service: AdminFofoMessageService) {}
