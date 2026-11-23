@@ -16,12 +16,12 @@ import {
 import { DeviceRepository } from "@src/database/repository/device.repository";
 import { FcmService } from "@src/fcm/fcm.service";
 import { PotEventChatV1Dto } from "@src/pot/event/v1/dto/pot-event.chat.v1.dto";
-import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
+import { PotEventFofoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.fofo-chat.v1.dto";
 import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-leave.v1.dto";
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
 import { Trace } from "@gsainfoteam/nest-observability";
-import { DeliveryUserProgress } from "../../drizzle/schema/popo-chat-delivery";
+import { DeliveryUserProgress } from "../../drizzle/schema/fofo-chat-delivery";
 
 @Trace()
 @Injectable()
@@ -112,7 +112,7 @@ export class BroadcastingService {
         const { results } = await this.fcmService.sendBulkPushNotification({
           fcmTokens: devices.map((device) => device.fcmToken),
           title: `${potName}: 포포`,
-          body: (event.data as PotEventPopoChatV1Dto).content,
+          body: (event.data as PotEventFofoChatV1Dto).content,
           deepLink: this.createDeeplink(event.pot_pk),
         });
         const permanentErrors = new Set([
@@ -293,7 +293,7 @@ export class BroadcastingService {
         senderName,
       );
     } else if (potEventDto.event_type === "popo_chat_v1") {
-      await this.sendPopoChatPush(
+      await this.sendFofoChatPush(
         potEventDto,
         pushAlarmTargetUserPks,
         potName,
@@ -342,7 +342,7 @@ export class BroadcastingService {
     );
   }
 
-  private async sendPopoChatPush(
+  private async sendFofoChatPush(
     potEventDto: PotEventDto<any>,
     pushAlarmTargetUserPks: string[] = [],
     potName?: string,
@@ -353,12 +353,12 @@ export class BroadcastingService {
       "chatPush",
     );
 
-    const potEventPopoChatV1Dto = potEventDto.data as PotEventPopoChatV1Dto;
+    const potEventFofoChatV1Dto = potEventDto.data as PotEventFofoChatV1Dto;
     await this.sendPushToUser(
       potEventDto,
       targetDevices,
       `${potName}: 포포`,
-      potEventPopoChatV1Dto.content,
+      potEventFofoChatV1Dto.content,
       retryPushFailures,
     );
   }

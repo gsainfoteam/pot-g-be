@@ -5,9 +5,9 @@ import { DatabaseModule } from "@src/database/database.module";
 import { DiscoveryModule } from "@src/discovery/discovery.module";
 import { BroadcastingModule } from "@src/broadcasting/broadcasting.module";
 import { PotModule } from "@src/pot/pot.module";
-import { PopoService } from "@src/popo/popo.service";
-import { PopoSchedulerService } from "@src/popo/popo.scheduler.service";
-import { DelayCheckService } from "@src/popo/delay-check.service";
+import { FofoService } from "@src/fofo/fofo.service";
+import { FofoSchedulerService } from "@src/fofo/fofo.scheduler.service";
+import { DelayCheckService } from "@src/fofo/delay-check.service";
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { DelayCheckService } from "@src/popo/delay-check.service";
     forwardRef(() => BroadcastingModule),
     forwardRef(() => PotModule),
   ],
-  providers: [PopoService, PopoSchedulerService, DelayCheckService],
-  exports: [PopoService, DelayCheckService],
+  providers: [FofoService, FofoSchedulerService, DelayCheckService],
+  exports: [FofoService, DelayCheckService],
 })
-export class PopoModule {}
+export class FofoModule {}

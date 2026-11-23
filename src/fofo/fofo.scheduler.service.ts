@@ -6,24 +6,24 @@ import {
 } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { Subscription } from "rxjs";
-import { PopoService } from "@src/popo/popo.service";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
-import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
-import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
+import { FofoService } from "@src/fofo/fofo.service";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
+import { FofoChatReservationEntity } from "@src/database/entity/fofo-chat-reservation.entity";
+import { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
 import { SlackService } from "nestjs-slack";
 
 const LOOKAHEAD_MS = 5 * 60_000;
 
 type ReservationTimer = {
   handle: ReturnType<typeof setTimeout>;
-  reservation: PopoChatReservationEntity;
+  reservation: FofoChatReservationEntity;
 };
 
 @Injectable()
-export class PopoSchedulerService
+export class FofoSchedulerService
   implements OnApplicationBootstrap, OnModuleDestroy
 {
-  private readonly logger = new Logger(PopoSchedulerService.name);
+  private readonly logger = new Logger(FofoSchedulerService.name);
   private readonly timers = new Map<string, ReservationTimer>();
   private readonly processing = new Map<string, Promise<void>>();
   private readonly subscriptions = new Subscription();
@@ -32,20 +32,20 @@ export class PopoSchedulerService
   private stopping = false;
 
   constructor(
-    private readonly popoService: PopoService,
+    private readonly fofoService: FofoService,
     private readonly slackService: SlackService,
-    private readonly reservationRepository: PopoChatReservationRepository,
+    private readonly reservationRepository: FofoChatReservationRepository,
   ) {}
 
   async onApplicationBootstrap() {
     // 예약 생성과 취소 이벤트를 구독해 타이머에 즉시 반영합니다.
     this.subscriptions.add(
-      this.popoService.reservationCreated$.subscribe((reservation) => {
+      this.fofoService.reservationCreated$.subscribe((reservation) => {
         this.scheduleReservation(reservation);
       }),
     );
     this.subscriptions.add(
-      this.popoService.reservationsCancelled$.subscribe(({ potPk, type }) => {
+      this.fofoService.reservationsCancelled$.subscribe(({ potPk, type }) => {
         this.cancelReservations(potPk, type);
       }),
     );
@@ -61,9 +61,9 @@ export class PopoSchedulerService
     try {
       await this.refreshPromise;
     } catch (error) {
-      this.logger.error("Failed to refresh Popo reservation timers", error);
+      this.logger.error("Failed to refresh Fofo reservation timers", error);
       await this.slackService
-        .sendText("Popo reservation timer recovery failed: " + String(error))
+        .sendText("Fofo reservation timer recovery failed: " + String(error))
         .catch((notificationError) =>
           this.logger.error(
             "Failed to report scheduler error",
@@ -78,11 +78,11 @@ export class PopoSchedulerService
   @Cron("*/10 * * * * *", { waitForCompletion: true })
   async handleDeliveryCron() {
     if (this.stopping || this.deliveryPromise) return;
-    this.deliveryPromise = this.popoService.processPendingDeliveries();
+    this.deliveryPromise = this.fofoService.processPendingDeliveries();
     try {
       await this.deliveryPromise;
     } catch (error) {
-      this.logger.error("Failed to process pending Popo deliveries", error);
+      this.logger.error("Failed to process pending Fofo deliveries", error);
     } finally {
       this.deliveryPromise = undefined;
     }
@@ -116,10 +116,10 @@ export class PopoSchedulerService
       if (this.stopping) break;
       await this.runReservation(pk);
     }
-    if (!this.stopping) await this.popoService.processPendingDeliveries();
+    if (!this.stopping) await this.fofoService.processPendingDeliveries();
   }
 
-  private scheduleReservation(reservation: PopoChatReservationEntity) {
+  private scheduleReservation(reservation: FofoChatReservationEntity) {
     if (this.stopping || !reservation.pk || this.processing.has(reservation.pk))
       return;
     const delay = reservation.sendAfter.getTime() - Date.now();
@@ -148,11 +148,11 @@ export class PopoSchedulerService
     if (this.stopping) return Promise.resolve();
     const existing = this.processing.get(pk);
     if (existing) return existing;
-    const work = this.popoService
-      .processReservedPopoChatReservation(pk)
+    const work = this.fofoService
+      .processReservedFofoChatReservation(pk)
       .catch((error) => {
         // DB에 남은 예약이나 전달 작업은 이후 Cron 실행에서 재시도합니다.
-        this.logger.error("Failed to process Popo reservation " + pk, error);
+        this.logger.error("Failed to process Fofo reservation " + pk, error);
       })
       .finally(() => this.processing.delete(pk));
     this.processing.set(pk, work);
@@ -165,11 +165,11 @@ export class PopoSchedulerService
     this.timers.delete(pk);
   }
 
-  private cancelReservations(potPk: string, type?: PopoChatStringType) {
+  private cancelReservations(potPk: string, type?: FofoChatStringType) {
     for (const [pk, { reservation }] of this.timers) {
       if (
         reservation.potFk === potPk &&
-        (!type || reservation.popoChatMsgType === type)
+        (!type || reservation.fofoChatMsgType === type)
       ) {
         this.clearTimer(pk);
       }

@@ -1,31 +1,31 @@
 import { Subject } from "rxjs";
 import { Logger } from "@nestjs/common";
-import { PopoSchedulerService } from "./popo.scheduler.service";
-import { PopoService } from "./popo.service";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
-import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
+import { FofoSchedulerService } from "./fofo.scheduler.service";
+import { FofoService } from "./fofo.service";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
+import { FofoChatReservationEntity } from "@src/database/entity/fofo-chat-reservation.entity";
 import { SlackService } from "nestjs-slack";
 
-describe("PopoSchedulerService reservation recovery", () => {
+describe("FofoSchedulerService reservation recovery", () => {
   const initialTime = new Date("2026-11-20T00:02:00Z");
-  let scheduler: PopoSchedulerService;
+  let scheduler: FofoSchedulerService;
 
-  function reservation(pk: string, minutes: number): PopoChatReservationEntity {
+  function reservation(pk: string, minutes: number): FofoChatReservationEntity {
     return {
       pk,
       potFk: "pot-1",
-      popoChatMsgType: "popo-reminder-taxi-call-v1",
+      fofoChatMsgType: "popo-reminder-taxi-call-v1",
       sendAfter: new Date(Date.now() + minutes * 60_000),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
   }
 
-  function setup(rows: PopoChatReservationEntity[] = []) {
+  function setup(rows: FofoChatReservationEntity[] = []) {
     const service = {
-      reservationCreated$: new Subject<PopoChatReservationEntity>(),
+      reservationCreated$: new Subject<FofoChatReservationEntity>(),
       reservationsCancelled$: new Subject<{ potPk: string; type?: string }>(),
-      processReservedPopoChatReservation: jest
+      processReservedFofoChatReservation: jest
         .fn()
         .mockResolvedValue(undefined),
       processPendingDeliveries: jest.fn().mockResolvedValue(undefined),
@@ -36,10 +36,10 @@ describe("PopoSchedulerService reservation recovery", () => {
       ),
     };
     const slack = { sendText: jest.fn().mockResolvedValue(undefined) };
-    scheduler = new PopoSchedulerService(
-      service as unknown as PopoService,
+    scheduler = new FofoSchedulerService(
+      service as unknown as FofoService,
       slack as unknown as SlackService,
-      repository as unknown as PopoChatReservationRepository,
+      repository as unknown as FofoChatReservationRepository,
     );
     return { service, repository, slack };
   }
@@ -65,21 +65,21 @@ describe("PopoSchedulerService reservation recovery", () => {
     expect(repository.findAllScheduledBefore).toHaveBeenCalledWith(
       new Date(initialTime.getTime() + 5 * 60_000),
     );
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledTimes(1);
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledTimes(1);
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledWith(
       "overdue",
     );
     expect(service.processPendingDeliveries).toHaveBeenCalledTimes(1);
     expect(jest.getTimerCount()).toBe(1);
     await jest.advanceTimersByTimeAsync(119_999);
-    expect(service.processReservedPopoChatReservation).not.toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).not.toHaveBeenCalledWith(
       "soon",
     );
     await jest.advanceTimersByTimeAsync(1);
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledWith(
       "soon",
     );
-    expect(service.processReservedPopoChatReservation).not.toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).not.toHaveBeenCalledWith(
       "far",
     );
   });
@@ -93,7 +93,7 @@ describe("PopoSchedulerService reservation recovery", () => {
     await scheduler.handleCron();
     expect(jest.getTimerCount()).toBe(1);
     await jest.advanceTimersByTimeAsync(3 * 60_000);
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledWith(
       "far",
     );
   });
@@ -103,7 +103,7 @@ describe("PopoSchedulerService reservation recovery", () => {
     await scheduler.onApplicationBootstrap();
     service.reservationCreated$.next(reservation("new", 1));
     await jest.advanceTimersByTimeAsync(60_000);
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledWith(
       "new",
     );
   });
@@ -116,7 +116,7 @@ describe("PopoSchedulerService reservation recovery", () => {
     service.reservationCreated$.next(row);
     expect(jest.getTimerCount()).toBe(1);
     await jest.advanceTimersByTimeAsync(2 * 60_000);
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledTimes(1);
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledTimes(1);
   });
 
   it("removes cancelled timers and handles a reservation moved outside the window", async () => {
@@ -132,7 +132,7 @@ describe("PopoSchedulerService reservation recovery", () => {
     service.reservationCreated$.next(reservation("moved", 8));
     expect(jest.getTimerCount()).toBe(0);
     await jest.advanceTimersByTimeAsync(60_000);
-    expect(service.processReservedPopoChatReservation).not.toHaveBeenCalled();
+    expect(service.processReservedFofoChatReservation).not.toHaveBeenCalled();
   });
 
   it("clears in-memory timers on shutdown and rebuilds them from DB after restart", async () => {
@@ -144,7 +144,7 @@ describe("PopoSchedulerService reservation recovery", () => {
     await jest.advanceTimersByTimeAsync(3 * 60_000);
     const { service } = setup([row]);
     await scheduler.onApplicationBootstrap();
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledWith(
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledWith(
       "restart",
     );
   });
@@ -152,19 +152,19 @@ describe("PopoSchedulerService reservation recovery", () => {
   it("retains failed DB work for a later refresh", async () => {
     const { service } = setup([reservation("retry", -1)]);
     jest.spyOn(console, "error").mockImplementation(() => undefined);
-    service.processReservedPopoChatReservation.mockRejectedValueOnce(
+    service.processReservedFofoChatReservation.mockRejectedValueOnce(
       new Error("DB unavailable"),
     );
     await scheduler.onApplicationBootstrap();
     await scheduler.handleCron();
-    expect(service.processReservedPopoChatReservation).toHaveBeenCalledTimes(2);
+    expect(service.processReservedFofoChatReservation).toHaveBeenCalledTimes(2);
   });
 
   it("waits for active processing while shutting down", async () => {
     const { service } = setup();
     await scheduler.onApplicationBootstrap();
     let complete: () => void;
-    service.processReservedPopoChatReservation.mockImplementationOnce(
+    service.processReservedFofoChatReservation.mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
           complete = resolve;

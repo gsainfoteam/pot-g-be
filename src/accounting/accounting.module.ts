@@ -4,10 +4,10 @@ import { AccountingService } from "@src/accounting/accounting.service";
 import { AccountingController } from "@src/accounting/accounting.controller";
 import { PotModule } from "@src/pot/pot.module";
 import { BroadcastingModule } from "@src/broadcasting/broadcasting.module";
-import { PopoModule } from "@src/popo/popo.module";
+import { FofoModule } from "@src/fofo/fofo.module";
 
 @Module({
-  imports: [DatabaseModule, PotModule, BroadcastingModule, PopoModule],
+  imports: [DatabaseModule, PotModule, BroadcastingModule, FofoModule],
   providers: [AccountingService],
   controllers: [AccountingController],
 })

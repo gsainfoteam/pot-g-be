@@ -4,13 +4,13 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { and, eq } from "drizzle-orm";
 import { Logger } from "@nestjs/common";
-import { PopoService } from "./popo.service";
+import { FofoService } from "./fofo.service";
 import { PotService } from "@src/pot/pot.service";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
-import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
-import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-delivery.repository";
+import { FofoChatMsgRepository } from "@src/database/repository/fofo-chat-msg.repository";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
+import { FofoChatDeliveryRepository } from "@src/database/repository/fofo-chat-delivery.repository";
 import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
 import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.repository";
@@ -21,15 +21,15 @@ import { users } from "../../drizzle/schema/users";
 import { route } from "../../drizzle/schema/route";
 import { potRoom } from "../../drizzle/schema/pot-room";
 import { potEvent } from "../../drizzle/schema/pot-event";
-import { popoChatReservation } from "../../drizzle/schema/popo-chat-reservation";
-import { popoChatDelivery } from "../../drizzle/schema/popo-chat-delivery";
+import { fofoChatReservation } from "../../drizzle/schema/fofo-chat-reservation";
+import { fofoChatDelivery } from "../../drizzle/schema/fofo-chat-delivery";
 
 config({ quiet: true });
 // Opt in explicitly. These tests use only dedicated fixtures in a local DB.
 const localTests =
   process.env.RUN_LOCAL_DB_TESTS === "1" ? describe : describe.skip;
 
-localTests("Popo durable reservation processing", () => {
+localTests("Fofo durable reservation processing", () => {
   let pool: Pool;
   let db: ReturnType<typeof drizzle>;
   let database: DatabaseService;
@@ -37,20 +37,20 @@ localTests("Popo durable reservation processing", () => {
   let potPk: string;
   let routePk: string;
   let reservationPk: string;
-  let service: PopoService;
+  let service: FofoService;
   const broadcaster = {
     broadcastReservedPotEvent: jest.fn(),
     asyncBroadcastPotEvent: jest.fn(),
   };
 
   async function makeService(dbService = database, initialize = true) {
-    const reservations = new PopoChatReservationRepository(dbService);
+    const reservations = new FofoChatReservationRepository(dbService);
     const archiveService = new PotService(
       dbService,
       {} as any,
       broadcaster as any,
       {
-        deleteAllPopoChatReservationInTransaction: (pk: string, tx: TxType) =>
+        deleteAllFofoChatReservationInTransaction: (pk: string, tx: TxType) =>
           reservations.deleteByPotFk(pk, tx),
       } as any,
       new PotRoomRepository(dbService),
@@ -61,19 +61,19 @@ localTests("Popo durable reservation processing", () => {
       {} as any,
       {} as any,
     );
-    const popo = new PopoService(
+    const fofo = new FofoService(
       dbService,
-      new PopoChatMsgRepository(dbService),
+      new FofoChatMsgRepository(dbService),
       reservations,
       new PotEventRepository(dbService),
       broadcaster as any,
       archiveService,
-      new PopoChatDeliveryRepository(dbService),
+      new FofoChatDeliveryRepository(dbService),
       new PotRoomRepository(dbService),
       { isEnabled: async () => true } as any,
     );
-    if (initialize) await popo.onModuleInit();
-    return popo;
+    if (initialize) await fofo.onModuleInit();
+    return fofo;
   }
 
   async function seed(
@@ -126,11 +126,11 @@ localTests("Popo durable reservation processing", () => {
         await new PotEventRepository(database).saveEvent(confirmed, tx);
         await new PotRoomRepository(database).setDepartureTime(potPk, tx);
       }
-      await new PopoChatReservationRepository(database).insert(
+      await new FofoChatReservationRepository(database).insert(
         {
           pk: reservationPk,
           potFk: potPk,
-          popoChatMsgType: type,
+          fofoChatMsgType: type,
           sendAfter: new Date(now - 1000),
           createdAt: new Date(now),
           updatedAt: new Date(now),
@@ -153,15 +153,15 @@ localTests("Popo durable reservation processing", () => {
 
   it("sends a delay check through the shared durable reservation path", async () => {
     await seed("popo-delay-check-request-v1");
-    await service.processReservedPopoChatReservation(reservationPk);
-    await service.processReservedPopoChatReservation(reservationPk);
+    await service.processReservedFofoChatReservation(reservationPk);
+    await service.processReservedFofoChatReservation(reservationPk);
 
     expect(await messageRows()).toHaveLength(1);
     expect(
       await db
         .select()
-        .from(popoChatReservation)
-        .where(eq(popoChatReservation.pk, reservationPk)),
+        .from(fofoChatReservation)
+        .where(eq(fofoChatReservation.pk, reservationPk)),
     ).toHaveLength(0);
     expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
     expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledWith(
@@ -202,11 +202,11 @@ localTests("Popo durable reservation processing", () => {
     if (potPk) {
       await db.transaction(async (tx) => {
         await tx
-          .delete(popoChatDelivery)
-          .where(eq(popoChatDelivery.potFk, potPk));
+          .delete(fofoChatDelivery)
+          .where(eq(fofoChatDelivery.potFk, potPk));
         await tx
-          .delete(popoChatReservation)
-          .where(eq(popoChatReservation.potFk, potPk));
+          .delete(fofoChatReservation)
+          .where(eq(fofoChatReservation.potFk, potPk));
         await tx.delete(potEvent).where(eq(potEvent.potFk, potPk));
         await tx.delete(potRoom).where(eq(potRoom.pk, potPk));
         await tx.delete(users).where(eq(users.pk, userPk));
@@ -226,23 +226,23 @@ localTests("Popo durable reservation processing", () => {
       expect(
         await db
           .select()
-          .from(popoChatReservation)
-          .where(eq(popoChatReservation.pk, reservationPk)),
+          .from(fofoChatReservation)
+          .where(eq(fofoChatReservation.pk, reservationPk)),
       ).toHaveLength(0);
       expect(
         await db
           .select()
-          .from(popoChatDelivery)
-          .where(eq(popoChatDelivery.pk, reservationPk)),
+          .from(fofoChatDelivery)
+          .where(eq(fofoChatDelivery.pk, reservationPk)),
       ).toHaveLength(1);
     });
-    await service.processReservedPopoChatReservation(reservationPk);
+    await service.processReservedFofoChatReservation(reservationPk);
     expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
     expect(
       await db
         .select()
-        .from(popoChatDelivery)
-        .where(eq(popoChatDelivery.pk, reservationPk)),
+        .from(fofoChatDelivery)
+        .where(eq(fofoChatDelivery.pk, reservationPk)),
     ).toHaveLength(0);
   });
 
@@ -250,8 +250,8 @@ localTests("Popo durable reservation processing", () => {
     await seed();
     const otherWorker = await makeService();
     await Promise.all([
-      service.processReservedPopoChatReservation(reservationPk),
-      otherWorker.processReservedPopoChatReservation(reservationPk),
+      service.processReservedFofoChatReservation(reservationPk),
+      otherWorker.processReservedFofoChatReservation(reservationPk),
     ]);
     expect(await messageRows()).toHaveLength(1);
     expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
@@ -270,12 +270,12 @@ localTests("Popo durable reservation processing", () => {
       broadcaster.broadcastReservedPotEvent.mockImplementationOnce(async () => {
         await singlePool.query("SELECT 1");
       });
-      await worker.processReservedPopoChatReservation(reservationPk);
+      await worker.processReservedFofoChatReservation(reservationPk);
       expect(
         await db
           .select()
-          .from(popoChatDelivery)
-          .where(eq(popoChatDelivery.pk, reservationPk)),
+          .from(fofoChatDelivery)
+          .where(eq(fofoChatDelivery.pk, reservationPk)),
       ).toHaveLength(0);
       expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(1);
     } finally {
@@ -296,11 +296,11 @@ localTests("Popo durable reservation processing", () => {
       false,
     );
     // Template loading needs normal reads, so use the already initialized cache.
-    (crashingService as any).cachedPopoChatMsgs = (
+    (crashingService as any).cachedFofoChatMsgs = (
       service as any
-    ).cachedPopoChatMsgs;
+    ).cachedFofoChatMsgs;
     await expect(
-      crashingService.processReservedPopoChatReservation(reservationPk),
+      crashingService.processReservedFofoChatReservation(reservationPk),
     ).rejects.toThrow("Simulated shutdown");
     expect(await messageRows()).toHaveLength(1);
     const restartedService = await makeService();
@@ -314,19 +314,19 @@ localTests("Popo durable reservation processing", () => {
     broadcaster.broadcastReservedPotEvent.mockRejectedValueOnce(
       new Error("Network unavailable"),
     );
-    await service.processReservedPopoChatReservation(reservationPk);
+    await service.processReservedFofoChatReservation(reservationPk);
     const [pending] = await db
       .select()
-      .from(popoChatDelivery)
-      .where(eq(popoChatDelivery.pk, reservationPk));
+      .from(fofoChatDelivery)
+      .where(eq(fofoChatDelivery.pk, reservationPk));
     expect(pending).toBeDefined();
     const originalEventId =
       broadcaster.broadcastReservedPotEvent.mock.calls[0][0].id;
     expect(await messageRows()).toHaveLength(1);
     await db
-      .update(popoChatDelivery)
+      .update(fofoChatDelivery)
       .set({ nextAttemptAt: new Date(Date.now() - 1000) })
-      .where(eq(popoChatDelivery.pk, reservationPk));
+      .where(eq(fofoChatDelivery.pk, reservationPk));
     const restartedService = await makeService();
     await restartedService.processPendingDeliveries();
     expect(broadcaster.broadcastReservedPotEvent).toHaveBeenCalledTimes(2);
@@ -337,25 +337,25 @@ localTests("Popo durable reservation processing", () => {
     expect(
       await db
         .select()
-        .from(popoChatDelivery)
-        .where(eq(popoChatDelivery.pk, reservationPk)),
+        .from(fofoChatDelivery)
+        .where(eq(fofoChatDelivery.pk, reservationPk)),
     ).toHaveLength(0);
   });
 
   it("leaves a reservation pending if saving its delivery intent fails", async () => {
     await seed();
     jest
-      .spyOn(PopoChatDeliveryRepository.prototype, "insert")
+      .spyOn(FofoChatDeliveryRepository.prototype, "insert")
       .mockRejectedValueOnce(new Error("Write failure"));
     await expect(
-      service.processReservedPopoChatReservation(reservationPk),
+      service.processReservedFofoChatReservation(reservationPk),
     ).rejects.toThrow("Write failure");
     expect(await messageRows()).toHaveLength(0);
     expect(
       await db
         .select()
-        .from(popoChatReservation)
-        .where(eq(popoChatReservation.pk, reservationPk)),
+        .from(fofoChatReservation)
+        .where(eq(fofoChatReservation.pk, reservationPk)),
     ).toHaveLength(1);
     expect(broadcaster.broadcastReservedPotEvent).not.toHaveBeenCalled();
   });
@@ -365,12 +365,12 @@ localTests("Popo durable reservation processing", () => {
     broadcaster.broadcastReservedPotEvent.mockRejectedValueOnce(
       new Error("Network unavailable"),
     );
-    await service.processReservedPopoChatReservation(reservationPk);
+    await service.processReservedFofoChatReservation(reservationPk);
     await db
-      .update(popoChatDelivery)
+      .update(fofoChatDelivery)
       .set({ nextAttemptAt: new Date(Date.now() - 1000) })
-      .where(eq(popoChatDelivery.pk, reservationPk));
-    const repository = new PopoChatDeliveryRepository(database);
+      .where(eq(fofoChatDelivery.pk, reservationPk));
+    const repository = new FofoChatDeliveryRepository(database);
     const claims = await Promise.all([
       repository.claim(reservationPk),
       repository.claim(reservationPk),
@@ -379,9 +379,9 @@ localTests("Popo durable reservation processing", () => {
     expect(claimed).toHaveLength(1);
     const first = claimed[0];
     await db
-      .update(popoChatDelivery)
+      .update(fofoChatDelivery)
       .set({ leaseUntil: new Date(Date.now() - 1000) })
-      .where(eq(popoChatDelivery.pk, reservationPk));
+      .where(eq(fofoChatDelivery.pk, reservationPk));
     const recovered = await repository.claim(reservationPk);
     expect(recovered.leaseToken).not.toBe(first.leaseToken);
     await expect(
@@ -391,36 +391,36 @@ localTests("Popo durable reservation processing", () => {
     expect(
       await db
         .select()
-        .from(popoChatDelivery)
-        .where(eq(popoChatDelivery.pk, reservationPk)),
+        .from(fofoChatDelivery)
+        .where(eq(fofoChatDelivery.pk, reservationPk)),
     ).toHaveLength(1);
     await repository.finishAttempt(reservationPk, recovered.leaseToken);
     expect(
       await db
         .select()
-        .from(popoChatDelivery)
-        .where(eq(popoChatDelivery.pk, reservationPk)),
+        .from(fofoChatDelivery)
+        .where(eq(fofoChatDelivery.pk, reservationPk)),
     ).toHaveLength(0);
   });
 
   it("rechecks cancelled and rescheduled reservations before sending", async () => {
     await seed();
     await db
-      .update(popoChatReservation)
+      .update(fofoChatReservation)
       .set({ sendAfter: new Date(Date.now() + 60_000) })
-      .where(eq(popoChatReservation.pk, reservationPk));
-    await service.processReservedPopoChatReservation(reservationPk);
+      .where(eq(fofoChatReservation.pk, reservationPk));
+    await service.processReservedFofoChatReservation(reservationPk);
     expect(await messageRows()).toHaveLength(0);
     await db
-      .delete(popoChatReservation)
-      .where(eq(popoChatReservation.pk, reservationPk));
-    await service.processReservedPopoChatReservation(reservationPk);
+      .delete(fofoChatReservation)
+      .where(eq(fofoChatReservation.pk, reservationPk));
+    await service.processReservedFofoChatReservation(reservationPk);
     expect(broadcaster.broadcastReservedPotEvent).not.toHaveBeenCalled();
   });
 
   it("archives a pot and saves both notifications atomically", async () => {
     await seed("popo-auto-archive-no-departure-confirm-v1");
-    await service.processReservedPopoChatReservation(reservationPk);
+    await service.processReservedFofoChatReservation(reservationPk);
     const [room] = await db.select().from(potRoom).where(eq(potRoom.pk, potPk));
     expect(room.isArchived).toBe(true);
     expect(await messageRows()).toHaveLength(1);

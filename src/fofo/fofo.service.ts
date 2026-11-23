@@ -5,25 +5,25 @@ import {
   Logger,
   OnModuleInit,
 } from "@nestjs/common";
-import { PopoChatMsgEntity } from "@src/database/entity/popo-chat-msg.entity";
-import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
+import { FofoChatMsgEntity } from "@src/database/entity/fofo-chat-msg.entity";
+import { FofoChatMsgRepository } from "@src/database/repository/fofo-chat-msg.repository";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
 import { BroadcastingService } from "@src/broadcasting/broadcasting.service";
 import { PotService } from "@src/pot/pot.service";
 import { Pot } from "@src/pot/model/pot";
-import { PotPopoChatEventV1 } from "@src/pot/event/v1/pot-popo-chat-event";
+import { PotFofoChatEventV1 } from "@src/pot/event/v1/pot-fofo-chat-event";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotEventError } from "@src/global/exceptions/pot-event.error";
 import { getUnixTime } from "date-fns";
 import { TxType } from "@src/global/types/tx.types";
 import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
-import { PopoChatStringType } from "../../drizzle/schema/popo-chat-msg";
-import { PopoChatReservationEntity } from "@src/database/entity/popo-chat-reservation.entity";
-import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-delivery.repository";
+import { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
+import { FofoChatReservationEntity } from "@src/database/entity/fofo-chat-reservation.entity";
+import { FofoChatDeliveryRepository } from "@src/database/repository/fofo-chat-delivery.repository";
 import { PotRoomRepository } from "@src/database/repository/pot-room.repository";
 import { PotEvent } from "@src/pot/event/pot-event";
-import { DelayCheckService } from "@src/popo/delay-check.service";
+import { DelayCheckService } from "@src/fofo/delay-check.service";
 import {
   asyncScheduler,
   catchError,
@@ -37,39 +37,39 @@ import { Trace } from "@gsainfoteam/nest-observability";
 
 @Trace()
 @Injectable()
-export class PopoService implements OnModuleInit {
-  private readonly logger = new Logger(PopoService.name);
-  private cachedPopoChatMsgs: PopoChatMsgEntity[] = [];
-  readonly reservationCreated$ = new Subject<PopoChatReservationEntity>();
+export class FofoService implements OnModuleInit {
+  private readonly logger = new Logger(FofoService.name);
+  private cachedFofoChatMsgs: FofoChatMsgEntity[] = [];
+  readonly reservationCreated$ = new Subject<FofoChatReservationEntity>();
   readonly reservationsCancelled$ = new Subject<{
     potPk: string;
-    type?: PopoChatStringType;
+    type?: FofoChatStringType;
   }>();
 
   constructor(
     private readonly dbService: DatabaseService,
-    private readonly popoChatMsgRepository: PopoChatMsgRepository,
-    private readonly popoChatReservationRepository: PopoChatReservationRepository,
+    private readonly fofoChatMsgRepository: FofoChatMsgRepository,
+    private readonly fofoChatReservationRepository: FofoChatReservationRepository,
     private readonly potEventRepository: PotEventRepository,
     @Inject(forwardRef(() => BroadcastingService))
     private readonly broadcastingService: BroadcastingService,
     @Inject(forwardRef(() => PotService))
     private readonly potService: PotService,
-    private readonly deliveryRepository: PopoChatDeliveryRepository,
+    private readonly deliveryRepository: FofoChatDeliveryRepository,
     private readonly potRoomRepository: PotRoomRepository,
     private readonly delayCheckService: DelayCheckService,
   ) {}
 
   async onModuleInit() {
-    await this.cachePopoChatMsgs();
+    await this.cacheFofoChatMsgs();
   }
 
-  async processReservedPopoChatMsg() {
+  async processReservedFofoChatMsg() {
     const reservations =
-      await this.popoChatReservationRepository.findAllReadyToSend();
+      await this.fofoChatReservationRepository.findAllReadyToSend();
     for (const reservation of reservations) {
       try {
-        await this.processReservedPopoChatReservation(reservation.pk);
+        await this.processReservedFofoChatReservation(reservation.pk);
       } catch (error) {
         this.logger.error(
           "Failed to process reservation " + reservation.pk,
@@ -80,9 +80,9 @@ export class PopoService implements OnModuleInit {
     await this.processPendingDeliveries();
   }
 
-  async processReservedPopoChatReservation(pk: string): Promise<void> {
+  async processReservedFofoChatReservation(pk: string): Promise<void> {
     await this.dbService.db.transaction(async (tx: TxType) => {
-      const candidate = await this.popoChatReservationRepository.findByPk(
+      const candidate = await this.fofoChatReservationRepository.findByPk(
         pk,
         tx,
       );
@@ -91,10 +91,10 @@ export class PopoService implements OnModuleInit {
       // 팟을 먼저 잠근 뒤 예약을 잠가 동시 처리 시 잠금 순서를 일관되게 유지합니다.
       const room = await this.potRoomRepository.lockByPk(candidate.potFk, tx);
       const reservation =
-        await this.popoChatReservationRepository.findByPkForUpdate(pk, tx);
+        await this.fofoChatReservationRepository.findByPkForUpdate(pk, tx);
       if (!reservation || reservation.sendAfter > new Date()) return;
       if (!room || room.isArchived || room.isDeleted) {
-        await this.popoChatReservationRepository.deleteByPk(pk, tx);
+        await this.fofoChatReservationRepository.deleteByPk(pk, tx);
         return;
       }
 
@@ -102,19 +102,19 @@ export class PopoService implements OnModuleInit {
         reservation.potFk,
         tx,
       );
-      const type = reservation.popoChatMsgType;
+      const type = reservation.fofoChatMsgType;
       if (
         !pot.pk ||
         pot.isArchived ||
         !(await this.shouldSendReservation(type, pot, tx))
       ) {
-        await this.popoChatReservationRepository.deleteByPk(pk, tx);
+        await this.fofoChatReservationRepository.deleteByPk(pk, tx);
         return;
       }
 
-      const template = this.getPopoChatMsgByType(type);
+      const template = this.getFofoChatMsgByType(type);
       if (!template)
-        throw new Error("Popo message template not found: " + type);
+        throw new Error("Fofo message template not found: " + type);
 
       const formatArguments = { ...reservation.formatArguments };
       if (type === "popo-reminder-taxi-call-v1" && pot.departureTime) {
@@ -123,7 +123,7 @@ export class PopoService implements OnModuleInit {
           Math.floor((pot.departureTime.getTime() - Date.now()) / 60_000),
         );
       }
-      const message = await this.savePopoChatEvent(
+      const message = await this.saveFofoChatEvent(
         template,
         pot,
         formatArguments,
@@ -156,14 +156,14 @@ export class PopoService implements OnModuleInit {
         },
         tx,
       );
-      await this.popoChatReservationRepository.deleteByPk(pk, tx);
+      await this.fofoChatReservationRepository.deleteByPk(pk, tx);
     });
 
     await this.deliverReservedEvents(pk);
   }
 
   private async shouldSendReservation(
-    type: PopoChatStringType,
+    type: FofoChatStringType,
     pot: Pot,
     tx: TxType,
   ): Promise<boolean> {
@@ -257,14 +257,14 @@ export class PopoService implements OnModuleInit {
     );
   }
 
-  private async savePopoChatEvent(
-    template: PopoChatMsgEntity,
+  private async saveFofoChatEvent(
+    template: FofoChatMsgEntity,
     pot: Pot,
     formatArguments: any,
     tx: TxType,
-  ): Promise<PotPopoChatEventV1> {
+  ): Promise<PotFofoChatEventV1> {
     const now = new Date();
-    const event = PotPopoChatEventV1.generateEvent(pot.pk, now, {
+    const event = PotFofoChatEventV1.generateEvent(pot.pk, now, {
       popoChatType: template.type,
       message: template.message,
       actionBtns: template.actionBtns,
@@ -278,16 +278,16 @@ export class PopoService implements OnModuleInit {
     return event;
   }
 
-  asyncReservePopoChatMsg(
-    popoChatMsg: PopoChatMsgEntity,
+  asyncReserveFofoChatMsg(
+    fofoChatMsg: FofoChatMsgEntity,
     sendAfter: Date,
     potPk?: string,
     pot?: Pot,
     formatArguments?: any,
   ) {
     defer(() =>
-      this.reservePopoChatMsg(
-        popoChatMsg,
+      this.reserveFofoChatMsg(
+        fofoChatMsg,
         sendAfter,
         potPk,
         pot,
@@ -297,15 +297,15 @@ export class PopoService implements OnModuleInit {
       .pipe(
         subscribeOn(asyncScheduler),
         catchError((err) => {
-          this.logger.error("Reserve Popo Chat Msg Failed: ", err);
+          this.logger.error("Reserve Fofo Chat Msg Failed: ", err);
           return EMPTY;
         }),
       )
       .subscribe();
   }
 
-  async reservePopoChatMsg(
-    popoChatMsg: PopoChatMsgEntity,
+  async reserveFofoChatMsg(
+    fofoChatMsg: FofoChatMsgEntity,
     sendAfter: Date,
     potPk?: string,
     pot?: Pot,
@@ -319,9 +319,9 @@ export class PopoService implements OnModuleInit {
       throw new Error("sendAfter must be a future date");
     }
 
-    const newPopoChatReservation: PopoChatReservationEntity = {
+    const newFofoChatReservation: FofoChatReservationEntity = {
       potFk: pot.pk,
-      popoChatMsgType: popoChatMsg.type,
+      fofoChatMsgType: fofoChatMsg.type,
       sendAfter: sendAfter,
       createdAt: now,
       updatedAt: now,
@@ -330,8 +330,8 @@ export class PopoService implements OnModuleInit {
 
     const reservation = await this.dbService.db.transaction(
       async (tx: TxType) => {
-        return this.popoChatReservationRepository.insert(
-          newPopoChatReservation,
+        return this.fofoChatReservationRepository.insert(
+          newFofoChatReservation,
           tx,
         );
       },
@@ -339,48 +339,48 @@ export class PopoService implements OnModuleInit {
     this.reservationCreated$.next(reservation);
   }
 
-  asyncSendPopoChatMsgToPotRoom(
-    popoChatMsg: PopoChatMsgEntity,
+  asyncSendFofoChatMsgToPotRoom(
+    fofoChatMsg: FofoChatMsgEntity,
     potPk?: string,
     pot?: Pot,
     formatArguments?: any,
   ) {
     defer(() =>
-      this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot, formatArguments),
+      this.sendFofoChatMsgToPotRoom(fofoChatMsg, potPk, pot, formatArguments),
     )
       .pipe(
         subscribeOn(asyncScheduler),
         catchError((err) => {
-          this.logger.error("Send Popo Chat Msg Failed: ", err);
+          this.logger.error("Send Fofo Chat Msg Failed: ", err);
           return EMPTY;
         }),
       )
       .subscribe();
   }
 
-  asyncSendPopoChatMsgToPotRoomWithDelay(
-    popoChatMsg: PopoChatMsgEntity,
+  asyncSendFofoChatMsgToPotRoomWithDelay(
+    fofoChatMsg: FofoChatMsgEntity,
     delayMs: number,
     potPk?: string,
     pot?: Pot,
     formatArguments?: any,
   ) {
     defer(() =>
-      this.sendPopoChatMsgToPotRoom(popoChatMsg, potPk, pot, formatArguments),
+      this.sendFofoChatMsgToPotRoom(fofoChatMsg, potPk, pot, formatArguments),
     )
       .pipe(
         delay(delayMs),
         subscribeOn(asyncScheduler),
         catchError((err) => {
-          this.logger.error("Send Popo Chat Msg Failed: ", err);
+          this.logger.error("Send Fofo Chat Msg Failed: ", err);
           return EMPTY;
         }),
       )
       .subscribe();
   }
 
-  async sendPopoChatMsgToPotRoom(
-    popoChatMsg: PopoChatMsgEntity,
+  async sendFofoChatMsgToPotRoom(
+    fofoChatMsg: FofoChatMsgEntity,
     potPk?: string,
     pot?: Pot,
     formatArguments?: any,
@@ -389,17 +389,17 @@ export class PopoService implements OnModuleInit {
 
     const now = new Date();
 
-    const potPopoChatMsgEvent: PotPopoChatEventV1 =
-      PotPopoChatEventV1.generateEvent(pot.pk, now, {
-        popoChatType: popoChatMsg.type,
-        message: popoChatMsg.message,
-        actionBtns: popoChatMsg.actionBtns,
+    const potFofoChatMsgEvent: PotFofoChatEventV1 =
+      PotFofoChatEventV1.generateEvent(pot.pk, now, {
+        popoChatType: fofoChatMsg.type,
+        message: fofoChatMsg.message,
+        actionBtns: fofoChatMsg.actionBtns,
         timestamp: now,
         formatArguments: formatArguments,
       });
 
     try {
-      PotEventReducer.reduce(pot, potPopoChatMsgEvent, true);
+      PotEventReducer.reduce(pot, potFofoChatMsgEvent, true);
     } catch (error) {
       if (error instanceof PotEventError) {
         return error.baseResultDto;
@@ -408,64 +408,64 @@ export class PopoService implements OnModuleInit {
     }
 
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.potEventRepository.saveEvent(potPopoChatMsgEvent, tx);
+      await this.potEventRepository.saveEvent(potFofoChatMsgEvent, tx);
     });
 
     this.broadcastingService.asyncBroadcastPotEvent(
       {
         pot_pk: pot.pk,
-        timestamp: getUnixTime(potPopoChatMsgEvent.timestamp),
-        id: potPopoChatMsgEvent.id,
-        event_type: potPopoChatMsgEvent.eventType,
-        data: potPopoChatMsgEvent.toDto(),
+        timestamp: getUnixTime(potFofoChatMsgEvent.timestamp),
+        id: potFofoChatMsgEvent.id,
+        event_type: potFofoChatMsgEvent.eventType,
+        data: potFofoChatMsgEvent.toDto(),
       },
       pot.joinedUserPks,
       pot.name,
     );
   }
 
-  asyncDeletePopoChatReservation(
-    popoChatMsgType: PopoChatStringType,
+  asyncDeleteFofoChatReservation(
+    fofoChatMsgType: FofoChatStringType,
     potPk: string,
   ) {
-    defer(() => this.deletePopoChatReservation(popoChatMsgType, potPk))
+    defer(() => this.deleteFofoChatReservation(fofoChatMsgType, potPk))
       .pipe(
         subscribeOn(asyncScheduler),
         catchError((err) => {
-          this.logger.error("Delete Popo Chat Reservation Failed: ", err);
+          this.logger.error("Delete Fofo Chat Reservation Failed: ", err);
           return EMPTY;
         }),
       )
       .subscribe();
   }
 
-  async deletePopoChatReservation(
-    popoChatMsgType: PopoChatStringType,
+  async deleteFofoChatReservation(
+    fofoChatMsgType: FofoChatStringType,
     potPk: string,
   ) {
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.popoChatReservationRepository.deleteByPotFkAndType(
+      await this.fofoChatReservationRepository.deleteByPotFkAndType(
         potPk,
-        popoChatMsgType,
+        fofoChatMsgType,
         tx,
       );
     });
-    this.reservationsCancelled$.next({ potPk, type: popoChatMsgType });
+    this.reservationsCancelled$.next({ potPk, type: fofoChatMsgType });
   }
 
-  async deleteAllPopoChatReservation(potPk: string) {
+  async deleteAllFofoChatReservation(potPk: string) {
     await this.dbService.db.transaction(async (tx: TxType) => {
-      await this.popoChatReservationRepository.deleteByPotFk(potPk, tx);
+      await this.fofoChatReservationRepository.deleteByPotFk(potPk, tx);
     });
     this.reservationsCancelled$.next({ potPk });
   }
 
-  async deleteAllPopoChatReservationInTransaction(potPk: string, tx: TxType) {
-    await this.popoChatReservationRepository.deleteByPotFk(potPk, tx);
+  async deleteAllFofoChatReservationInTransaction(potPk: string, tx: TxType) {
+    await this.fofoChatReservationRepository.deleteByPotFk(potPk, tx);
   }
 
-  getPopoChatMsgByType(type: PopoChatStringType): PopoChatMsgEntity | null {
-    return this.cachedPopoChatMsgs.find((msg) => msg.type === type) || null;
+  getFofoChatMsgByType(type: FofoChatStringType): FofoChatMsgEntity | null {
+    return this.cachedFofoChatMsgs.find((msg) => msg.type === type) || null;
   }
 
   private async resolvePot(potPk?: string, pot?: Pot): Promise<Pot> {
@@ -483,7 +483,7 @@ export class PopoService implements OnModuleInit {
     return pot;
   }
 
-  private async cachePopoChatMsgs() {
-    this.cachedPopoChatMsgs = await this.popoChatMsgRepository.findAll();
+  private async cacheFofoChatMsgs() {
+    this.cachedFofoChatMsgs = await this.fofoChatMsgRepository.findAll();
   }
 }

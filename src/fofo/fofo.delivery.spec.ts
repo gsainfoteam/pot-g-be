@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { PopoService } from "./popo.service";
+import { FofoService } from "./fofo.service";
 
 describe("reserved delivery eligibility", () => {
   const event = {
@@ -35,7 +35,7 @@ describe("reserved delivery eligibility", () => {
     };
     const broadcast = { broadcastReservedPotEvent: jest.fn() };
     const database = { db: { transaction: jest.fn() } };
-    const service = new PopoService(
+    const service = new FofoService(
       database as any,
       {} as any,
       {} as any,

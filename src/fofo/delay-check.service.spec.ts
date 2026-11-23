@@ -1,6 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/delay-check-policy.admin.repository";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
 import { RouteService } from "@src/discovery/route.service";
 import { TxType } from "@src/global/types/tx.types";
 import { Pot } from "@src/pot/model/pot";
@@ -19,7 +19,7 @@ describe("DelayCheckService reservation", () => {
     {
       insert,
       deleteByPotFkAndType,
-    } as unknown as PopoChatReservationRepository,
+    } as unknown as FofoChatReservationRepository,
     { getRouteById } as unknown as RouteService,
   );
 
@@ -55,7 +55,7 @@ describe("DelayCheckService reservation", () => {
       expect(insert).toHaveBeenCalledWith(
         expect.objectContaining({
           potFk: "pot",
-          popoChatMsgType: "popo-delay-check-request-v1",
+          fofoChatMsgType: "popo-delay-check-request-v1",
           sendAfter: new Date(`2026-11-20T${sendTime}:00+09:00`),
           formatArguments: {
             stationName,

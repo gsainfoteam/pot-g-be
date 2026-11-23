@@ -28,8 +28,8 @@ export type DeliveryProgress = Record<
 >;
 
 // Events and delivery intent are committed together before sending over the network.
-export const popoChatDelivery = pgTable(
-  "popo_chat_delivery",
+export const fofoChatDelivery = pgTable(
+  "fofo_chat_delivery",
   {
     pk: uuid("pk").primaryKey().notNull(),
     potFk: uuid("pot_fk")

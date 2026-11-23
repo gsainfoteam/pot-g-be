@@ -148,6 +148,13 @@
       "when": 1795258080899,
       "tag": "0020_popo_delivery_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795413391172,
+      "tag": "0021_rename_fofo_tables",
+      "breakpoints": true
     }
   ]
 }

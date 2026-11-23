@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { subMinutes } from "date-fns";
 import { DelayCheckPolicyAdminRepository } from "@src/admin-database/repository/delay-check-policy.admin.repository";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
 import { RouteService } from "@src/discovery/route.service";
 import { TxType } from "@src/global/types/tx.types";
 import { Pot } from "@src/pot/model/pot";
@@ -14,7 +14,7 @@ export class DelayCheckService {
   constructor(
     configService: ConfigService,
     private readonly policyRepository: DelayCheckPolicyAdminRepository,
-    private readonly reservationRepository: PopoChatReservationRepository,
+    private readonly reservationRepository: FofoChatReservationRepository,
     private readonly routeService: RouteService,
   ) {
     const configuredRouteIds =
@@ -71,7 +71,7 @@ export class DelayCheckService {
     return this.reservationRepository.insert(
       {
         potFk: pot.pk,
-        popoChatMsgType: "popo-delay-check-request-v1",
+        fofoChatMsgType: "popo-delay-check-request-v1",
         sendAfter,
         createdAt: now,
         updatedAt: now,

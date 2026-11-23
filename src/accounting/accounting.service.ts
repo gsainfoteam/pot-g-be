@@ -25,7 +25,7 @@ import { PotEventRepository } from "@src/database/repository/pot-event.repositor
 import { PotAccountingConfirmEventV1 } from "@src/pot/event/v1/pot-accounting-confirm-event";
 import { Pot } from "@src/pot/model/pot";
 import { addMinutes, getUnixTime } from "date-fns";
-import { PopoService } from "@src/popo/popo.service";
+import { FofoService } from "@src/fofo/fofo.service";
 import { ConfirmAccountingRequestDto } from "@src/accounting/dto/confirm-accounting.dto";
 import { Trace } from "@gsainfoteam/nest-observability";
 
@@ -39,7 +39,7 @@ export class AccountingService implements OnModuleInit {
     private readonly dbService: DatabaseService,
     private readonly potService: PotService,
     private readonly broadcastingService: BroadcastingService,
-    private readonly popoService: PopoService,
+    private readonly fofoService: FofoService,
     private readonly bankRepository: BankRepository,
     private readonly userBankRepository: UserBankRepository,
     private readonly potEventRepository: PotEventRepository,
@@ -230,10 +230,10 @@ export class AccountingService implements OnModuleInit {
       });
     } else {
       // 아닌 경우 포포 정산 안내 메세지 즉시 발송
-      const popoChatMsg = this.popoService.getPopoChatMsgByType(
+      const fofoChatMsg = this.fofoService.getFofoChatMsgByType(
         "popo-accounting-request-v1",
       );
-      this.popoService.asyncSendPopoChatMsgToPotRoom(popoChatMsg, null, pot, {
+      this.fofoService.asyncSendFofoChatMsgToPotRoom(fofoChatMsg, null, pot, {
         totalNum: pot.accountingRequestedUserPks.length,
         totalCost: req.total_cost,
         costPerUser: req.cost_per_user,
@@ -241,7 +241,7 @@ export class AccountingService implements OnModuleInit {
     }
 
     // 기존에 예약된 포포 정산 안내 메세지가 있다면 삭제
-    this.popoService.asyncDeletePopoChatReservation(
+    this.fofoService.asyncDeleteFofoChatReservation(
       "popo-accounting-reminder-v1",
       pot.pk,
     );
@@ -320,22 +320,22 @@ export class AccountingService implements OnModuleInit {
 
     // 정산 처리가 모두 완료된 경우 포포 메세지 전송
     if (pot.accountingRequestedUserPks.length === 0) {
-      const popoAutoArchiveAccountingFinMsg =
-        this.popoService.getPopoChatMsgByType(
+      const fofoAutoArchiveAccountingFinMsg =
+        this.fofoService.getFofoChatMsgByType(
           "popo-auto-archive-accounting-fin-v1",
         );
-      this.popoService.asyncSendPopoChatMsgToPotRoom(
-        popoAutoArchiveAccountingFinMsg,
+      this.fofoService.asyncSendFofoChatMsgToPotRoom(
+        fofoAutoArchiveAccountingFinMsg,
         null,
         pot,
       );
 
       // 10분 후 팟 자동 해산 예약
-      const popoAutoArchiveMsg = this.popoService.getPopoChatMsgByType(
+      const fofoAutoArchiveMsg = this.fofoService.getFofoChatMsgByType(
         "popo-auto-archive-v1",
       );
-      this.popoService.asyncReservePopoChatMsg(
-        popoAutoArchiveMsg,
+      this.fofoService.asyncReserveFofoChatMsg(
+        fofoAutoArchiveMsg,
         addMinutes(now, 10),
         null,
         pot,

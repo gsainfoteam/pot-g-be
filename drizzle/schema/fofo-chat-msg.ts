@@ -1,6 +1,7 @@
 import { pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
-export const popoChatType = pgEnum("popo_chat_type", [
+// Keep the existing DB enum names and v1 labels for stored events and clients.
+export const fofoChatType = pgEnum("popo_chat_type", [
   "popo-departure-confirm-request-v1",
   "popo-departure-confirmed-v1",
   "popo-reminder-taxi-call-v1",
@@ -12,7 +13,7 @@ export const popoChatType = pgEnum("popo_chat_type", [
   "popo-delay-check-request-v1",
 ]);
 
-export const popoActionBtnType = pgEnum("popo_action_btn_type", [
+export const fofoActionBtnType = pgEnum("popo_action_btn_type", [
   "departure-confirm-btn",
   "taxi-call-btn",
   "accounting-request-btn",
@@ -21,12 +22,12 @@ export const popoActionBtnType = pgEnum("popo_action_btn_type", [
   "delay-check-btn",
 ]);
 
-export type PopoChatStringType = (typeof popoChatType.enumValues)[number];
-export type PopoActionBtnStringType =
-  (typeof popoActionBtnType.enumValues)[number];
+export type FofoChatStringType = (typeof fofoChatType.enumValues)[number];
+export type FofoActionBtnStringType =
+  (typeof fofoActionBtnType.enumValues)[number];
 
 /*
-CREATE TABLE "popo_chat_msg" (
+CREATE TABLE "fofo_chat_msg" (
     "type" popo_chat_type NOT NULL, // pk
     "action_btns" popo_action_btn_type[] NOT NULL,
     "created_at" timestamp with time zone NOT NULL DEFAULT now(),
@@ -34,9 +35,9 @@ CREATE TABLE "popo_chat_msg" (
     "message" text NOT NULL
 );
 */
-export const popoChatMsg = pgTable("popo_chat_msg", {
-  type: popoChatType("type").primaryKey().notNull(),
-  actionBtns: popoActionBtnType("action_btns").array().notNull(),
+export const fofoChatMsg = pgTable("fofo_chat_msg", {
+  type: fofoChatType("type").primaryKey().notNull(),
+  actionBtns: fofoActionBtnType("action_btns").array().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

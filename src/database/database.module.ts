@@ -12,13 +12,13 @@ import { UserRepository } from "@src/database/repository/user.repository";
 import { UserAlarmSettingRepository } from "@src/database/repository/user-alarm-setting.repository";
 import { UserBankRepository } from "@src/database/repository/user-bank.repository";
 import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.repository";
-import { PopoChatMsgRepository } from "@src/database/repository/popo-chat-msg.repository";
-import { PopoChatReservationRepository } from "@src/database/repository/popo-chat-reservation.repository";
+import { FofoChatMsgRepository } from "@src/database/repository/fofo-chat-msg.repository";
+import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
 import { RefreshTokenRepository } from "@src/database/repository/refresh-token.repository";
 import { AppVersionRepository } from "@src/database/repository/app-version.repository";
 import { UserConsentRepository } from "@src/database/repository/user-consent.repository";
 import { ReportRepository } from "@src/database/repository/report.repository";
-import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-delivery.repository";
+import { FofoChatDeliveryRepository } from "@src/database/repository/fofo-chat-delivery.repository";
 
 @Module({
   imports: [ConfigModule],
@@ -35,13 +35,13 @@ import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-d
     UserAlarmSettingRepository,
     UserBankRepository,
     UserPotRoomRepository,
-    PopoChatMsgRepository,
-    PopoChatReservationRepository,
+    FofoChatMsgRepository,
+    FofoChatReservationRepository,
     RefreshTokenRepository,
     AppVersionRepository,
     UserConsentRepository,
     ReportRepository,
-    PopoChatDeliveryRepository,
+    FofoChatDeliveryRepository,
   ],
   exports: [
     DatabaseService,
@@ -56,13 +56,13 @@ import { PopoChatDeliveryRepository } from "@src/database/repository/popo-chat-d
     UserAlarmSettingRepository,
     UserBankRepository,
     UserPotRoomRepository,
-    PopoChatMsgRepository,
-    PopoChatReservationRepository,
+    FofoChatMsgRepository,
+    FofoChatReservationRepository,
     RefreshTokenRepository,
     AppVersionRepository,
     UserConsentRepository,
     ReportRepository,
-    PopoChatDeliveryRepository,
+    FofoChatDeliveryRepository,
   ],
 })
 export class DatabaseModule {}
