@@ -25,8 +25,9 @@ import { AdminDashboardRepository } from "./repository/admin-dashboard.repositor
     AdminUserRepository,
     ReportAdminRepository,
     AdminChatViewLogRepository,
-    PopoChatMsgAdminRepository,
-    PopoChatStatusAdminRepository,
+    FofoChatMsgAdminRepository,
+    FofoChatStatusAdminRepository,
+    AdminDashboardRepository,
   ],
   exports: [
     AdminAccountRepository,

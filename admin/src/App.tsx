@@ -44,10 +44,6 @@ export function App() {
         <Route path="users/:pk" element={<UserDetailPage />} />
         <Route path="fofo-messages" element={<FofoMessagesPage />} />
         <Route path="fofo-message-status" element={<FofoMessageStatusPage />} />
-        <Route
-          path="stats"
-          element={<PlaceholderPage title="통계" refreshable />}
-        />
         <Route path="admin-accounts" element={<AdminAccountsPage />} />
         <Route path="pot-cleanup" element={<PotCleanupPage />} />
         <Route index element={<StatusPage />} />

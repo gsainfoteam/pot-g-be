@@ -162,10 +162,10 @@ export class AdminDashboardRepository {
       count: number;
     }>(sql`
       SELECT
-        popo_chat_msg_type::text AS type,
+        fofo_chat_msg_type::text AS type,
         COUNT(*)::int AS count
-      FROM popo_chat_reservation
-      GROUP BY popo_chat_msg_type
+      FROM fofo_chat_reservation
+      GROUP BY fofo_chat_msg_type
       ORDER BY count DESC
     `);
 
