@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
 import { StopsEntity } from "@src/database/entity/stops.entity";
-import { stops } from "../../../drizzle/schema/stops";
+import { stops } from "@drizzle-schema/stops";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 import { TxType } from "@src/global/types/tx.types";
 

@@ -19,7 +19,7 @@ import { getUnixTime } from "date-fns";
 import { TxType } from "@src/global/types/tx.types";
 import { DatabaseService } from "@src/database/database.service";
 import { PotEventRepository } from "@src/database/repository/pot-event.repository";
-import { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 import { FofoChatReservationEntity } from "@src/database/entity/fofo-chat-reservation.entity";
 import { FofoChatDeliveryRepository } from "@src/database/repository/fofo-chat-delivery.repository";
 import { PotRoomRepository } from "@src/database/repository/pot-room.repository";

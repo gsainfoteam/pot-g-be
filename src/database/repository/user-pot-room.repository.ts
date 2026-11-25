@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { UserPotRoomEntity } from "@src/database/entity/user-pot-room.entity";
-import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
+import { userPotRoom } from "@drizzle-schema/user-pot-room";
 import { and, count, eq } from "drizzle-orm";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 

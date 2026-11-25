@@ -1,5 +1,5 @@
 import type { Pot } from "@src/pot/model/pot";
-import { potEvent, PotEventStringType } from "drizzle/schema/pot-event";
+import { potEvent, PotEventStringType } from "@drizzle-schema/pot-event";
 import {
   PotCreateEventV1,
   PotCreateEventV1Schema,

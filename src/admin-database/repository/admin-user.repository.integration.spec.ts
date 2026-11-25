@@ -3,7 +3,7 @@ import { config } from "dotenv";
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { users } from "../../../drizzle/schema/users";
+import { users } from "@drizzle-schema/users";
 import { DatabaseService } from "@src/database/database.service";
 import { AdminUserListReqDto } from "@src/admin-user/dto/admin-user-list.dto";
 import { AdminUserRepository } from "./admin-user.repository";

@@ -3,7 +3,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { eq } from "drizzle-orm";
 import { UserConsentEntity } from "@src/database/entity/user-consent.entity";
-import { userConsent } from "../../../drizzle/schema/user-consent";
+import { userConsent } from "@drizzle-schema/user-consent";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()

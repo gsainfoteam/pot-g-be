@@ -9,6 +9,12 @@
 - [PostgreSQL](https://www.postgresql.org/) - 데이터베이스
 - [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
 
+Drizzle 스키마는 `drizzle/schema/*`를 가리키는 `@drizzle-schema/*` alias로 가져옵니다.
+
+```ts
+import { users } from "@drizzle-schema/users";
+```
+
 ## 시작하기
 
 ### 필수 조건

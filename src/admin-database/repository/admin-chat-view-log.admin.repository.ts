@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { DatabaseService } from "@src/database/database.service";
-import { adminChatViewLog } from "../../../drizzle/schema/admin-chat-view-log";
+import { adminChatViewLog } from "@drizzle-schema/admin-chat-view-log";
 
 /**
  * 어드민이 팟 채팅을 열람한 기록을 남기는 레포지토리입니다.

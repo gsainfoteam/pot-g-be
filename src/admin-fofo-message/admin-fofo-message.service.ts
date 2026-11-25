@@ -10,7 +10,7 @@ import { FofoChatMsgAdminRepository } from "@src/admin-database/repository/fofo-
 import { FofoChatMsgEntity } from "@src/database/entity/fofo-chat-msg.entity";
 import { FofoService } from "@src/fofo/fofo.service";
 import { FOFO_MESSAGE_META } from "@src/fofo/fofo-message-meta";
-import { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 import { FofoMessageDto } from "@src/admin-fofo-message/dto/fofo-message.dto";
 import { UpdateFofoMessageRequestDto } from "@src/admin-fofo-message/dto/update-fofo-message.dto";
 

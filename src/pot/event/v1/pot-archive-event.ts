@@ -1,6 +1,6 @@
 import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
-import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
+import { PotEventStringType } from "@drizzle-schema/pot-event";
 import { AssertIfValidPot } from "@src/pot/validator/common-pot-validator";
 import { PotEventArchiveV1Dto } from "@src/pot/event/v1/dto/pot-event.archive.v1.dto";
 

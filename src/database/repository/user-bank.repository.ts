@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { userBank } from "../../../drizzle/schema/user-bank";
+import { userBank } from "@drizzle-schema/user-bank";
 import { UserBankEntity } from "@src/database/entity/user-bank.entity";
 import { eq } from "drizzle-orm";
 import { TxType } from "@src/global/types/tx.types";
