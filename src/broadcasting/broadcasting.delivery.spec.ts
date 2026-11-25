@@ -1,5 +1,5 @@
 import { BroadcastingService } from "./broadcasting.service";
-import { DeliveryUserProgress } from "../../drizzle/schema/fofo-chat-delivery";
+import { DeliveryUserProgress } from "@drizzle-schema/fofo-chat-delivery";
 
 describe("durable reserved notification channels", () => {
   const event = {

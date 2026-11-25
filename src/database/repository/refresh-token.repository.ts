@@ -3,7 +3,7 @@ import { DatabaseService } from "@src/database/database.service";
 import { TxType } from "@src/global/types/tx.types";
 import { eq, lt } from "drizzle-orm";
 import { RefreshTokenEntity } from "@src/database/entity/refresh-token.entity";
-import { refreshToken } from "../../../drizzle/schema/refresh-token";
+import { refreshToken } from "@drizzle-schema/refresh-token";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()

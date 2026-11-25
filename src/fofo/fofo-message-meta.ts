@@ -1,4 +1,4 @@
-import { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 
 /**
  * 발송 시점 오프셋(fofo_chat_msg.offset_minutes)의 기준 시각.

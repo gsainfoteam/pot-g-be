@@ -21,7 +21,7 @@ import { PotEventUserLeaveV1Dto } from "@src/pot/event/v1/dto/pot-event.user-lea
 import { PotEventUserKickV1Dto } from "@src/pot/event/v1/dto/pot-event.user-kick.v1.dto";
 import { PotgWsClient } from "@src/websocket/potg.ws.client";
 import { Trace } from "@gsainfoteam/nest-observability";
-import { DeliveryUserProgress } from "../../drizzle/schema/fofo-chat-delivery";
+import { DeliveryUserProgress } from "@drizzle-schema/fofo-chat-delivery";
 
 @Trace()
 @Injectable()

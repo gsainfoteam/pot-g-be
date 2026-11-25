@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { users } from "../../../drizzle/schema/users";
+import { users } from "@drizzle-schema/users";
 import { and, eq, inArray } from "drizzle-orm";
 import { UserEntity } from "@src/database/entity/user.entity";
-import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
-import { bank } from "../../../drizzle/schema/bank";
-import { userBank } from "../../../drizzle/schema/user-bank";
+import { userAlarmSetting } from "@drizzle-schema/user-alarm-setting";
+import { bank } from "@drizzle-schema/bank";
+import { userBank } from "@drizzle-schema/user-bank";
 import { TxType } from "@src/global/types/tx.types";
 import { randomUUID } from "node:crypto";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";

@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
-import { stops } from "../../../drizzle/schema/stops";
+import { stops } from "@drizzle-schema/stops";
 import { RouteEntity } from "@src/database/entity/route.entity";
-import { route } from "../../../drizzle/schema/route";
+import { route } from "@drizzle-schema/route";
 import { eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 

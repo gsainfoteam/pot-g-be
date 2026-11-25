@@ -1,4 +1,4 @@
-import type { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
+import type { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 
 // Historical JSON payloads retain their original label after the DB enum rename.
 export type StoredFofoChatType =

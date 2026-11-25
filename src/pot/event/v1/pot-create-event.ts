@@ -1,4 +1,4 @@
-import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
+import { PotEventStringType } from "@drizzle-schema/pot-event";
 import { PotEvent } from "@src/pot/event/pot-event";
 import { Pot } from "@src/pot/model/pot";
 import {

@@ -4,7 +4,7 @@ import { TxType } from "@src/global/types/tx.types";
 import { randomUUID } from "node:crypto";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 import { ReportEntity } from "@src/database/entity/report.entity";
-import { report } from "../../../drizzle/schema/report";
+import { report } from "@drizzle-schema/report";
 
 @Injectable()
 export class ReportRepository {

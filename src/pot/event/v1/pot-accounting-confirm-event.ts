@@ -1,6 +1,6 @@
 import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
-import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
+import { PotEventStringType } from "@drizzle-schema/pot-event";
 import {
   AssertIfAccountingRequested,
   AssertIfDeparted,

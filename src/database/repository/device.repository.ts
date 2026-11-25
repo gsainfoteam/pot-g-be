@@ -2,10 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { DeviceEntity } from "@src/database/entity/device.entity";
 import { TxType } from "@src/global/types/tx.types";
-import { device } from "../../../drizzle/schema/device";
+import { device } from "@drizzle-schema/device";
 import { and, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
+import { userAlarmSetting } from "@drizzle-schema/user-alarm-setting";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()

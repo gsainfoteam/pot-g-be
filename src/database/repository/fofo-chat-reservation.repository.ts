@@ -2,10 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { FofoChatReservationEntity } from "@src/database/entity/fofo-chat-reservation.entity";
 import { TxType } from "@src/global/types/tx.types";
-import { fofoChatReservation } from "../../../drizzle/schema/fofo-chat-reservation";
+import { fofoChatReservation } from "@drizzle-schema/fofo-chat-reservation";
 import { randomUUID } from "node:crypto";
 import { and, asc, eq, lte } from "drizzle-orm";
-import { FofoChatStringType } from "../../../drizzle/schema/fofo-chat-msg";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()
