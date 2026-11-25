@@ -35,6 +35,7 @@ export class AdminUserRepository {
 
   private buildWhere(req: AdminUserListReqDto) {
     return and(
+      this.contains(sql`${users.name}`, req.name),
       this.contains(sql`${users.pk}::text`, req.pk),
       this.contains(sql`${users.idpSub}`, req.idp_sub),
       this.contains(sql`${users.email}`, req.email),

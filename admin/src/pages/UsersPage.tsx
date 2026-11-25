@@ -34,14 +34,18 @@ function UserListContent() {
   const rawPage = Number(params.get("page") ?? 0);
   const page = Number.isSafeInteger(rawPage) && rawPage >= 0 ? rawPage : 0;
   const [field, setField] = useState(
-    params.has("email") ? "email" : params.has("idp_sub") ? "idp_sub" : "pk",
+    params.has("name")
+      ? "name"
+      : params.has("email")
+        ? "email"
+        : params.has("idp_sub")
+          ? "idp_sub"
+          : "pk",
   );
-  const [search, setSearch] = useState(
-    params.get("pk") ?? params.get("idp_sub") ?? params.get("email") ?? "",
-  );
+  const [search, setSearch] = useState(params.get(field) ?? "");
   const [filter, setFilter] = useState(status);
   const query = new URLSearchParams({ status, page: String(page), size: "10" });
-  for (const key of ["pk", "idp_sub", "email"]) {
+  for (const key of ["name", "pk", "idp_sub", "email"]) {
     if (params.get(key)) query.set(key, params.get(key)!);
   }
   const list = useFetch<UserList>(
@@ -80,6 +84,7 @@ function UserListContent() {
             }}
           >
             <option value="pk">회원 ID</option>
+            <option value="name">이름</option>
             <option value="email">이메일</option>
             <option value="idp_sub">IDP Sub</option>
           </select>
@@ -88,13 +93,15 @@ function UserListContent() {
           검색어
           <input
             value={search}
-            maxLength={64}
+            maxLength={field === "name" ? 32 : 64}
             placeholder={
-              field === "pk"
-                ? "회원 ID의 일부 또는 전체 입력"
-                : field === "email"
-                  ? "이메일의 일부 또는 전체 입력"
-                  : "IDP Sub의 일부 또는 전체 입력"
+              field === "name"
+                ? "이름의 일부 또는 전체 입력"
+                : field === "pk"
+                  ? "회원 ID의 일부 또는 전체 입력"
+                  : field === "email"
+                    ? "이메일의 일부 또는 전체 입력"
+                    : "IDP Sub의 일부 또는 전체 입력"
             }
             onChange={(e) => setSearch(e.target.value)}
           />

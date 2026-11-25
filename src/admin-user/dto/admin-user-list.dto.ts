@@ -14,6 +14,11 @@ export type AdminUserStatus = "active" | "withdrawn" | "all";
 export class AdminUserListReqDto {
   @IsOptional()
   @IsString()
+  @MaxLength(32)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(64)
   pk?: string;
 
