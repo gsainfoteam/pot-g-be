@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { potRoom } from "../../../drizzle/schema/pot-room";
+import { potRoom } from "@drizzle-schema/pot-room";
 
 export function getPotDepartureTime() {
   return sql<

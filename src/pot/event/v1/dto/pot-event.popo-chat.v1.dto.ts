@@ -1,4 +1,4 @@
-import { FofoActionBtnStringType } from "../../../../../drizzle/schema/fofo-chat-msg";
+import { FofoActionBtnStringType } from "@drizzle-schema/fofo-chat-msg";
 import { StoredFofoChatType } from "@src/fofo/fofo-chat-type";
 
 export class PotEventPopoChatV1Dto {

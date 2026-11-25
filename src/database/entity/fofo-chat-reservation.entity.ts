@@ -1,4 +1,4 @@
-import { FofoChatStringType } from "../../../drizzle/schema/fofo-chat-msg";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { FofoChatMsgEntity } from "@src/database/entity/fofo-chat-msg.entity";
 

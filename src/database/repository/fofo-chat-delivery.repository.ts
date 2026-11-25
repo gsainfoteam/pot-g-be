@@ -6,7 +6,7 @@ import { TxType } from "@src/global/types/tx.types";
 import {
   DeliveryProgress,
   fofoChatDelivery,
-} from "../../../drizzle/schema/fofo-chat-delivery";
+} from "@drizzle-schema/fofo-chat-delivery";
 
 export type FofoChatDelivery = typeof fofoChatDelivery.$inferSelect;
 

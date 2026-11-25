@@ -1,7 +1,7 @@
 import { DatabaseService } from "@src/database/database.service";
 import { Pot } from "@src/pot/model/pot";
 import { PotEvent, PotEventFactory } from "@src/pot/event/pot-event";
-import { potEvent } from "../../../drizzle/schema/pot-event";
+import { potEvent } from "@drizzle-schema/pot-event";
 import { and, asc, eq, lte, not, SQL, sql } from "drizzle-orm";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Injectable } from "@nestjs/common";

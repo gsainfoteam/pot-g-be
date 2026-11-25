@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { and, asc, eq, not } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
 import { PotEvent, PotEventFactory } from "@src/pot/event/pot-event";
-import { potEvent } from "../../../drizzle/schema/pot-event";
+import { potEvent } from "@drizzle-schema/pot-event";
 
 /**
  * 어드민 페이지 전용 pot_event 조회 레포지토리입니다.

@@ -17,12 +17,12 @@ import { UserPotRoomRepository } from "@src/database/repository/user-pot-room.re
 import { PotCreateEventV1 } from "@src/pot/event/v1/pot-create-event";
 import { PotDepartureConfirmEventV1 } from "@src/pot/event/v1/pot-departure-confirm-event";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
-import { users } from "../../drizzle/schema/users";
-import { route } from "../../drizzle/schema/route";
-import { potRoom } from "../../drizzle/schema/pot-room";
-import { potEvent } from "../../drizzle/schema/pot-event";
-import { fofoChatReservation } from "../../drizzle/schema/fofo-chat-reservation";
-import { fofoChatDelivery } from "../../drizzle/schema/fofo-chat-delivery";
+import { users } from "@drizzle-schema/users";
+import { route } from "@drizzle-schema/route";
+import { potRoom } from "@drizzle-schema/pot-room";
+import { potEvent } from "@drizzle-schema/pot-event";
+import { fofoChatReservation } from "@drizzle-schema/fofo-chat-reservation";
+import { fofoChatDelivery } from "@drizzle-schema/fofo-chat-delivery";
 
 config({ quiet: true });
 // Opt in explicitly. These tests use only dedicated fixtures in a local DB.

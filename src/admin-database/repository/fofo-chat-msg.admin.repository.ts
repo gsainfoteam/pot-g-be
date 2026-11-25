@@ -6,7 +6,7 @@ import { TxType } from "@src/global/types/tx.types";
 import {
   fofoChatMsg,
   FofoChatStringType,
-} from "../../../drizzle/schema/fofo-chat-msg";
+} from "@drizzle-schema/fofo-chat-msg";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 
 @Injectable()

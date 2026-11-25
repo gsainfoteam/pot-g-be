@@ -9,7 +9,7 @@ import { Subscription } from "rxjs";
 import { FofoService } from "@src/fofo/fofo.service";
 import { FofoChatReservationRepository } from "@src/database/repository/fofo-chat-reservation.repository";
 import { FofoChatReservationEntity } from "@src/database/entity/fofo-chat-reservation.entity";
-import { FofoChatStringType } from "../../drizzle/schema/fofo-chat-msg";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 import { SlackService } from "nestjs-slack";
 
 const LOOKAHEAD_MS = 5 * 60_000;

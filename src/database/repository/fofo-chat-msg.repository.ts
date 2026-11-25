@@ -4,7 +4,7 @@ import { DatabaseService } from "@src/database/database.service";
 import {
   fofoChatMsg,
   FofoChatStringType,
-} from "../../../drizzle/schema/fofo-chat-msg";
+} from "@drizzle-schema/fofo-chat-msg";
 import { FofoChatMsgEntity } from "@src/database/entity/fofo-chat-msg.entity";
 import { TxType } from "@src/global/types/tx.types";
 

@@ -2,14 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { PotRoomEntity } from "@src/database/entity/pot-room.entity";
 import { TxType } from "@src/global/types/tx.types";
-import { potRoom } from "../../../drizzle/schema/pot-room";
+import { potRoom } from "@drizzle-schema/pot-room";
 import { and, asc, eq, gte, lte, not, sql } from "drizzle-orm";
-import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
-import { users } from "../../../drizzle/schema/users";
+import { userPotRoom } from "@drizzle-schema/user-pot-room";
+import { users } from "@drizzle-schema/users";
 import {
   potEvent,
   PotEventStringType,
-} from "../../../drizzle/schema/pot-event";
+} from "@drizzle-schema/pot-event";
 import { Pot } from "@src/pot/model/pot";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { PotEventFactory } from "@src/pot/event/pot-event";

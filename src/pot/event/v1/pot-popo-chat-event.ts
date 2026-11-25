@@ -1,8 +1,8 @@
 import { Pot } from "../../model/pot";
 import type { PotEvent } from "../pot-event";
-import { PotEventStringType } from "../../../../drizzle/schema/pot-event";
+import { PotEventStringType } from "@drizzle-schema/pot-event";
 import { parseSeoulDate } from "@src/global/utils/convert-date";
-import { FofoActionBtnStringType } from "../../../../drizzle/schema/fofo-chat-msg";
+import { FofoActionBtnStringType } from "@drizzle-schema/fofo-chat-msg";
 import { StoredFofoChatType } from "@src/fofo/fofo-chat-type";
 import { PotEventPopoChatV1Dto } from "@src/pot/event/v1/dto/pot-event.popo-chat.v1.dto";
 import * as format from "string-format";

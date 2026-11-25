@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { AppVersionEntity } from "@src/database/entity/app-version.entity";
-import { appVersion } from "../../../drizzle/schema/app-version";
+import { appVersion } from "@drizzle-schema/app-version";
 import { PotgDBError } from "@src/global/exceptions/potg-db.error";
 import { TxType } from "@src/global/types/tx.types";
 

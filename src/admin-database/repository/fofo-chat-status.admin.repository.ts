@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { asc, count, desc, eq } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
-import { fofoChatReservation } from "../../../drizzle/schema/fofo-chat-reservation";
-import { potEvent } from "../../../drizzle/schema/pot-event";
-import { potRoom } from "../../../drizzle/schema/pot-room";
-import { FofoChatStringType } from "../../../drizzle/schema/fofo-chat-msg";
+import { fofoChatReservation } from "@drizzle-schema/fofo-chat-reservation";
+import { potEvent } from "@drizzle-schema/pot-event";
+import { potRoom } from "@drizzle-schema/pot-room";
+import { FofoChatStringType } from "@drizzle-schema/fofo-chat-msg";
 import { PotPopoChatEventV1Schema } from "@src/pot/event/v1/pot-popo-chat-event";
 
 export type FofoReservationRow = {

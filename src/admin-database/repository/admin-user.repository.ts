@@ -10,16 +10,16 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
-import { route } from "../../../drizzle/schema/route";
-import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
+import { route } from "@drizzle-schema/route";
+import { userPotRoom } from "@drizzle-schema/user-pot-room";
 import { getPotDepartureTime } from "../query/pot-departure-time";
 import { DatabaseService } from "@src/database/database.service";
 import { AdminUserListReqDto } from "@src/admin-user/dto/admin-user-list.dto";
-import { users } from "../../../drizzle/schema/users";
-import { device } from "../../../drizzle/schema/device";
-import { userAlarmSetting } from "../../../drizzle/schema/user-alarm-setting";
-import { potRoom } from "../../../drizzle/schema/pot-room";
-import { potEvent } from "../../../drizzle/schema/pot-event";
+import { users } from "@drizzle-schema/users";
+import { device } from "@drizzle-schema/device";
+import { userAlarmSetting } from "@drizzle-schema/user-alarm-setting";
+import { potRoom } from "@drizzle-schema/pot-room";
+import { potEvent } from "@drizzle-schema/pot-event";
 import { AdminUserPotListReqDto } from "@src/admin-user/dto/admin-user-pot-list.dto";
 
 @Injectable()
@@ -35,6 +35,7 @@ export class AdminUserRepository {
 
   private buildWhere(req: AdminUserListReqDto) {
     return and(
+      this.contains(sql`${users.name}`, req.name),
       this.contains(sql`${users.pk}::text`, req.pk),
       this.contains(sql`${users.idpSub}`, req.idp_sub),
       this.contains(sql`${users.email}`, req.email),
