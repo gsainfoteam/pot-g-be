@@ -9,6 +9,7 @@ import { AdminChatViewLogRepository } from "@src/admin-database/repository/admin
 import { ReportAdminRepository } from "@src/admin-database/repository/report.admin.repository";
 import { FofoChatMsgAdminRepository } from "@src/admin-database/repository/fofo-chat-msg.admin.repository";
 import { FofoChatStatusAdminRepository } from "@src/admin-database/repository/fofo-chat-status.admin.repository";
+import { AdminDashboardRepository } from "./repository/admin-dashboard.repository";
 
 /**
  * 어드민 전용 레포지토리만 모아서 export 하는 모듈입니다.
@@ -26,6 +27,7 @@ import { FofoChatStatusAdminRepository } from "@src/admin-database/repository/fo
     AdminChatViewLogRepository,
     FofoChatMsgAdminRepository,
     FofoChatStatusAdminRepository,
+    AdminDashboardRepository,
   ],
   exports: [
     AdminAccountRepository,
@@ -37,6 +39,7 @@ import { FofoChatStatusAdminRepository } from "@src/admin-database/repository/fo
     AdminChatViewLogRepository,
     FofoChatMsgAdminRepository,
     FofoChatStatusAdminRepository,
+    AdminDashboardRepository,
   ],
 })
 export class AdminDatabaseModule {}

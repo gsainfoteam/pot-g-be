@@ -21,6 +21,7 @@ import { ConfigService } from "@nestjs/config";
 import { HealthModule } from "./health/health.module";
 import { AdminUserModule } from "@src/admin-user/admin-user.module";
 import { AdminFofoMessageModule } from "@src/admin-fofo-message/admin-fofo-message.module";
+import { AdminDashboardModule } from "./admin-dashboard/admin-dashboard.module";
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { AdminFofoMessageModule } from "@src/admin-fofo-message/admin-fofo-messa
     }),
     AdminUserModule,
     AdminFofoMessageModule,
+    AdminDashboardModule,
   ],
   controllers: [],
   providers: [],
