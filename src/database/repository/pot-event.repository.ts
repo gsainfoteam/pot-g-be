@@ -1,7 +1,7 @@
 import { DatabaseService } from "@src/database/database.service";
 import { Pot } from "@src/pot/model/pot";
 import { PotEvent, PotEventFactory } from "@src/pot/event/pot-event";
-import { potEvent } from "../../../drizzle/schema/pot-event";
+import { potEvent } from "@drizzle-schema/pot-event";
 import { and, asc, eq, lte, not, SQL, sql } from "drizzle-orm";
 import { PotEventReducer } from "@src/pot/event/pot-event-reducer";
 import { Injectable } from "@nestjs/common";
@@ -15,6 +15,11 @@ type DataCondition = { eventType: string; data: Record<string, any> };
 export class PotEventRepository {
   constructor(private readonly db: DatabaseService) {}
 
+  /*
+  INSERT INTO pot_event (pot_fk, timestamp, id, type, data)
+  VALUES ($1, $2, DEFAULT, $3, $4)
+  RETURNING *;
+   */
   async saveEvent<S, D>(event: PotEvent<S, D>, tx: TxType) {
     const result = await tx
       .insert(potEvent)
@@ -33,8 +38,8 @@ export class PotEventRepository {
       AND type != 'chat_v1'
     ORDER BY timestamp ASC;
    */
-  async findByIdWithoutChat(potPk: string): Promise<Pot> {
-    const result = await this.db.db
+  async findByIdWithoutChat(potPk: string, tx?: TxType): Promise<Pot> {
+    const result = await (tx ?? this.db.db)
       .select()
       .from(potEvent)
       .where(and(eq(potEvent.potFk, potPk), not(eq(potEvent.type, "chat_v1"))))

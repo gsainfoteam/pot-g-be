@@ -10,6 +10,7 @@ import { initializeMetrics, MetricsInterceptor } from "@gsainfoteam/nest-observa
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
 
   const slackService: SlackService = app.get(SlackService);
 

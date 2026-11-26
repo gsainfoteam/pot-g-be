@@ -9,6 +9,12 @@
 - [PostgreSQL](https://www.postgresql.org/) - 데이터베이스
 - [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
 
+Drizzle 스키마는 `drizzle/schema/*`를 가리키는 `@drizzle-schema/*` alias로 가져옵니다.
+
+```ts
+import { users } from "@drizzle-schema/users";
+```
+
 ## 시작하기
 
 ### 필수 조건
@@ -40,7 +46,7 @@ bun install
 POSTGRES_PASSWORD=password
 POSTGRES_USER=potg
 POSTGRES_DB=potg
-DATABASE_URL=postgresql://potg:password@localhost:5432/potg
+DATABASE_URL=postgresql://potg:password@localhost:55432/potg
 # (Postgres 관련 환경 변수는 모두 수정 불필요)
 
 # IDP Server

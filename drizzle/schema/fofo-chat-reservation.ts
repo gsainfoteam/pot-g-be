@@ -1,31 +1,31 @@
 import { index, jsonb, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { potRoom } from "./pot-room";
-import { popoChatMsg, popoChatType } from "./popo-chat-msg";
+import { fofoChatMsg, fofoChatType } from "./fofo-chat-msg";
 
 /*
-CREATE TABLE "popo_chat_reservation" (
+CREATE TABLE "fofo_chat_reservation" (
     "pk"                 uuid                     NOT NULL,
     "pot_fk"             uuid                     NOT NULL,
-    "popo_chat_msg_type" popo_chat_type           NOT NULL,
+    "fofo_chat_msg_type" popo_chat_type           NOT NULL,
     "send_after"         timestamp with time zone NOT NULL,
     "created_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
     "updated_at"         timestamp with time zone NOT NULL DEFAULT NOW(),
     "format_arguments"   jsonb                    NULL
 );
-CREATE INDEX "idx_popo_chat_reservation_pot_fk_popo_chat_msg_type"
-    ON "popo_chat_reservation" ("pot_fk", "popo_chat_msg_type");
+CREATE INDEX "fofo_chat_reservation_pot_fk_fofo_chat_msg_type_index"
+    ON "fofo_chat_reservation" ("pot_fk", "fofo_chat_msg_type");
 */
-export const popoChatReservation = pgTable(
-  "popo_chat_reservation",
+export const fofoChatReservation = pgTable(
+  "fofo_chat_reservation",
   {
     pk: uuid("pk").primaryKey().notNull(),
     potFk: uuid("pot_fk")
       .notNull()
       .references(() => potRoom.pk),
-    popoChatMsgType: popoChatType("popo_chat_msg_type")
+    fofoChatMsgType: fofoChatType("fofo_chat_msg_type")
       .notNull()
-      .references(() => popoChatMsg.type),
+      .references(() => fofoChatMsg.type),
     sendAfter: timestamp("send_after", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -36,22 +36,23 @@ export const popoChatReservation = pgTable(
     formatArguments: jsonb("format_arguments"),
   },
   (table) => [
+    index().on(table.sendAfter),
     index().on(table.potFk),
-    index().on(table.popoChatMsgType),
-    index().on(table.potFk, table.popoChatMsgType),
+    index().on(table.fofoChatMsgType),
+    index().on(table.potFk, table.fofoChatMsgType),
   ],
 );
 
-export const popoChatReservationRelations = relations(
-  popoChatReservation,
+export const fofoChatReservationRelations = relations(
+  fofoChatReservation,
   ({ one }) => ({
     pot: one(potRoom, {
-      fields: [popoChatReservation.potFk],
+      fields: [fofoChatReservation.potFk],
       references: [potRoom.pk],
     }),
-    popoChatMsg: one(popoChatMsg, {
-      fields: [popoChatReservation.popoChatMsgType],
-      references: [popoChatMsg.type],
+    fofoChatMsg: one(fofoChatMsg, {
+      fields: [fofoChatReservation.fofoChatMsgType],
+      references: [fofoChatMsg.type],
     }),
   }),
 );

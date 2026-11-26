@@ -12,6 +12,7 @@
     "baseUrl": "./",
     "paths": {
       "@src/*": ["src/*"],
+      "@drizzle-schema/*": ["drizzle/schema/*"],
       "@lib/infoteam-idp": ["libs/infoteam-idp/src"],
       "@lib/infoteam-idp/*": ["libs/infoteam-idp/src/*"]
     },

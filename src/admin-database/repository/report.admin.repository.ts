@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
-import { report } from "../../../drizzle/schema/report";
+import { report } from "@drizzle-schema/report";
 
 /**
  * 어드민 페이지 전용 report 조회 레포지토리입니다.

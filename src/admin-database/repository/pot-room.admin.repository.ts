@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { DatabaseService } from "@src/database/database.service";
 import { PotRoomAdminEntity } from "@src/admin-database/entity/pot-room.admin.entity";
-import { potRoom } from "../../../drizzle/schema/pot-room";
-import { userPotRoom } from "../../../drizzle/schema/user-pot-room";
+import { potRoom } from "@drizzle-schema/pot-room";
+import { userPotRoom } from "@drizzle-schema/user-pot-room";
 import { getPotDepartureTime } from "../query/pot-departure-time";
 
 /**

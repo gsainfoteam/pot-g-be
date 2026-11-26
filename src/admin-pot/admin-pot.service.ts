@@ -292,7 +292,7 @@ export class AdminPotService {
         /*
         [AccountingService.processConfirmAccounting을 실행하지 않고 archivePot을 바로 호출하는 이유]
         1. 대상 팟들은 정산 대상자가 0명이므로, 추가로 정산 상태를 변경할 유저가 없습니다.
-        2. 해당 기능은 원래라면 해산되어야 했을 팟을 해산시키는 기능이므로, 추가적인 popo message 발송 불필요합니다.
+        2. 해당 기능은 원래라면 해산되어야 했을 팟을 해산시키는 기능이므로, 추가적인 fofo message 발송 불필요합니다.
         3. potService.archivePot(pot)에 팟 해산에 필수적인 로직이 들어있으므로 해당 코드만 실행합니다.
         */
         const res = await this.potService.archivePot(pot);

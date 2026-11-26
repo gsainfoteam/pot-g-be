@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "@src/database/database.service";
 import { BankEntity } from "@src/database/entity/bank.entity";
-import { bank } from "../../../drizzle/schema/bank";
+import { bank } from "@drizzle-schema/bank";
 
 @Injectable()
 export class BankRepository {
